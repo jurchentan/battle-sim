@@ -214,14 +214,23 @@ select {
 
 .order-popup.right { right: 14px; }
 .order-popup.left { left: 14px; }
+.order-popup.left {
+  border-color: #2d6ba8;
+  box-shadow: 0 2px 0 rgba(45,107,168,0.28);
+}
+
+.order-popup.right {
+  border-color: #b0483e;
+  box-shadow: 0 2px 0 rgba(176,72,62,0.28);
+}
 .order-popup.reels {
-  top: 8px;
+  top: -2px;
   bottom: auto;
   max-width: calc(50% - 18px);
 }
 .order-popup.reels.left { left: 8px; right: auto; }
 .order-popup.reels.right { right: 8px; left: auto; }
-.order-popup.reels.stack-1 { top: 76px; }
+.order-popup.reels.stack-1 { top: 62px; }
 .order-popup-title { font-size: 0.8rem; font-weight: 700; margin-bottom: 2px; }
 .order-popup-desc { font-size: 0.74rem; color: var(--muted); line-height: 1.25; }
 
@@ -295,6 +304,19 @@ select {
   border-left: 10px solid transparent;
   border-right: 10px solid transparent;
   border-top: 10px solid rgba(248, 240, 224, 0.98);
+}
+
+.reels-portrait-quote::before {
+  content: "";
+  position: absolute;
+  left: 21px;
+  bottom: -13px;
+  width: 0;
+  height: 0;
+  border-left: 11px solid transparent;
+  border-right: 11px solid transparent;
+  border-top: 11px solid #2f271f;
+  z-index: -1;
 }
 
 #reelsBlueCard .reels-portrait-quote {
@@ -381,7 +403,7 @@ body.reels-mode #subtitle { display: none; }
 
 body.reels-mode .order-popup-layer {
   position: absolute;
-  top: 72px;
+  top: 52px;
   bottom: auto;
   left: 8px;
   right: 8px;
