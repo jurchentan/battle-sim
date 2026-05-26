@@ -509,6 +509,7 @@ function issueOrdersFromAction(side, events) {
     const reserveUnits = army.units.filter((u) => u.alive && u.divisionId === "reserve");
     reserveUnits.forEach((u) => {
       u.divisionId = sector;
+      if (u.type === "infantry") u.moveBonus = 5;
     });
     assignWingMembership(army);
   }
@@ -673,7 +674,7 @@ function actionDescription(action, sector) {
   if (action === "mass_assault") return "All sectors attack: +20% dealt, but units take +20% damage.";
   if (action === "line_rotation") return `Sector ${s} rotates line: controlled withdrawal, relief, and recovery.`;
   if (action === "exploit_gap") return `Exploit weakness in ${s}: opportunistic push with flank pressure.`;
-  if (action === "commit_reserve") return `Reserve wing commits into ${s} to stabilize and counter-attack.`;
+  if (action === "commit_reserve") return `Reserve gets +1 move as it reinforces ${s}.`;
   if (action === "artillery_barrage") return "All artillery deals x2 damage for 5 turns.";
   if (action === "foot_cavalry") return "All infantry gets +1 move and extra morale pressure for 5 turns.";
   if (action === "feigned_retreat") return "All cavalry retreats and attacks at range 2 for 5 turns.";
@@ -833,6 +834,9 @@ function moveUnits(side, rand) {
     let steps = Math.max(1, u.move);
     const sig = activeSig;
     if (sig?.type === "foot_cavalry" && u.type === "infantry") {
+      steps += 1;
+    }
+    if ((u.moveBonus || 0) > 0) {
       steps += 1;
     }
     if (wing.currentOrder === "Withdraw") {
@@ -1709,6 +1713,7 @@ function routeAndCleanup(events) {
       if (!u.statuses) u.statuses = { cavalryShockTurns: 0, disengageTurns: 0 };
       if ((u.statuses.cavalryShockTurns || 0) > 0) u.statuses.cavalryShockTurns -= 1;
       if ((u.statuses.disengageTurns || 0) > 0) u.statuses.disengageTurns -= 1;
+      if ((u.moveBonus || 0) > 0) u.moveBonus -= 1;
       if (army.currentAction === "advance") {
         u.morale = Math.min(100, u.morale + 4);
       }
