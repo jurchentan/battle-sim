@@ -884,7 +884,7 @@ function chooseFlankDefenseStep(unit, side, reserved, visitedThisMove) {
   const enemySide = side === "A" ? "B" : "A";
   const nearest = nearestEnemy(unit, enemySide);
   const centerR = getCenterDivisionMeanR(side);
-  const flankSign = ((unit.preferredR ?? unit.r) >= centerR) ? 1 : -1;
+  const flankSign = getPinnedFlankSign(unit, side, centerR);
   const targetR = centerR + (flankSign * 5);
   const front = frontlineAnchorForSide(side);
   const targetQ = front ? front.q + (side === "A" ? 0.2 : -0.2) : unit.q;
@@ -931,10 +931,50 @@ function chooseFlankDefenseStep(unit, side, reserved, visitedThisMove) {
   return best;
 }
 
+function getPinnedFlankSign(unit, side, centerR) {
+  if (unit.flankSign === 1 || unit.flankSign === -1) return unit.flankSign;
+  const fallback = (unit.preferredR ?? unit.r) >= centerR ? 1 : -1;
+  const lane = getTacticalLaneForUnit(unit);
+  if (lane === "left") {
+    unit.flankSign = side === "A" ? -1 : 1;
+  } else if (lane === "right") {
+    unit.flankSign = side === "A" ? 1 : -1;
+  } else {
+    unit.flankSign = fallback;
+  }
+  return unit.flankSign;
+}
+
 function getSectorForUnit(unit) {
-  if (unit.divisionId === "left") return "left";
-  if (unit.divisionId === "right") return "right";
-  return "center";
+  return getTacticalLaneForUnit(unit);
+}
+
+function getTacticalLaneForUnit(unit) {
+  if (unit.divisionId === "left" || unit.divisionId === "center" || unit.divisionId === "right") {
+    return unit.divisionId;
+  }
+
+  const army = state.armies[unit.armyId];
+  if (!army) return "center";
+  const means = FRONTLINE_DIVISION_IDS.map((divisionId) => ({
+    divisionId,
+    meanR: divisionMeanR(army, divisionId),
+  }));
+
+  means.sort((a, b) => Math.abs(unit.r - a.meanR) - Math.abs(unit.r - b.meanR));
+  return means[0]?.divisionId || "center";
+}
+
+function divisionMeanR(army, divisionId) {
+  const division = army.divisions[divisionId];
+  if (!division || !Array.isArray(division.unitIds) || !division.unitIds.length) {
+    return getCenterDivisionMeanR(army.id);
+  }
+  const units = division.unitIds
+    .map((id) => army.units.find((u) => u.id === id))
+    .filter((u) => u && u.alive);
+  if (!units.length) return getCenterDivisionMeanR(army.id);
+  return units.reduce((sum, u) => sum + u.r, 0) / units.length;
 }
 
 function unitMatchesActionTarget(unit, target) {
@@ -1020,7 +1060,7 @@ function scoreMoveTile(unit, hex, nearest, wing, side, isFlankOrder) {
   let score = (currentDist - nextDist) * 10;
 
   if (isFlankOrder) {
-    const flankBias = wing.currentOrder.includes("Left") ? -1 : 1;
+    const flankBias = getFlankBias(side, wing.currentOrder);
     score += (hex.r - unit.r) * flankBias * 7;
   }
 
@@ -1102,6 +1142,13 @@ function scoreMoveTile(unit, hex, nearest, wing, side, isFlankOrder) {
   }
 
   return score;
+}
+
+function getFlankBias(side, order) {
+  if (order.includes("Left")) {
+    return side === "A" ? 1 : -1;
+  }
+  return side === "A" ? -1 : 1;
 }
 
 function unitPowerValue(unit) {
