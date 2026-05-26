@@ -13,6 +13,7 @@ const COMMANDERS = {
     preferredActions: ["concentrate_center", "bombard_sector"],
     traits: { aggression: 8, control: 8, creativity: 9, panicResistance: 9 },
     signature: { name: "Grand Battery", type: "artillery_barrage", duration: 5, description: "Artillery deals x2 damage in one sector for 5 turns." },
+    signatureQuote: "Artillery is the god of war.",
   },
   lee: {
     name: "Robert E. Lee",
@@ -20,6 +21,7 @@ const COMMANDERS = {
     preferredActions: ["flank_attack", "rally"],
     traits: { aggression: 5, control: 7, creativity: 9, panicResistance: 7 },
     signature: { name: "Jackson's Foot Cavalry", type: "foot_cavalry", duration: 5, description: "Infantry gains +1 move and morale shock in one sector for 5 turns." },
+    signatureQuote: "It is well that war is so terrible, otherwise we should grow too fond of it.",
   },
   genghis: {
     name: "Genghis Khan",
@@ -27,6 +29,7 @@ const COMMANDERS = {
     preferredActions: ["flank_attack", "cavalry_charge"],
     traits: { aggression: 9, control: 3, creativity: 9, panicResistance: 8 },
     signature: { name: "Feigned Retreat", type: "feigned_retreat", duration: 5, description: "Cavalry retreats and attacks at range 2 for 5 turns." },
+    signatureQuote: "I am the punishment of God...",
   },
   washington: {
     name: "George Washington",
@@ -34,6 +37,7 @@ const COMMANDERS = {
     preferredActions: ["defensive_stand", "defend_flank"],
     traits: { aggression: 3, control: 9, creativity: 6, panicResistance: 9 },
     signature: { name: "Fighting Withdrawal", type: "fighting_withdrawal", duration: 5, description: "Target sector retreats, recovers 20% morale once, and takes 20% less damage for 5 turns." },
+    signatureQuote: "Discipline is the soul of an army.",
   },
   mcclellan: {
     name: "George B. McClellan",
@@ -41,6 +45,7 @@ const COMMANDERS = {
     preferredActions: ["defensive_stand", "rally"],
     traits: { aggression: 0, control: 9, creativity: 3, panicResistance: 8 },
     signature: { name: "The Perfect Plan", type: "perfect_plan", duration: 5, description: "All units hold for 5 turns, then force an offensive action with +20% damage until the next major action turn." },
+    signatureQuote: "Let no detail be left to chance.",
   },
 };
 

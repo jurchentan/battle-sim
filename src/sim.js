@@ -589,11 +589,37 @@ function showMajorOrderPopup(side, action, sector) {
     const accent = COMMANDER_ACCENT[state.armies[side].armyCommanderId] || "#3d3124";
     title.style.color = accent;
     desc.style.color = accent;
+    showReelsSignatureQuote(side, action);
   }
   div.appendChild(title);
   div.appendChild(desc);
   wrap.appendChild(div);
   setTimeout(() => div.remove(), 3400);
+}
+
+function showReelsSignatureQuote(side, action) {
+  if (!state.reelsMode) return;
+  const wrap = els.orderPopupLayer;
+  if (!wrap) return;
+  const commander = COMMANDERS[state.armies[side].armyCommanderId] || {};
+  const quote = getSignatureQuote(commander, action);
+  if (!quote) return;
+
+  const div = document.createElement("div");
+  div.className = `reels-quote-bubble ${side === "A" ? "left" : "right"}`;
+  div.textContent = `"${quote}"`;
+  wrap.appendChild(div);
+  setTimeout(() => div.remove(), 3800);
+}
+
+function getSignatureQuote(commander, action) {
+  if (commander.signatureQuote) return commander.signatureQuote;
+  if (action === "artillery_barrage") return "Guns, open and break them.";
+  if (action === "foot_cavalry") return "Press the march and strike hard.";
+  if (action === "feigned_retreat") return "Fall back, then close the trap.";
+  if (action === "fighting_withdrawal") return "Yield ground, not the army.";
+  if (action === "perfect_plan") return "Hold the line; then strike by plan.";
+  return "Forward by command.";
 }
 
 function isSignatureAction(action) {

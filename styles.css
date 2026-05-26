@@ -225,6 +225,37 @@ select {
 .order-popup-title { font-size: 0.8rem; font-weight: 700; margin-bottom: 2px; }
 .order-popup-desc { font-size: 0.74rem; color: var(--muted); line-height: 1.25; }
 
+.reels-quote-bubble {
+  position: absolute;
+  bottom: 134px;
+  max-width: 210px;
+  background: rgba(255, 252, 245, 0.96);
+  border: 1px solid #b9a282;
+  border-radius: 12px;
+  padding: 7px 9px;
+  font-size: 0.76rem;
+  line-height: 1.25;
+  color: #3d3124;
+  box-shadow: 0 2px 0 #e8dcc7;
+}
+
+.reels-quote-bubble.left { left: 8px; }
+.reels-quote-bubble.right { right: 8px; }
+
+.reels-quote-bubble::after {
+  content: "";
+  position: absolute;
+  bottom: -8px;
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 8px solid rgba(255, 252, 245, 0.96);
+}
+
+.reels-quote-bubble.left::after { left: 18px; }
+.reels-quote-bubble.right::after { right: 18px; }
+
 .reels-side-controls {
   position: fixed;
   right: 6px;
