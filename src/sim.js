@@ -540,7 +540,7 @@ function issueOrdersFromAction(side, events) {
       : sector === "right"
         ? { left: "Hold", center: "Hold", right: "Attack", reserve: "Advance" }
         : { left: "Hold", center: "Attack", right: "Hold", reserve: "Advance" },
-    artillery_barrage: { left: "Bombard", center: "Bombard", right: "Bombard" },
+    artillery_barrage: { left: "Hold", center: "Hold", right: "Hold", artillery: "Bombard" },
     foot_cavalry: { left: "Flank Left", center: "Hold", right: "Flank Right" },
     feigned_retreat: { left: "Withdraw", center: "Withdraw", right: "Withdraw" },
     fighting_withdrawal: { left: "Withdraw", center: "Withdraw", right: "Withdraw" },
