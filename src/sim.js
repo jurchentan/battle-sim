@@ -709,7 +709,7 @@ function moveUnits(side, rand) {
   const movers = army.units.filter((u) => u.alive);
   movers.forEach((u) => {
     const wing = army.divisions[u.divisionId] || army.divisions.center;
-    const nearest = nearestEnemy(u, enemySide);
+    const nearest = selectMovementTargetEnemy(u, side, enemySide, wing);
     if (!nearest) return;
     const distToNearest = hexDist(u.q, u.r, nearest.q, nearest.r);
     const activeSig = state.armies[side].activeSignature;
@@ -772,6 +772,37 @@ function moveUnits(side, rand) {
 
 
   });
+}
+
+function selectMovementTargetEnemy(unit, side, enemySide, wing) {
+  const allEnemies = state.armies[enemySide].units.filter((u) => u.alive);
+  if (!allEnemies.length) return null;
+
+  const lane = getTacticalLaneForUnit(unit);
+  const laneEnemies = allEnemies.filter((e) => getTacticalLaneForUnit(e) === lane);
+  const offensiveOrder = wing.currentOrder === "Advance"
+    || wing.currentOrder === "Attack"
+    || wing.currentOrder === "Charge"
+    || wing.currentOrder === "Cavalry Charge"
+    || wing.currentOrder === "Flank Left"
+    || wing.currentOrder === "Flank Right";
+
+  const pool = (unit.divisionId !== "reserve" && offensiveOrder && laneEnemies.length)
+    ? laneEnemies
+    : allEnemies;
+
+  let best = null;
+  let bestScore = Infinity;
+  pool.forEach((e) => {
+    const dist = hexDist(unit.q, unit.r, e.q, e.r);
+    const lateral = Math.abs((unit.r ?? 0) - e.r);
+    const score = dist + (lateral * 0.15);
+    if (score < bestScore) {
+      bestScore = score;
+      best = e;
+    }
+  });
+  return best;
 }
 
 function chooseReserveStep(unit, side, reserved, visitedThisMove) {
@@ -1136,6 +1167,18 @@ function scoreMoveTile(unit, hex, nearest, wing, side, isFlankOrder) {
 
   const localCrowd = countFriendlyInRadius(hex.q, hex.r, unit.armyId, 1);
   if (localCrowd > 3) score -= (localCrowd - 3) * 8;
+
+  const offensiveOrder = wing.currentOrder === "Advance"
+    || wing.currentOrder === "Attack"
+    || wing.currentOrder === "Charge"
+    || wing.currentOrder === "Cavalry Charge"
+    || wing.currentOrder === "Flank Left"
+    || wing.currentOrder === "Flank Right";
+  if (unit.divisionId !== "reserve" && offensiveOrder) {
+    const localCrowdWide = countFriendlyInRadius(hex.q, hex.r, unit.armyId, 2);
+    if (localCrowdWide > 7) score -= (localCrowdWide - 7) * 4;
+    if (localCrowdWide <= 5) score += 4;
+  }
 
   if (unit.type === "artillery") {
     const standOff = hexDist(hex.q, hex.r, nearest.q, nearest.r);
