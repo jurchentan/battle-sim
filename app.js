@@ -45,7 +45,7 @@ const COMMANDERS = {
 };
 
 const ORDERS = ["Hold", "Advance", "Attack", "Flank Left", "Flank Right", "Retreat", "Withdraw", "Refuse Flank", "Support Center", "Bombard", "Charge", "Cavalry Charge"];
-const MAJOR_ACTIONS = ["advance", "concentrate_center", "flank_attack", "cavalry_charge", "defensive_stand", "bombard_sector", "defend_flank", "rally", "retreat", "mass_assault", "line_rotation", "exploit_gap"];
+const MAJOR_ACTIONS = ["advance", "concentrate_center", "flank_attack", "cavalry_charge", "defensive_stand", "bombard_sector", "defend_flank", "rally", "retreat", "mass_assault", "line_rotation", "exploit_gap", "commit_reserve"];
 
 const state = {
   mode: "terrain",
@@ -58,6 +58,9 @@ const state = {
   selectedUnitId: null,
   moveSourceUnitId: null,
   selectedWingUnits: new Set(),
+  wingDragActive: false,
+  wingDragMoved: false,
+  wingDragLastHex: null,
   turn: 0,
   seed: 48192,
   turnLimit: 20,
@@ -255,6 +258,7 @@ function wingTemplate() {
     left: { id: "left", commanderId: "napoleon", unitIds: [], currentOrder: "Hold", lastFrictionEvent: null },
     center: { id: "center", commanderId: "napoleon", unitIds: [], currentOrder: "Hold", lastFrictionEvent: null },
     right: { id: "right", commanderId: "lee", unitIds: [], currentOrder: "Hold", lastFrictionEvent: null },
+    reserve: { id: "reserve", commanderId: "washington", unitIds: [], currentOrder: "Hold", lastFrictionEvent: null },
   };
 }
 
@@ -318,10 +322,19 @@ function deployByFormation(side, formation, reverse = false) {
 
   assignWingMembership(army);
   let p = 0;
+  const reserveBand = deploymentHexesForSide(side, 2);
+  const reserveInfCount = Math.min(inf.length, Math.max(1, Math.floor(inf.length * 0.2)));
   inf.forEach((u, i) => {
     const pos = front[p++] || front[front.length - 1];
     setUnitPos(u, pos.q, pos.r);
-    u.divisionId = i % 3 === 0 ? "left" : i % 3 === 1 ? "center" : "right";
+    if (i >= inf.length - reserveInfCount) {
+      const ri = i - (inf.length - reserveInfCount);
+      const rpos = reserveBand[ri] || rear[ri] || pos;
+      setUnitPos(u, rpos.q, rpos.r);
+      u.divisionId = "reserve";
+    } else {
+      u.divisionId = i % 3 === 0 ? "left" : i % 3 === 1 ? "center" : "right";
+    }
   });
 
   cav.forEach((u, i) => {
@@ -445,6 +458,9 @@ function wireUi() {
   els.simSpeedSelect.onchange = () => { state.simSpeed = els.simSpeedSelect.value; };
 
   els.canvas.addEventListener("click", onCanvasClick);
+  els.canvas.addEventListener("mousedown", onCanvasPointerDown);
+  els.canvas.addEventListener("mousemove", onCanvasPointerMove);
+  window.addEventListener("mouseup", onCanvasPointerUp);
   updateSimButton();
 }
 
@@ -555,7 +571,7 @@ function renderModeTabs() {
   els.modeTabs.innerHTML = "";
   MODES.forEach((m) => {
     const btn = document.createElement("button");
-    btn.textContent = m[0].toUpperCase() + m.slice(1);
+    btn.textContent = m === "wings" ? "Divisions" : (m[0].toUpperCase() + m.slice(1));
     btn.className = state.mode === m ? "active" : "";
     btn.onclick = () => {
       state.mode = m;
@@ -595,12 +611,12 @@ function renderToolPanel() {
   if (state.mode === "wings") {
     const c = document.createElement("div");
     c.className = "tool-group";
-    c.innerHTML = "<h3>Assign Selected Brigades</h3>";
+    c.innerHTML = "<h3>Assign Selected Brigades To Division</h3>";
     const picked = document.createElement("div");
     picked.className = "card";
-    picked.textContent = `Selected brigades: ${state.selectedWingUnits.size}. Tap brigades on the map, then assign division.`;
+    picked.textContent = `Selected brigades: ${state.selectedWingUnits.size}. Tap or drag across brigades, then assign division.`;
     c.appendChild(picked);
-    ["left", "center", "right"].forEach((wing) => {
+    ["left", "center", "right", "reserve"].forEach((wing) => {
       const b = document.createElement("button");
       b.textContent = `${wing} division`;
       b.onclick = () => assignSelectedToWing(wing);
@@ -689,6 +705,10 @@ function commanderChooser(side) {
 }
 
 function onCanvasClick(e) {
+  if (state.mode === "wings" && state.wingDragMoved) {
+    state.wingDragMoved = false;
+    return;
+  }
   const { q, r } = pixelToHex(e);
   if (q < 0 || q >= state.map.width || r < 0 || r >= state.map.height) return;
   const hex = getHex(q, r);
@@ -731,6 +751,39 @@ function onCanvasClick(e) {
     }
   }
   state.selectedUnitId = hex.occupantUnitId;
+  render();
+}
+
+function onCanvasPointerDown(e) {
+  if (state.mode !== "wings") return;
+  state.wingDragActive = true;
+  state.wingDragMoved = false;
+  state.wingDragLastHex = null;
+  addWingSelectionFromPointerEvent(e);
+}
+
+function onCanvasPointerMove(e) {
+  if (state.mode !== "wings" || !state.wingDragActive) return;
+  addWingSelectionFromPointerEvent(e);
+}
+
+function onCanvasPointerUp() {
+  if (!state.wingDragActive) return;
+  state.wingDragActive = false;
+  state.wingDragLastHex = null;
+}
+
+function addWingSelectionFromPointerEvent(e) {
+  const { q, r } = pixelToHex(e);
+  if (q < 0 || q >= state.map.width || r < 0 || r >= state.map.height) return;
+  const key = `${q},${r}`;
+  if (state.wingDragLastHex === key) return;
+  state.wingDragLastHex = key;
+  const hex = getHex(q, r);
+  if (!hex || !hex.active || !hex.occupantUnitId) return;
+  state.selectedWingUnits.add(hex.occupantUnitId);
+  state.selectedUnitId = hex.occupantUnitId;
+  state.wingDragMoved = true;
   render();
 }
 
@@ -1429,6 +1482,20 @@ function chooseSectorForAction(action, side, rand) {
     });
     return best;
   }
+  if (action === "commit_reserve") {
+    const enemySide = side === "A" ? "B" : "A";
+    const sectors = ["left", "center", "right"];
+    let pressured = "center";
+    let worst = -Infinity;
+    sectors.forEach((s) => {
+      const diff = aliveCountInSector(enemySide, s) - aliveCountInSector(side, s);
+      if (diff > worst) {
+        worst = diff;
+        pressured = s;
+      }
+    });
+    return pressured;
+  }
   if (action === "defend_flank") {
     return weightedPick(["left", "right"], sectorWeights(side, ["left", "right"]), rand);
   }
@@ -1525,6 +1592,7 @@ function getAvailableActionsForArmy(side) {
   const alive = army.units.filter((u) => u.alive);
   const cavalryCount = alive.filter((u) => u.type === "cavalry").length;
   const artilleryCount = alive.filter((u) => u.type === "artillery").length;
+  const reserveCount = alive.filter((u) => u.divisionId === "reserve").length;
   const status = getBattleStatus(side);
   const farBattle = state.turn === 1 || (status.contactRatio < 0.12 && status.nearRatio < 0.25 && status.avgNearestDist > 2.2);
 
@@ -1533,6 +1601,7 @@ function getAvailableActionsForArmy(side) {
     if (action === "bombard_sector" && artilleryCount === 0) return false;
     if (action === "exploit_gap" && status.nearRatio < 0.2) return false;
     if (action === "line_rotation" && status.myMorale > 85 && status.outnumberedRatio < 1.05) return false;
+    if (action === "commit_reserve" && reserveCount === 0) return false;
     if (farBattle && action !== "advance") return false;
     return true;
   });
@@ -1581,6 +1650,7 @@ function getActionWeights(commander, phase, side) {
     mass_assault: 0.08 + enemyBroken * 2.1 + engagement * 0.8,
     line_rotation: 0.2 + flankThreat * 1.8 + lowMorale * 1.1,
     exploit_gap: 0.08 + status.gapOpportunity * 2.2 + engagement * 0.5,
+    commit_reserve: 0.1 + flankThreat * 2.1 + pressure * 0.7,
   };
 
   const aggr = commander.traits.aggression || 5;
@@ -1597,6 +1667,7 @@ function getActionWeights(commander, phase, side) {
   base.retreat *= 0.7 + ((10 - aggr) / 10) * 0.7;
   base.line_rotation *= 0.8 + (control / 10) * 0.7;
   base.exploit_gap *= 0.8 + (creativity / 10) * 0.8;
+  base.commit_reserve *= 0.8 + (control / 10) * 0.85;
 
   Object.keys(base).forEach((k) => {
     base[k] = Math.max(0.01, base[k]);
@@ -1613,7 +1684,7 @@ function issueOrdersFromAction(side, events) {
   const army = state.armies[side];
   const sig = army.activeSignature;
   if (sig?.type === "perfect_plan") {
-    const prepOrders = { left: "Hold", center: "Hold", right: "Hold" };
+    const prepOrders = { left: "Hold", center: "Hold", right: "Hold", reserve: "Hold" };
     Object.entries(prepOrders).forEach(([wing, order]) => {
       army.divisions[wing].currentOrder = order;
     });
@@ -1626,6 +1697,15 @@ function issueOrdersFromAction(side, events) {
   }
   const action = army.currentAction || "concentrate_center";
   const sector = army.currentSector || "center";
+
+  if (action === "commit_reserve") {
+    const reserveUnits = army.units.filter((u) => u.alive && u.divisionId === "reserve");
+    reserveUnits.forEach((u) => {
+      u.divisionId = sector;
+    });
+    assignWingMembership(army);
+  }
+
   const mapByAction = {
     advance: { left: "Advance", center: "Advance", right: "Advance" },
     concentrate_center: { left: "Hold", center: "Attack", right: "Hold" },
@@ -1667,6 +1747,11 @@ function issueOrdersFromAction(side, events) {
       : sector === "right"
         ? { left: "Hold", center: "Hold", right: "Charge" }
         : { left: "Hold", center: "Charge", right: "Hold" },
+    commit_reserve: sector === "left"
+      ? { left: "Attack", center: "Hold", right: "Hold", reserve: "Advance" }
+      : sector === "right"
+        ? { left: "Hold", center: "Hold", right: "Attack", reserve: "Advance" }
+        : { left: "Hold", center: "Attack", right: "Hold", reserve: "Advance" },
     artillery_barrage: { left: "Bombard", center: "Bombard", right: "Bombard" },
     foot_cavalry: { left: "Attack", center: "Attack", right: "Attack" },
     feigned_retreat: { left: "Withdraw", center: "Withdraw", right: "Withdraw" },
@@ -1676,6 +1761,9 @@ function issueOrdersFromAction(side, events) {
   Object.entries(orders).forEach(([wing, order]) => {
     army.divisions[wing].currentOrder = order;
   });
+  if (!Object.prototype.hasOwnProperty.call(orders, "reserve")) {
+    army.divisions.reserve.currentOrder = "Hold";
+  }
 
   if (isMajorActionTurn(state.turn)) {
     events.push(`${army.name} action set: ${formatActionName(action)} (${sector.toUpperCase()})`);
@@ -1735,6 +1823,7 @@ function actionDescription(action, sector) {
   if (action === "mass_assault") return "All sectors attack: +20% dealt, but units take +20% damage.";
   if (action === "line_rotation") return `Sector ${s} rotates line: controlled withdrawal, relief, and recovery.`;
   if (action === "exploit_gap") return `Exploit weakness in ${s}: opportunistic push with flank pressure.`;
+  if (action === "commit_reserve") return `Reserve wing commits into ${s} to stabilize and counter-attack.`;
   if (action === "artillery_barrage") return "All artillery deals x2 damage for 5 turns.";
   if (action === "foot_cavalry") return "All infantry gets +1 move and extra morale pressure for 5 turns.";
   if (action === "feigned_retreat") return "All cavalry retreats and attacks at range 2 for 5 turns.";
@@ -1764,6 +1853,7 @@ function affectedWingsForAction(action, sector) {
   if (action === "foot_cavalry" || action === "feigned_retreat") return ["left", "center", "right"];
   if (action === "mass_assault") return ["left", "center", "right"];
   if (action === "line_rotation" || action === "exploit_gap") return [sector];
+  if (action === "commit_reserve") return [sector, "reserve"];
   if (action === "defend_flank" || action === "rally" || action === "retreat") return [sector];
   return ["left", "center", "right"];
 }
@@ -2209,6 +2299,7 @@ function routeAndCleanup(events) {
   ["A", "B"].forEach((side) => {
     const army = state.armies[side];
     const moraleRecoverySector = (army.currentAction === "rally" || army.currentAction === "retreat" || army.currentAction === "line_rotation") ? (army.currentSector || "center") : null;
+    const routedThisTurn = [];
     state.armies[side].units.forEach((u) => {
       if (!u.alive) return;
       if (!u.statuses) u.statuses = { cavalryShockTurns: 0 };
@@ -2223,11 +2314,30 @@ function routeAndCleanup(events) {
         const h = getHex(u.q, u.r);
         if (h && h.occupantUnitId === u.id) h.occupantUnitId = null;
         events.push(`${displayUnitId(u.id)} ROUTED`);
+        routedThisTurn.push({ q: u.q, r: u.r, id: u.id });
       }
       if (u.morale < 40 && u.morale > 0) u.state = "broken";
       else if (u.morale < 70) u.state = "shaken";
       else u.state = "steady";
     });
+
+    if (routedThisTurn.length) {
+      let shocked = 0;
+      army.units.forEach((u) => {
+        if (!u.alive) return;
+        let shock = 0;
+        routedThisTurn.forEach((r) => {
+          const d = hexDist(u.q, u.r, r.q, r.r);
+          if (d === 1) shock += 12;
+          else if (d === 2) shock += 6;
+        });
+        if (shock > 0) {
+          u.morale = Math.max(0, u.morale - shock);
+          shocked += 1;
+        }
+      });
+      if (shocked > 0) events.push(`${army.name} morale cascade: ${shocked} nearby units shaken.`);
+    }
   });
 }
 

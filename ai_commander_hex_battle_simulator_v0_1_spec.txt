@@ -1196,3 +1196,35 @@ The armies are simple.
 The commanders are dramatic.
 The sandbox is easy to edit.
 The output is made for short-form battle reels.
+
+================================================================================
+19. V0.2 COMMAND PLANS UPDATE
+================================================================================
+
+Plan A — Morale Cascade (IMPLEMENTED)
+- When a unit routes, nearby friendly units also lose morale.
+- Suggested default cascade values:
+  - Adjacent hexes (distance 1): -12 morale
+  - Near hexes (distance 2): -6 morale
+- Purpose:
+  - Makes local breakthroughs matter.
+  - Allows superior tactical concentration to beat raw numbers.
+  - Produces more realistic collapse chains.
+
+Plan B — Reserve System + Commit Reserve Action (IMPLEMENTED)
+- Reserve is now a formal wing/division: Left, Center, Right, Reserve.
+- Reserve units begin behind the main line and are held back unless committed.
+- New major action: Commit Reserve.
+  - Commander chooses pressured sector.
+  - Reserve wing is committed into that sector to stabilize/counter-attack.
+- Purpose:
+  - Gives high-control commanders a timing lever.
+  - Improves comeback potential when outnumbered.
+  - Adds decision depth beyond linear frontal trades.
+
+Plan C — Command Radius (TODO for v0.3)
+- Not implemented in v0.2.
+- Proposed v0.3 behavior:
+  - Units farther from command influence suffer order degradation.
+  - High-control commanders reduce command penalties.
+  - Radius pressure encourages coherent fronts and reserve anchoring.
