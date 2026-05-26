@@ -146,6 +146,37 @@ function sectorWeights(side, sectors) {
   return w;
 }
 
+function avgMoraleInSector(side, sector) {
+  const army = state.armies[side];
+  const units = army.divisions[sector].unitIds
+    .map((id) => army.units.find((u) => u.id === id))
+    .filter((u) => u && u.alive);
+  if (!units.length) return 100;
+  return units.reduce((sum, u) => sum + u.morale, 0) / units.length;
+}
+
+function chooseReserveReinforcementSector(side) {
+  const enemySide = side === "A" ? "B" : "A";
+  const sectors = ["left", "center", "right"];
+  let target = "center";
+  let worstScore = -Infinity;
+
+  sectors.forEach((sector) => {
+    const myAlive = aliveCountInSector(side, sector);
+    const enemyAlive = aliveCountInSector(enemySide, sector);
+    const outnumberPressure = Math.max(0, enemyAlive - myAlive);
+    const moralePressure = Math.max(0, (70 - avgMoraleInSector(side, sector)) / 10);
+    const thinLinePressure = myAlive <= 1 ? 1.5 : myAlive <= 2 ? 0.8 : 0;
+    const score = (outnumberPressure * 2.2) + moralePressure + thinLinePressure;
+    if (score > worstScore) {
+      worstScore = score;
+      target = sector;
+    }
+  });
+
+  return target;
+}
+
 function chooseSectorForAction(action, side, rand) {
   if (action === "mass_assault") return "all";
   if (action === "concentrate_center") return "center";
@@ -176,18 +207,7 @@ function chooseSectorForAction(action, side, rand) {
     return best;
   }
   if (action === "commit_reserve") {
-    const enemySide = side === "A" ? "B" : "A";
-    const sectors = ["left", "center", "right"];
-    let pressured = "center";
-    let worst = -Infinity;
-    sectors.forEach((s) => {
-      const diff = aliveCountInSector(enemySide, s) - aliveCountInSector(side, s);
-      if (diff > worst) {
-        worst = diff;
-        pressured = s;
-      }
-    });
-    return pressured;
+    return chooseReserveReinforcementSector(side);
   }
   if (action === "defend_flank") {
     return weightedPick(["left", "right"], sectorWeights(side, ["left", "right"]), rand);
@@ -389,9 +409,11 @@ function issueOrdersFromAction(side, events) {
     return;
   }
   const action = army.currentAction || "concentrate_center";
-  const sector = army.currentSector || "center";
+  let sector = army.currentSector || "center";
 
   if (action === "commit_reserve") {
+    sector = chooseReserveReinforcementSector(side);
+    army.currentSector = sector;
     const reserveUnits = army.units.filter((u) => u.alive && u.divisionId === "reserve");
     reserveUnits.forEach((u) => {
       u.divisionId = sector;
@@ -1118,4 +1140,3 @@ function postBattleReport() {
     collapseReason: "Collapse Reason: morale shocks from cavalry and opposite-side attacks.",
   };
 }
-
