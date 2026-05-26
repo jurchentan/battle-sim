@@ -365,14 +365,10 @@ function updateReelsCard(side) {
   const abilityEl = isBlue ? els.reelsBlueAbilityFill : els.reelsRedAbilityFill;
   const abilityLabelEl = isBlue ? els.reelsBlueAbilityLabel : els.reelsRedAbilityLabel;
   const traitsEl = isBlue ? els.reelsBlueTraits : els.reelsRedTraits;
-  const superNameEl = isBlue ? els.reelsBlueSuperName : els.reelsRedSuperName;
   const quoteEl = isBlue ? els.reelsBlueQuote : els.reelsRedQuote;
   const miniTraitsEl = isBlue ? els.reelsBlueMiniTraits : els.reelsRedMiniTraits;
 
   nameEl.textContent = commander?.name || (isBlue ? "Blue Commander" : "Red Commander");
-  if (superNameEl && commander?.signature?.name) {
-    superNameEl.textContent = commander.signature.name;
-  }
   if (traitsEl && commander?.traits) {
     const aggr = commander.traits.aggression ?? 0;
     const control = commander.traits.control ?? 0;
