@@ -177,6 +177,16 @@ function chooseReserveReinforcementSector(side) {
   return target;
 }
 
+function reserveAnchorForSide(side) {
+  const army = state.armies[side];
+  const lineUnits = army.units.filter((u) => u.alive && u.divisionId !== "reserve");
+  const source = lineUnits.length ? lineUnits : army.units.filter((u) => u.alive);
+  if (!source.length) return null;
+  const q = source.reduce((sum, u) => sum + u.q, 0) / source.length;
+  const r = source.reduce((sum, u) => sum + u.r, 0) / source.length;
+  return { q, r };
+}
+
 function chooseSectorForAction(action, side, rand) {
   if (action === "mass_assault") return "all";
   if (action === "concentrate_center") return "center";
@@ -397,7 +407,7 @@ function issueOrdersFromAction(side, events) {
   const army = state.armies[side];
   const sig = army.activeSignature;
   if (sig?.type === "perfect_plan") {
-    const prepOrders = { left: "Hold", center: "Hold", right: "Hold", reserve: "Hold" };
+    const prepOrders = { left: "Hold", center: "Hold", right: "Hold", reserve: "Stay in Reserve" };
     Object.entries(prepOrders).forEach(([wing, order]) => {
       army.divisions[wing].currentOrder = order;
     });
@@ -477,7 +487,7 @@ function issueOrdersFromAction(side, events) {
     army.divisions[wing].currentOrder = order;
   });
   if (!Object.prototype.hasOwnProperty.call(orders, "reserve")) {
-    army.divisions.reserve.currentOrder = "Hold";
+    army.divisions.reserve.currentOrder = "Stay in Reserve";
   }
 
   if (isMajorActionTurn(state.turn)) {
@@ -676,6 +686,7 @@ function moveUnits(side, rand) {
 
     const isFlankOrder = wing.currentOrder === "Flank Left" || wing.currentOrder === "Flank Right";
     const allowsDisengage = wing.currentOrder === "Retreat" || wing.currentOrder === "Withdraw" || wing.currentOrder === "Refuse Flank";
+    const isReserveHold = wing.currentOrder === "Stay in Reserve";
     if (!isFlankOrder && !allowsDisengage && distToNearest <= 1) return;
 
     let steps = Math.max(1, u.move);
@@ -685,7 +696,9 @@ function moveUnits(side, rand) {
     }
     const visitedThisMove = new Set([`${u.q},${u.r}`]);
     for (let i = 0; i < steps; i += 1) {
-      const next = chooseBestStep(u, nearest, wing, side, isFlankOrder, reserved, visitedThisMove);
+      const next = isReserveHold
+        ? chooseReserveStep(u, side, reserved, visitedThisMove)
+        : chooseBestStep(u, nearest, wing, side, isFlankOrder, reserved, visitedThisMove);
       if (!next) break;
       setUnitPos(u, next.q, next.r);
       reserved.add(`${next.q},${next.r}`);
@@ -694,6 +707,55 @@ function moveUnits(side, rand) {
 
 
   });
+}
+
+function chooseReserveStep(unit, side, reserved, visitedThisMove) {
+  const anchor = reserveAnchorForSide(side);
+  if (!anchor) return null;
+  const enemySide = side === "A" ? "B" : "A";
+  const nearest = nearestEnemy(unit, enemySide);
+  const currentEnemyDist = nearest ? hexDist(unit.q, unit.r, nearest.q, nearest.r) : 99;
+  const currentAnchorDist = hexDist(unit.q, unit.r, anchor.q, anchor.r);
+
+  const neighbors = getNeighbors(unit.q, unit.r)
+    .filter((h) => h
+      && h.active
+      && h.terrain !== "blocked"
+      && !h.occupantUnitId
+      && !reserved.has(`${h.q},${h.r}`)
+      && !visitedThisMove.has(`${h.q},${h.r}`));
+  if (!neighbors.length) return null;
+
+  let best = null;
+  let bestScore = -Infinity;
+  neighbors.forEach((h) => {
+    const nextEnemyDist = nearest ? hexDist(h.q, h.r, nearest.q, nearest.r) : 99;
+    const nextAnchorDist = hexDist(h.q, h.r, anchor.q, anchor.r);
+    let score = (currentAnchorDist - nextAnchorDist) * 12;
+
+    if (nextEnemyDist <= 1) score -= 50;
+    else if (nextEnemyDist === 2) score -= 18;
+    else if (nextEnemyDist >= 3 && nextEnemyDist <= 5) score += 12;
+    else if (nextEnemyDist > 6) score -= 6;
+
+    score += (nextEnemyDist - currentEnemyDist) * 4;
+
+    const laneDiff = Math.abs((unit.preferredR ?? unit.r) - h.r);
+    score -= laneDiff * 3;
+
+    const friendlyAdj = countAdjacentFriendly(h.q, h.r, unit.armyId);
+    score += friendlyAdj * 4;
+    if (friendlyAdj === 0) score -= 10;
+
+    if (unit.prevQ === h.q && unit.prevR === h.r) score -= 10;
+
+    if (score > bestScore) {
+      bestScore = score;
+      best = h;
+    }
+  });
+
+  return best;
 }
 
 function getSectorForUnit(unit) {

@@ -54,13 +54,14 @@ function hydrateArmyState(army) {
   }
   ["left", "center", "right", "reserve"].forEach((wingId) => {
     if (!army.divisions[wingId]) {
-      army.divisions[wingId] = { id: wingId, commanderId: army.armyCommanderId || "napoleon", unitIds: [], currentOrder: "Hold", lastFrictionEvent: null };
+      const defaultOrder = wingId === "reserve" ? "Stay in Reserve" : "Hold";
+      army.divisions[wingId] = { id: wingId, commanderId: army.armyCommanderId || "napoleon", unitIds: [], currentOrder: defaultOrder, lastFrictionEvent: null };
       return;
     }
     const wing = army.divisions[wingId];
     wing.id = wingId;
     if (!Array.isArray(wing.unitIds)) wing.unitIds = [];
-    if (!wing.currentOrder) wing.currentOrder = "Hold";
+    if (!wing.currentOrder) wing.currentOrder = wingId === "reserve" ? "Stay in Reserve" : "Hold";
     if (wing.lastFrictionEvent === undefined) wing.lastFrictionEvent = null;
   });
   if (!COMMANDERS[army.armyCommanderId]) {
@@ -100,7 +101,7 @@ function wingTemplate() {
     left: { id: "left", commanderId: "napoleon", unitIds: [], currentOrder: "Hold", lastFrictionEvent: null },
     center: { id: "center", commanderId: "napoleon", unitIds: [], currentOrder: "Hold", lastFrictionEvent: null },
     right: { id: "right", commanderId: "lee", unitIds: [], currentOrder: "Hold", lastFrictionEvent: null },
-    reserve: { id: "reserve", commanderId: "washington", unitIds: [], currentOrder: "Hold", lastFrictionEvent: null },
+    reserve: { id: "reserve", commanderId: "washington", unitIds: [], currentOrder: "Stay in Reserve", lastFrictionEvent: null },
   };
 }
 
