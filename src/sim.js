@@ -874,6 +874,15 @@ function scoreMoveTile(unit, hex, nearest, wing, side, isFlankOrder) {
   score += friendlyAdj * 5;
   if (friendlyAdj === 0) score -= 12;
 
+  const currentDivisionAdj = countAdjacentDivision(unit.q, unit.r, unit.armyId, unit.divisionId, unit.id);
+  const nextDivisionAdj = countAdjacentDivision(hex.q, hex.r, unit.armyId, unit.divisionId, unit.id);
+  score += (nextDivisionAdj - currentDivisionAdj) * 9;
+  if (nextDivisionAdj === 0) score -= 10;
+
+  const currentDivisionSpread = divisionSpreadFrom(unit.armyId, unit.divisionId, unit.id, unit.q, unit.r);
+  const nextDivisionSpread = divisionSpreadFrom(unit.armyId, unit.divisionId, unit.id, hex.q, hex.r);
+  score += (currentDivisionSpread - nextDivisionSpread) * 2.5;
+
   const localCrowd = countFriendlyInRadius(hex.q, hex.r, unit.armyId, 1);
   if (localCrowd > 3) score -= (localCrowd - 3) * 8;
 
@@ -906,6 +915,30 @@ function getNeighbors(q, r) {
 
 function countAdjacentFriendly(q, r, side) {
   return getNeighbors(q, r).filter((h) => h.occupantUnitId && h.occupantUnitId.startsWith(`${side}_`)).length;
+}
+
+function countAdjacentDivision(q, r, side, divisionId, unitId) {
+  const army = state.armies[side];
+  if (!army) return 0;
+  return getNeighbors(q, r).filter((h) => {
+    if (!h.occupantUnitId || h.occupantUnitId === unitId) return false;
+    const other = army.units.find((u) => u.id === h.occupantUnitId);
+    return other && other.alive && other.divisionId === divisionId;
+  }).length;
+}
+
+function divisionSpreadFrom(side, divisionId, movingUnitId, q, r) {
+  const army = state.armies[side];
+  if (!army) return 0;
+  const divisionUnits = army.units.filter((u) => u.alive && u.divisionId === divisionId);
+  if (!divisionUnits.length) return 0;
+  const withMoved = divisionUnits.map((u) => {
+    if (u.id === movingUnitId) return { q, r };
+    return { q: u.q, r: u.r };
+  });
+  const centerQ = withMoved.reduce((sum, p) => sum + p.q, 0) / withMoved.length;
+  const centerR = withMoved.reduce((sum, p) => sum + p.r, 0) / withMoved.length;
+  return withMoved.reduce((sum, p) => sum + hexDist(p.q, p.r, centerQ, centerR), 0) / withMoved.length;
 }
 
 function countFriendlyInRadius(q, r, side, radius) {
