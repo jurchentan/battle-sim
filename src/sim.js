@@ -123,7 +123,7 @@ function chooseMajorAction(side, rand, events) {
 
 function sectorsWithUnitType(side, type) {
   const army = state.armies[side];
-  return ["left", "center", "right"].filter((s) =>
+  return FRONTLINE_DIVISION_IDS.filter((s) =>
     army.divisions[s].unitIds.some((id) => {
       const u = army.units.find((u2) => u2.id === id);
       return u && u.alive && u.type === type;
@@ -131,12 +131,16 @@ function sectorsWithUnitType(side, type) {
   );
 }
 
-function aliveCountInSector(side, sector) {
+function aliveCountInDivision(side, divisionId) {
   const army = state.armies[side];
-  return army.divisions[sector].unitIds.filter((id) => {
+  return (army.divisions[divisionId]?.unitIds || []).filter((id) => {
     const u = army.units.find((u2) => u2.id === id);
     return u && u.alive;
   }).length;
+}
+
+function aliveCountInSector(side, sector) {
+  return aliveCountInDivision(side, sector);
 }
 
 function sectorWeights(side, sectors) {
@@ -156,7 +160,7 @@ function avgMoraleInSector(side, sector) {
   return units.reduce((sum, u) => sum + u.morale, 0) / units.length;
 }
 
-function chooseReserveReinforcementSector(side, candidateSectors = ["left", "center", "right"]) {
+function chooseReserveReinforcementSector(side, candidateSectors = FRONTLINE_DIVISION_IDS) {
   const enemySide = side === "A" ? "B" : "A";
   const sectors = candidateSectors;
   let target = "center";
@@ -183,7 +187,7 @@ function autoCommitReservesIfDivisionCollapsed(side, events) {
   const reserveUnits = army.units.filter((u) => u.alive && u.divisionId === "reserve");
   if (!reserveUnits.length) return;
 
-  const depletedSectors = ["left", "center", "right"].filter((sector) => aliveCountInSector(side, sector) === 0);
+  const depletedSectors = FRONTLINE_DIVISION_IDS.filter((sector) => aliveCountInSector(side, sector) === 0);
   if (!depletedSectors.length) return;
 
   const target = chooseReserveReinforcementSector(side, depletedSectors);
@@ -219,7 +223,7 @@ function chooseSectorForAction(action, side, rand) {
   }
   if (action === "exploit_gap") {
     const enemySide = side === "A" ? "B" : "A";
-    const sectors = ["left", "center", "right"];
+    const sectors = FRONTLINE_DIVISION_IDS;
     let best = "center";
     let bestScore = -Infinity;
     sectors.forEach((s) => {
@@ -240,20 +244,22 @@ function chooseSectorForAction(action, side, rand) {
     return weightedPick(["left", "right"], sectorWeights(side, ["left", "right"]), rand);
   }
   if (action === "rally" || action === "retreat") {
-    return weightedPick(["left", "center", "right"], sectorWeights(side, ["left", "center", "right"]), rand);
+    return weightedPick(FRONTLINE_DIVISION_IDS, sectorWeights(side, FRONTLINE_DIVISION_IDS), rand);
   }
   if (action === "bombard_sector") {
+    if (aliveCountInDivision(side, "artillery") > 0) return "artillery";
     const valid = sectorsWithUnitType(side, "artillery");
     if (valid.length) return valid.length === 1 ? valid[0] : weightedPick(valid, sectorWeights(side, valid), rand);
   }
   if (action === "cavalry_charge") {
+    if (aliveCountInDivision(side, "cavalry") > 0) return "cavalry";
     const valid = sectorsWithUnitType(side, "cavalry");
     if (valid.length) return valid.length === 1 ? valid[0] : weightedPick(valid, sectorWeights(side, valid), rand);
   }
   if (action === "flank_attack") {
     return weightedPick(["left", "right"], sectorWeights(side, ["left", "right"]), rand);
   }
-  return weightedPick(["left", "center", "right"], sectorWeights(side, ["left", "center", "right"]), rand);
+  return weightedPick(FRONTLINE_DIVISION_IDS, sectorWeights(side, FRONTLINE_DIVISION_IDS), rand);
 }
 
 function clamp(v, min, max) {
@@ -424,7 +430,14 @@ function issueOrdersFromAction(side, events) {
   const army = state.armies[side];
   const sig = army.activeSignature;
   if (sig?.type === "perfect_plan") {
-    const prepOrders = { left: "Hold", center: "Hold", right: "Hold", reserve: "Stay in Reserve" };
+    const prepOrders = {
+      left: "Hold",
+      center: "Hold",
+      right: "Hold",
+      reserve: "Stay in Reserve",
+      cavalry: "Stay on Flanks",
+      artillery: "Stay in Rear",
+    };
     Object.entries(prepOrders).forEach(([wing, order]) => {
       army.divisions[wing].currentOrder = order;
     });
@@ -454,17 +467,21 @@ function issueOrdersFromAction(side, events) {
     flank_attack: sector === "left"
       ? { left: "Flank Left", center: "Advance", right: "Hold" }
       : { left: "Hold", center: "Advance", right: "Flank Right" },
-    cavalry_charge: sector === "left"
-      ? { left: "Cavalry Charge", center: "Advance", right: "Hold" }
-      : sector === "right"
-        ? { left: "Hold", center: "Advance", right: "Cavalry Charge" }
-        : { left: "Hold", center: "Cavalry Charge", right: "Hold" },
+    cavalry_charge: sector === "cavalry"
+      ? { left: "Advance", center: "Advance", right: "Advance", cavalry: "Cavalry Charge" }
+      : sector === "left"
+        ? { left: "Cavalry Charge", center: "Advance", right: "Hold" }
+        : sector === "right"
+          ? { left: "Hold", center: "Advance", right: "Cavalry Charge" }
+          : { left: "Hold", center: "Cavalry Charge", right: "Hold" },
     defensive_stand: { left: "Hold", center: "Hold", right: "Hold" },
-    bombard_sector: sector === "left"
-      ? { left: "Bombard", center: "Hold", right: "Hold" }
-      : sector === "right"
-        ? { left: "Hold", center: "Hold", right: "Bombard" }
-        : { left: "Hold", center: "Bombard", right: "Hold" },
+    bombard_sector: sector === "artillery"
+      ? { left: "Hold", center: "Hold", right: "Hold", artillery: "Bombard" }
+      : sector === "left"
+        ? { left: "Bombard", center: "Hold", right: "Hold" }
+        : sector === "right"
+          ? { left: "Hold", center: "Hold", right: "Bombard" }
+          : { left: "Hold", center: "Bombard", right: "Hold" },
     defend_flank: sector === "left"
       ? { left: "Refuse Flank", center: "Hold", right: "Hold" }
       : { left: "Hold", center: "Hold", right: "Refuse Flank" },
@@ -495,7 +512,7 @@ function issueOrdersFromAction(side, events) {
         ? { left: "Hold", center: "Hold", right: "Attack", reserve: "Advance" }
         : { left: "Hold", center: "Attack", right: "Hold", reserve: "Advance" },
     artillery_barrage: { left: "Bombard", center: "Bombard", right: "Bombard" },
-    foot_cavalry: { left: "Attack", center: "Attack", right: "Attack" },
+    foot_cavalry: { left: "Flank Left", center: "Hold", right: "Flank Right" },
     feigned_retreat: { left: "Withdraw", center: "Withdraw", right: "Withdraw" },
     fighting_withdrawal: { left: "Withdraw", center: "Withdraw", right: "Withdraw" },
   };
@@ -504,7 +521,13 @@ function issueOrdersFromAction(side, events) {
     army.divisions[wing].currentOrder = order;
   });
   if (!Object.prototype.hasOwnProperty.call(orders, "reserve")) {
-    army.divisions.reserve.currentOrder = "Stay in Reserve";
+    army.divisions.reserve.currentOrder = defaultDivisionOrderForSim("reserve");
+  }
+  if (!Object.prototype.hasOwnProperty.call(orders, "cavalry")) {
+    army.divisions.cavalry.currentOrder = defaultDivisionOrderForSim("cavalry");
+  }
+  if (!Object.prototype.hasOwnProperty.call(orders, "artillery")) {
+    army.divisions.artillery.currentOrder = defaultDivisionOrderForSim("artillery");
   }
 
   if (isMajorActionTurn(state.turn)) {
@@ -512,6 +535,13 @@ function issueOrdersFromAction(side, events) {
     queueActionHighlights(side, action, sector);
     showMajorOrderPopup(side, action, sector);
   }
+}
+
+function defaultDivisionOrderForSim(divisionId) {
+  if (divisionId === "reserve") return "Stay in Reserve";
+  if (divisionId === "cavalry") return "Stay on Flanks";
+  if (divisionId === "artillery") return "Stay in Rear";
+  return "Hold";
 }
 
 function showMajorOrderPopup(side, action, sector) {
@@ -552,7 +582,7 @@ function isSignatureAction(action) {
 }
 
 function actionDescription(action, sector) {
-  const s = sector === "all" ? "army-wide" : `${sector} sector`;
+  const s = targetLabel(sector);
   if (action === "advance") return "All units recover 4 morale per turn; infantry also gets +5% attack while advancing.";
   if (action === "concentrate_center") return "Center wing gets +20% attack damage.";
   if (action === "flank_attack") return `Flank wing in ${s} gets +20% attack damage.`;
@@ -574,6 +604,12 @@ function actionDescription(action, sector) {
   return "Major action active.";
 }
 
+function targetLabel(target) {
+  if (target === "all") return "army-wide";
+  if (SPECIAL_DIVISION_IDS.includes(target)) return `${target} division`;
+  return `${target} sector`;
+}
+
 function queueActionHighlights(side, action, sector) {
   if (action === "advance" || isSignatureAction(action)) return;
   const label = formatActionName(action);
@@ -591,13 +627,13 @@ function affectedWingsForAction(action, sector) {
   if (action === "bombard_sector" || action === "artillery_barrage") return [sector];
   if (action === "flank_attack") return sector === "center" ? ["left", "right"] : [sector];
   if (action === "cavalry_charge") return sector === "center" ? ["left", "right"] : [sector];
-  if (action === "fighting_withdrawal") return ["left", "center", "right"];
-  if (action === "foot_cavalry" || action === "feigned_retreat") return ["left", "center", "right"];
-  if (action === "mass_assault") return ["left", "center", "right"];
+  if (action === "fighting_withdrawal") return FRONTLINE_DIVISION_IDS;
+  if (action === "foot_cavalry" || action === "feigned_retreat") return FRONTLINE_DIVISION_IDS;
+  if (action === "mass_assault") return FRONTLINE_DIVISION_IDS;
   if (action === "line_rotation" || action === "exploit_gap") return [sector];
   if (action === "commit_reserve") return [sector, "reserve"];
   if (action === "defend_flank" || action === "rally" || action === "retreat") return [sector];
-  return ["left", "center", "right"];
+  return FRONTLINE_DIVISION_IDS;
 }
 
 function formatActionName(action) {
@@ -704,6 +740,8 @@ function moveUnits(side, rand) {
     const isFlankOrder = wing.currentOrder === "Flank Left" || wing.currentOrder === "Flank Right";
     const allowsDisengage = wing.currentOrder === "Retreat" || wing.currentOrder === "Withdraw" || wing.currentOrder === "Refuse Flank";
     const isReserveHold = wing.currentOrder === "Stay in Reserve";
+    const isRearSupport = wing.currentOrder === "Stay in Rear";
+    const isFlankDefense = wing.currentOrder === "Stay on Flanks";
     if (!isFlankOrder && !allowsDisengage && distToNearest <= 1) return;
 
     let steps = Math.max(1, u.move);
@@ -711,11 +749,21 @@ function moveUnits(side, rand) {
     if (sig?.type === "foot_cavalry" && u.type === "infantry") {
       steps += 1;
     }
+    if (wing.currentOrder === "Withdraw") {
+      steps = Math.min(steps, u.type === "cavalry" ? 2 : 1);
+    }
     const visitedThisMove = new Set([`${u.q},${u.r}`]);
     for (let i = 0; i < steps; i += 1) {
-      const next = isReserveHold
-        ? chooseReserveStep(u, side, reserved, visitedThisMove)
-        : chooseBestStep(u, nearest, wing, side, isFlankOrder, reserved, visitedThisMove);
+      let next = null;
+      if (isReserveHold) {
+        next = chooseReserveStep(u, side, reserved, visitedThisMove);
+      } else if (isRearSupport) {
+        next = chooseRearSupportStep(u, side, reserved, visitedThisMove);
+      } else if (isFlankDefense) {
+        next = chooseFlankDefenseStep(u, side, reserved, visitedThisMove);
+      } else {
+        next = chooseBestStep(u, nearest, wing, side, isFlankOrder, reserved, visitedThisMove);
+      }
       if (!next) break;
       setUnitPos(u, next.q, next.r);
       reserved.add(`${next.q},${next.r}`);
@@ -775,10 +823,118 @@ function chooseReserveStep(unit, side, reserved, visitedThisMove) {
   return best;
 }
 
+function frontlineAnchorForSide(side) {
+  const army = state.armies[side];
+  const lineUnits = army.units
+    .filter((u) => u.alive && FRONTLINE_DIVISION_IDS.includes(u.divisionId));
+  const source = lineUnits.length
+    ? lineUnits
+    : army.units.filter((u) => u.alive && u.divisionId !== "reserve");
+  if (!source.length) return null;
+  const q = source.reduce((sum, u) => sum + u.q, 0) / source.length;
+  const r = source.reduce((sum, u) => sum + u.r, 0) / source.length;
+  return { q, r };
+}
+
+function chooseRearSupportStep(unit, side, reserved, visitedThisMove) {
+  const anchor = frontlineAnchorForSide(side);
+  if (!anchor) return null;
+  const enemySide = side === "A" ? "B" : "A";
+  const nearest = nearestEnemy(unit, enemySide);
+  const targetQ = anchor.q + (side === "A" ? -1.5 : 1.5);
+  const targetR = anchor.r;
+
+  const neighbors = getNeighbors(unit.q, unit.r)
+    .filter((h) => h
+      && h.active
+      && h.terrain !== "blocked"
+      && !h.occupantUnitId
+      && !reserved.has(`${h.q},${h.r}`)
+      && !visitedThisMove.has(`${h.q},${h.r}`));
+  if (!neighbors.length) return null;
+
+  let best = null;
+  let bestScore = -Infinity;
+  neighbors.forEach((h) => {
+    const toTargetNow = hexDist(unit.q, unit.r, targetQ, targetR);
+    const toTargetNext = hexDist(h.q, h.r, targetQ, targetR);
+    const nextEnemyDist = nearest ? hexDist(h.q, h.r, nearest.q, nearest.r) : 99;
+    let score = (toTargetNow - toTargetNext) * 14;
+
+    if (nextEnemyDist <= 1) score -= 36;
+    else if (nextEnemyDist === 2) score += 14;
+    else if (nextEnemyDist === 3) score += 8;
+    else if (nextEnemyDist >= 4) score -= 4;
+
+    const friendlyAdj = countAdjacentFriendly(h.q, h.r, unit.armyId);
+    score += friendlyAdj * 4;
+    if (friendlyAdj === 0) score -= 8;
+
+    if (unit.prevQ === h.q && unit.prevR === h.r) score -= 10;
+
+    if (score > bestScore) {
+      bestScore = score;
+      best = h;
+    }
+  });
+  return best;
+}
+
+function chooseFlankDefenseStep(unit, side, reserved, visitedThisMove) {
+  const enemySide = side === "A" ? "B" : "A";
+  const nearest = nearestEnemy(unit, enemySide);
+  const centerR = getCenterDivisionMeanR(side);
+  const flankSign = ((unit.preferredR ?? unit.r) >= centerR) ? 1 : -1;
+  const targetR = centerR + (flankSign * 5);
+  const front = frontlineAnchorForSide(side);
+  const targetQ = front ? front.q + (side === "A" ? -0.5 : 0.5) : unit.q;
+
+  const neighbors = getNeighbors(unit.q, unit.r)
+    .filter((h) => h
+      && h.active
+      && h.terrain !== "blocked"
+      && !h.occupantUnitId
+      && !reserved.has(`${h.q},${h.r}`)
+      && !visitedThisMove.has(`${h.q},${h.r}`));
+  if (!neighbors.length) return null;
+
+  let best = null;
+  let bestScore = -Infinity;
+  neighbors.forEach((h) => {
+    const currentFlankDist = Math.abs((unit.r ?? 0) - targetR);
+    const nextFlankDist = Math.abs(h.r - targetR);
+    const currentFrontDist = Math.abs((unit.q ?? 0) - targetQ);
+    const nextFrontDist = Math.abs(h.q - targetQ);
+    const nextEnemyDist = nearest ? hexDist(h.q, h.r, nearest.q, nearest.r) : 99;
+    let score = (currentFlankDist - nextFlankDist) * 12;
+    score += (currentFrontDist - nextFrontDist) * 5;
+
+    if (nextEnemyDist <= 1) score -= 28;
+    else if (nextEnemyDist === 2) score -= 6;
+    else if (nextEnemyDist >= 3 && nextEnemyDist <= 4) score += 8;
+
+    const divisionAdj = countAdjacentDivision(h.q, h.r, unit.armyId, unit.divisionId, unit.id);
+    score += divisionAdj * 7;
+
+    if (unit.prevQ === h.q && unit.prevR === h.r) score -= 10;
+
+    if (score > bestScore) {
+      bestScore = score;
+      best = h;
+    }
+  });
+  return best;
+}
+
 function getSectorForUnit(unit) {
   if (unit.divisionId === "left") return "left";
   if (unit.divisionId === "right") return "right";
   return "center";
+}
+
+function unitMatchesActionTarget(unit, target) {
+  if (SPECIAL_DIVISION_IDS.includes(target)) return unit.divisionId === target;
+  return getSectorForUnit(unit) === target;
 }
 
 function getActionAttackMultiplier(army, unit) {
@@ -789,8 +945,8 @@ function getActionAttackMultiplier(army, unit) {
   let mult = 1;
   if (action === "concentrate_center" && unitSector === "center") mult *= 1.2;
   if (action === "flank_attack" && unitSector === sector) mult *= 1.2;
-  if (action === "cavalry_charge" && unit.type === "cavalry" && (unitSector === sector || sector === "center")) mult *= 1.2;
-  if (action === "bombard_sector" && unit.type === "artillery" && unitSector === sector) mult *= 1.2;
+  if (action === "cavalry_charge" && unit.type === "cavalry" && (unitMatchesActionTarget(unit, sector) || sector === "center")) mult *= 1.2;
+  if (action === "bombard_sector" && unit.type === "artillery" && unitMatchesActionTarget(unit, sector)) mult *= 1.2;
   if (action === "advance" && unit.type === "infantry") mult *= 1.05;
   if (action === "defend_flank" && unitSector === sector) mult *= 1.05;
   if (action === "mass_assault") mult *= 1.2;
@@ -834,7 +990,7 @@ function chooseBestStep(unit, nearest, wing, side, isFlankOrder, reserved, visit
       && !visitedThisMove.has(`${h.q},${h.r}`));
   if (!neighbors.length) return null;
 
-  const holdLine = wing.currentOrder === "Hold";
+  const holdLine = wing.currentOrder === "Hold" || wing.currentOrder === "Stay in Rear";
   const holdNeighbors = holdLine
     ? neighbors.filter((h) => hexDist(h.q, h.r, nearest.q, nearest.r) >= hexDist(unit.q, unit.r, nearest.q, nearest.r))
     : neighbors;
@@ -864,11 +1020,29 @@ function scoreMoveTile(unit, hex, nearest, wing, side, isFlankOrder) {
   }
 
   if (wing.currentOrder === "Retreat") score = -score * 1.35;
-  if (wing.currentOrder === "Withdraw") score = -score * 0.65;
+  if (wing.currentOrder === "Withdraw") {
+    score = -score * 0.35;
+    if (nextDist >= currentDist + 2) score -= 18;
+    if (nextDist === currentDist + 1) score += 8;
+    if (nextDist > currentDist + 1) score -= (nextDist - (currentDist + 1)) * 10;
+  }
   if (wing.currentOrder === "Hold") {
     if (nextDist < currentDist) score -= 18;
     if (nextDist > currentDist) score -= 4;
     if (nextDist === currentDist) score += 8;
+  }
+  if (wing.currentOrder === "Stay in Rear") {
+    if (nextDist < currentDist) score -= 24;
+    if (nextDist > currentDist) score += 6;
+    if (nextDist >= 2 && nextDist <= 4) score += 10;
+    if (nextDist <= 1) score -= 28;
+  }
+  if (wing.currentOrder === "Stay on Flanks") {
+    const centerAnchor = getCenterDivisionMeanR(side);
+    const currentToCenter = Math.abs((unit.r ?? 0) - centerAnchor);
+    const nextToCenter = Math.abs(hex.r - centerAnchor);
+    score += (nextToCenter - currentToCenter) * 9;
+    if (nextDist <= 1) score -= 16;
   }
 
   if (wing.currentOrder === "Refuse Flank") {

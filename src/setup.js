@@ -52,16 +52,16 @@ function hydrateArmyState(army) {
   if (!army.divisions || typeof army.divisions !== "object") {
     army.divisions = wingTemplate();
   }
-  ["left", "center", "right", "reserve"].forEach((wingId) => {
+  DIVISION_IDS.forEach((wingId) => {
     if (!army.divisions[wingId]) {
-      const defaultOrder = wingId === "reserve" ? "Stay in Reserve" : "Hold";
+      const defaultOrder = defaultDivisionOrder(wingId);
       army.divisions[wingId] = { id: wingId, commanderId: army.armyCommanderId || "napoleon", unitIds: [], currentOrder: defaultOrder, lastFrictionEvent: null };
       return;
     }
     const wing = army.divisions[wingId];
     wing.id = wingId;
     if (!Array.isArray(wing.unitIds)) wing.unitIds = [];
-    if (!wing.currentOrder) wing.currentOrder = wingId === "reserve" ? "Stay in Reserve" : "Hold";
+    if (!wing.currentOrder) wing.currentOrder = defaultDivisionOrder(wingId);
     if (wing.lastFrictionEvent === undefined) wing.lastFrictionEvent = null;
   });
   if (!COMMANDERS[army.armyCommanderId]) {
@@ -102,7 +102,16 @@ function wingTemplate() {
     center: { id: "center", commanderId: "napoleon", unitIds: [], currentOrder: "Hold", lastFrictionEvent: null },
     right: { id: "right", commanderId: "lee", unitIds: [], currentOrder: "Hold", lastFrictionEvent: null },
     reserve: { id: "reserve", commanderId: "washington", unitIds: [], currentOrder: "Stay in Reserve", lastFrictionEvent: null },
+    cavalry: { id: "cavalry", commanderId: "genghis", unitIds: [], currentOrder: "Stay on Flanks", lastFrictionEvent: null },
+    artillery: { id: "artillery", commanderId: "napoleon", unitIds: [], currentOrder: "Stay in Rear", lastFrictionEvent: null },
   };
+}
+
+function defaultDivisionOrder(divisionId) {
+  if (divisionId === "reserve") return "Stay in Reserve";
+  if (divisionId === "cavalry") return "Stay on Flanks";
+  if (divisionId === "artillery") return "Stay in Rear";
+  return "Hold";
 }
 
 function placeDefaultUnits() {
@@ -225,7 +234,7 @@ function assignWingMembership(army) {
   army.units.forEach((u) => {
     const w = u.divisionId || "center";
     if (!army.divisions[w]) {
-      army.divisions[w] = { id: w, commanderId: army.armyCommanderId || "napoleon", unitIds: [], currentOrder: "Hold", lastFrictionEvent: null };
+      army.divisions[w] = { id: w, commanderId: army.armyCommanderId || "napoleon", unitIds: [], currentOrder: defaultDivisionOrder(w), lastFrictionEvent: null };
     }
     army.divisions[w].unitIds.push(u.id);
   });

@@ -44,8 +44,11 @@ const COMMANDERS = {
   },
 };
 
-const ORDERS = ["Hold", "Advance", "Attack", "Flank Left", "Flank Right", "Retreat", "Withdraw", "Refuse Flank", "Support Center", "Bombard", "Charge", "Cavalry Charge", "Stay in Reserve"];
+const ORDERS = ["Hold", "Advance", "Attack", "Flank Left", "Flank Right", "Retreat", "Withdraw", "Refuse Flank", "Support Center", "Bombard", "Charge", "Cavalry Charge", "Stay in Reserve", "Stay on Flanks", "Stay in Rear"];
 const MAJOR_ACTIONS = ["advance", "concentrate_center", "flank_attack", "cavalry_charge", "defensive_stand", "bombard_sector", "defend_flank", "rally", "retreat", "mass_assault", "line_rotation", "exploit_gap", "commit_reserve"];
+const FRONTLINE_DIVISION_IDS = ["left", "center", "right"];
+const SPECIAL_DIVISION_IDS = ["cavalry", "artillery"];
+const DIVISION_IDS = [...FRONTLINE_DIVISION_IDS, "reserve", ...SPECIAL_DIVISION_IDS];
 
 const state = {
   mode: "terrain",

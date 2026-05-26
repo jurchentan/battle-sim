@@ -185,7 +185,7 @@ function renderToolPanel() {
     picked.className = "card";
     picked.textContent = `Selected brigades: ${state.selectedWingUnits.size}. Tap or drag across brigades, then assign division.`;
     c.appendChild(picked);
-    ["left", "center", "right", "reserve"].forEach((wing) => {
+    DIVISION_IDS.forEach((wing) => {
       const b = document.createElement("button");
       b.textContent = `${wing} division`;
       b.onclick = () => assignSelectedToWing(wing);
@@ -426,4 +426,3 @@ function axialRound(q, r) {
   else rz = -rx - ry;
   return { q: rx, r: rz };
 }
-
