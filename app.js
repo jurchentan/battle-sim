@@ -11,41 +11,41 @@ const COMMANDERS = {
     name: "Napoleon",
     majorOrders: [{ type: "artillery_concentration", line: "Concentrate the guns and break their center.", inspiredBy: "Austerlitz" }],
     preferredActions: ["concentrate_center", "bombard_sector"],
-    traits: { aggression: 8, control: 8, initiative: 9, panicResistance: 9 },
+    traits: { aggression: 8, control: 8, creativity: 9, panicResistance: 9 },
     signature: { name: "Grand Battery", type: "artillery_barrage", duration: 5, description: "Artillery deals x2 damage in one sector for 5 turns." },
   },
   lee: {
     name: "Robert E. Lee",
     majorOrders: [{ type: "flank_attack", line: "Strike the exposed flank.", inspiredBy: "Chancellorsville" }],
     preferredActions: ["flank_attack", "rally"],
-    traits: { aggression: 5, control: 7, initiative: 9, panicResistance: 7 },
+    traits: { aggression: 5, control: 7, creativity: 9, panicResistance: 7 },
     signature: { name: "Jackson's Foot Cavalry", type: "foot_cavalry", duration: 5, description: "Infantry gains +1 move and morale shock in one sector for 5 turns." },
   },
   genghis: {
     name: "Genghis Khan",
     majorOrders: [{ type: "feigned_retreat", line: "Draw them forward, then strike from range.", inspiredBy: "Steppe feigned retreat" }],
     preferredActions: ["flank_attack", "cavalry_charge"],
-    traits: { aggression: 9, control: 3, initiative: 9, panicResistance: 8 },
+    traits: { aggression: 9, control: 3, creativity: 9, panicResistance: 8 },
     signature: { name: "Feigned Retreat", type: "feigned_retreat", duration: 5, description: "Cavalry retreats and attacks at range 2 for 5 turns." },
   },
   washington: {
     name: "George Washington",
     majorOrders: [{ type: "defensive_stand", line: "Stand firm and withdraw in good order.", inspiredBy: "Battle of Long Island" }],
     preferredActions: ["defensive_stand", "defend_flank"],
-    traits: { aggression: 3, control: 9, initiative: 6, panicResistance: 9 },
+    traits: { aggression: 3, control: 9, creativity: 6, panicResistance: 9 },
     signature: { name: "Fighting Withdrawal", type: "fighting_withdrawal", duration: 5, description: "Target sector retreats, recovers 20% morale once, and takes 20% less damage for 5 turns." },
   },
   mcclellan: {
     name: "George B. McClellan",
     majorOrders: [{ type: "defensive_stand", line: "Prepare every detail, then strike with precision.", inspiredBy: "Peninsula Campaign planning" }],
     preferredActions: ["defensive_stand", "rally"],
-    traits: { aggression: 0, control: 9, initiative: 3, panicResistance: 8 },
+    traits: { aggression: 0, control: 9, creativity: 3, panicResistance: 8 },
     signature: { name: "The Perfect Plan", type: "perfect_plan", duration: 5, description: "All units hold for 5 turns, then force an offensive action with +20% damage until the next major action turn." },
   },
 };
 
-const ORDERS = ["Hold", "Advance", "Attack", "Flank Left", "Flank Right", "Retreat", "Withdraw", "Refuse Flank", "Support Center", "Bombard", "Charge"];
-const MAJOR_ACTIONS = ["advance", "concentrate_center", "flank_attack", "cavalry_charge", "defensive_stand", "bombard_sector", "defend_flank", "rally", "retreat", "mass_assault"];
+const ORDERS = ["Hold", "Advance", "Attack", "Flank Left", "Flank Right", "Retreat", "Withdraw", "Refuse Flank", "Support Center", "Bombard", "Charge", "Cavalry Charge"];
+const MAJOR_ACTIONS = ["advance", "concentrate_center", "flank_attack", "cavalry_charge", "defensive_stand", "bombard_sector", "defend_flank", "rally", "retreat", "mass_assault", "line_rotation", "exploit_gap"];
 
 const state = {
   mode: "terrain",
@@ -387,6 +387,10 @@ function setUnitPos(unit, q, r) {
   if (current && current.occupantUnitId === unit.id) current.occupantUnitId = null;
   unit.q = q;
   unit.r = r;
+  if (fromQ !== q || fromR !== r) {
+    unit.prevQ = fromQ;
+    unit.prevR = fromR;
+  }
   if (unit.preferredR === null || unit.preferredR === undefined) unit.preferredR = r;
   next.occupantUnitId = unit.id;
   if (state.reelsMode && fromQ >= 0 && fromR >= 0 && (fromQ !== q || fromR !== r)) {
@@ -1374,6 +1378,30 @@ function sectorWeights(side, sectors) {
 function chooseSectorForAction(action, side, rand) {
   if (action === "mass_assault") return "all";
   if (action === "concentrate_center") return "center";
+  if (action === "line_rotation") {
+    const enemySide = side === "A" ? "B" : "A";
+    const diffs = [
+      { sector: "left", diff: aliveCountInSector(enemySide, "left") - aliveCountInSector(side, "left") },
+      { sector: "center", diff: aliveCountInSector(enemySide, "center") - aliveCountInSector(side, "center") },
+      { sector: "right", diff: aliveCountInSector(enemySide, "right") - aliveCountInSector(side, "right") },
+    ];
+    diffs.sort((a, b) => b.diff - a.diff);
+    return diffs[0].sector;
+  }
+  if (action === "exploit_gap") {
+    const enemySide = side === "A" ? "B" : "A";
+    const sectors = ["left", "center", "right"];
+    let best = "center";
+    let bestScore = -Infinity;
+    sectors.forEach((s) => {
+      const score = aliveCountInSector(side, s) - aliveCountInSector(enemySide, s);
+      if (score > bestScore) {
+        bestScore = score;
+        best = s;
+      }
+    });
+    return best;
+  }
   if (action === "defend_flank") {
     return weightedPick(["left", "right"], sectorWeights(side, ["left", "right"]), rand);
   }
@@ -1471,6 +1499,8 @@ function getAvailableActionsForArmy(side) {
   return MAJOR_ACTIONS.filter((action) => {
     if (action === "cavalry_charge" && cavalryCount < 2) return false;
     if (action === "bombard_sector" && artilleryCount === 0) return false;
+    if (action === "exploit_gap" && status.nearRatio < 0.2) return false;
+    if (action === "line_rotation" && status.myMorale > 85 && status.outnumberedRatio < 1.05) return false;
     if (farBattle && action !== "advance") return false;
     return true;
   });
@@ -1517,20 +1547,24 @@ function getActionWeights(commander, phase, side) {
     rally: 0.15 + lowMorale * 2,
     retreat: 0.05 + veryLowMorale * 2.6 + pressure * 0.7,
     mass_assault: 0.08 + enemyBroken * 2.1 + engagement * 0.8,
+    line_rotation: 0.2 + flankThreat * 1.8 + lowMorale * 1.1,
+    exploit_gap: 0.08 + flankStrong * 1.7 + engagement * 0.9,
   };
 
   const aggr = commander.traits.aggression || 5;
   const control = commander.traits.control || 5;
-  const initiative = commander.traits.initiative || 5;
+  const creativity = commander.traits.creativity || 5;
   base.mass_assault *= 0.65 + (aggr / 10) * 0.9;
   base.cavalry_charge *= 0.8 + (aggr / 10) * 0.5;
-  base.flank_attack *= 0.85 + (initiative / 10) * 0.45;
+  base.flank_attack *= 0.8 + (creativity / 10) * 0.65;
   base.concentrate_center *= 0.8 + (control / 10) * 0.5;
   base.bombard_sector *= 0.8 + (control / 10) * 0.45;
   base.defensive_stand *= 0.8 + ((10 - aggr) / 10) * 0.55;
   base.defend_flank *= 0.8 + (control / 10) * 0.45;
   base.rally *= 0.75 + ((10 - aggr) / 10) * 0.65;
   base.retreat *= 0.7 + ((10 - aggr) / 10) * 0.7;
+  base.line_rotation *= 0.8 + (control / 10) * 0.7;
+  base.exploit_gap *= 0.8 + (creativity / 10) * 0.8;
 
   Object.keys(base).forEach((k) => {
     base[k] = Math.max(0.01, base[k]);
@@ -1567,10 +1601,10 @@ function issueOrdersFromAction(side, events) {
       ? { left: "Flank Left", center: "Advance", right: "Hold" }
       : { left: "Hold", center: "Advance", right: "Flank Right" },
     cavalry_charge: sector === "left"
-      ? { left: "Charge", center: "Advance", right: "Hold" }
+      ? { left: "Cavalry Charge", center: "Advance", right: "Hold" }
       : sector === "right"
-        ? { left: "Hold", center: "Advance", right: "Charge" }
-        : { left: "Hold", center: "Charge", right: "Hold" },
+        ? { left: "Hold", center: "Advance", right: "Cavalry Charge" }
+        : { left: "Hold", center: "Cavalry Charge", right: "Hold" },
     defensive_stand: { left: "Hold", center: "Hold", right: "Hold" },
     bombard_sector: sector === "left"
       ? { left: "Bombard", center: "Hold", right: "Hold" }
@@ -1590,7 +1624,17 @@ function issueOrdersFromAction(side, events) {
       : sector === "right"
         ? { left: "Hold", center: "Hold", right: "Retreat" }
         : { left: "Hold", center: "Retreat", right: "Hold" },
-    mass_assault: { left: "Attack", center: "Attack", right: "Attack" },
+    mass_assault: { left: "Charge", center: "Charge", right: "Charge" },
+    line_rotation: sector === "left"
+      ? { left: "Withdraw", center: "Hold", right: "Advance" }
+      : sector === "right"
+        ? { left: "Advance", center: "Hold", right: "Withdraw" }
+        : { left: "Hold", center: "Withdraw", right: "Hold" },
+    exploit_gap: sector === "left"
+      ? { left: "Charge", center: "Hold", right: "Hold" }
+      : sector === "right"
+        ? { left: "Hold", center: "Hold", right: "Charge" }
+        : { left: "Hold", center: "Charge", right: "Hold" },
     artillery_barrage: { left: "Bombard", center: "Bombard", right: "Bombard" },
     foot_cavalry: { left: "Attack", center: "Attack", right: "Attack" },
     feigned_retreat: { left: "Withdraw", center: "Withdraw", right: "Withdraw" },
@@ -1657,6 +1701,8 @@ function actionDescription(action, sector) {
   if (action === "rally") return `Target flank in ${s} holds and recovers morale.`;
   if (action === "retreat") return `Target flank in ${s} retreats, recovers morale, but risks cascading morale collapse.`;
   if (action === "mass_assault") return "All sectors attack: +20% dealt, but units take +20% damage.";
+  if (action === "line_rotation") return `Sector ${s} rotates line: controlled withdrawal, relief, and recovery.`;
+  if (action === "exploit_gap") return `Exploit weakness in ${s}: opportunistic push with flank pressure.`;
   if (action === "artillery_barrage") return "All artillery deals x2 damage for 5 turns.";
   if (action === "foot_cavalry") return "All infantry gets +1 move and extra morale pressure for 5 turns.";
   if (action === "feigned_retreat") return "All cavalry retreats and attacks at range 2 for 5 turns.";
@@ -1685,6 +1731,7 @@ function affectedWingsForAction(action, sector) {
   if (action === "fighting_withdrawal") return ["left", "center", "right"];
   if (action === "foot_cavalry" || action === "feigned_retreat") return ["left", "center", "right"];
   if (action === "mass_assault") return ["left", "center", "right"];
+  if (action === "line_rotation" || action === "exploit_gap") return [sector];
   if (action === "defend_flank" || action === "rally" || action === "retreat") return [sector];
   return ["left", "center", "right"];
 }
@@ -1705,7 +1752,7 @@ function weightedPick(options, weights, rand) {
 }
 
 function chooseForcedOffensiveAction(side, rand) {
-  const offensivePool = ["advance", "concentrate_center", "flank_attack", "cavalry_charge", "bombard_sector", "mass_assault"];
+  const offensivePool = ["advance", "concentrate_center", "flank_attack", "cavalry_charge", "bombard_sector", "mass_assault", "exploit_gap"];
   const available = getAvailableActionsForArmy(side).filter((a) => offensivePool.includes(a));
   if (!available.length) return "advance";
   const army = state.armies[side];
@@ -1831,6 +1878,7 @@ function getActionAttackMultiplier(army, unit) {
   if (action === "advance" && unit.type === "infantry") mult *= 1.05;
   if (action === "defend_flank" && unitSector === sector) mult *= 1.05;
   if (action === "mass_assault") mult *= 1.2;
+  if (action === "exploit_gap" && unitSector === sector) mult *= 1.2;
   if ((army.majorActionDamageBoost || 1) > 1 && (army.majorActionDamageBoostTurns || 0) > 0) {
     mult *= army.majorActionDamageBoost;
   }
@@ -1846,6 +1894,7 @@ function getActionDefenseMultiplier(army, unit) {
   if (action === "defend_flank" && unitSector === sector) return 0.8;
   if (action === "rally" && unitSector === sector) return 0.8;
   if (action === "mass_assault") return 1.2;
+  if (action === "line_rotation" && unitSector === sector) return 0.9;
   const sig = army.activeSignature;
   if (sig?.type === "fighting_withdrawal") return 0.8;
   return 1;
@@ -1912,6 +1961,11 @@ function scoreMoveTile(unit, hex, nearest, wing, side, isFlankOrder) {
     const nextToCenter = Math.abs(hex.r - centerAnchor);
     score += (currentToCenter - nextToCenter) * 10;
     score += (hexDist(hex.q, hex.r, nearest.q, nearest.r) - currentDist) * 6;
+  }
+
+  if (unit.prevQ === hex.q && unit.prevR === hex.r) {
+    const bouncePenalty = wing.currentOrder === "Retreat" ? 8 : 22;
+    score -= bouncePenalty;
   }
 
   const laneDiff = Math.abs((unit.preferredR ?? unit.r) - hex.r);
@@ -2122,13 +2176,14 @@ function applyPersistentStateShock(unit, stateKey, condition, amount, label, app
 function routeAndCleanup(events) {
   ["A", "B"].forEach((side) => {
     const army = state.armies[side];
-    const moraleRecoverySector = (army.currentAction === "rally" || army.currentAction === "retreat") ? (army.currentSector || "center") : null;
+    const moraleRecoverySector = (army.currentAction === "rally" || army.currentAction === "retreat" || army.currentAction === "line_rotation") ? (army.currentSector || "center") : null;
     state.armies[side].units.forEach((u) => {
       if (!u.alive) return;
       if (!u.statuses) u.statuses = { cavalryShockTurns: 0 };
       if ((u.statuses.cavalryShockTurns || 0) > 0) u.statuses.cavalryShockTurns -= 1;
       if (moraleRecoverySector && getSectorForUnit(u) === moraleRecoverySector) {
-        u.morale = Math.min(100, u.morale + 8);
+        const gain = army.currentAction === "line_rotation" ? 5 : 8;
+        u.morale = Math.min(100, u.morale + gain);
       }
       u.morale = Math.max(0, Math.min(100, u.morale));
       if (u.morale === 0 || u.strength <= 0) {
