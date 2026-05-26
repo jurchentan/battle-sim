@@ -88,9 +88,12 @@ function hydrateArmyState(army) {
       }
     }
     if (!u.shockLocks) u.shockLocks = { isolated: false, flanked: false, surrounded: false };
-    if (!u.statuses) u.statuses = { cavalryShockTurns: 0 };
+    if (!u.statuses) u.statuses = { cavalryShockTurns: 0, disengageTurns: 0 };
     if (u.statuses.cavalryShockTurns === undefined || u.statuses.cavalryShockTurns === null) {
       u.statuses.cavalryShockTurns = 0;
+    }
+    if (u.statuses.disengageTurns === undefined || u.statuses.disengageTurns === null) {
+      u.statuses.disengageTurns = 0;
     }
   });
 }
@@ -157,7 +160,7 @@ function makeUnit(side, type, idx) {
     attack: UNIT_BASE[type].attack,
     preferredR: null,
     shockLocks: { isolated: false, flanked: false, surrounded: false },
-    statuses: { cavalryShockTurns: 0 },
+    statuses: { cavalryShockTurns: 0, disengageTurns: 0 },
     currentOrder: "Hold",
     alive: true,
   };

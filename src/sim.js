@@ -583,7 +583,7 @@ function isSignatureAction(action) {
 
 function actionDescription(action, sector) {
   const s = targetLabel(sector);
-  if (action === "advance") return "All units recover 4 morale per turn; infantry also gets +5% attack while advancing.";
+  if (action === "advance") return "All units recover 4 morale per turn while advancing.";
   if (action === "concentrate_center") return "Center wing gets +20% attack damage.";
   if (action === "flank_attack") return `Flank wing in ${s} gets +20% attack damage.`;
   if (action === "cavalry_charge") return `Cavalry in ${s} gets +20% attack damage.`;
@@ -742,6 +742,13 @@ function moveUnits(side, rand) {
     const isReserveHold = wing.currentOrder === "Stay in Reserve";
     const isRearSupport = wing.currentOrder === "Stay in Rear";
     const isFlankDefense = wing.currentOrder === "Stay on Flanks";
+    const flankDivision = u.divisionId === "left" || u.divisionId === "right";
+    const behindFront = behindFrontlineDistance(u, side) > 2;
+    const shouldRejoin = flankDivision && u.divisionId !== "reserve" && (behindFront || (u.statuses?.disengageTurns || 0) > 0);
+
+    if (wing.currentOrder === "Retreat") u.statuses.disengageTurns = Math.max(u.statuses.disengageTurns || 0, 3);
+    if (wing.currentOrder === "Withdraw") u.statuses.disengageTurns = Math.max(u.statuses.disengageTurns || 0, 2);
+
     if (!isFlankOrder && !allowsDisengage && distToNearest <= 1) return;
 
     let steps = Math.max(1, u.move);
@@ -757,6 +764,8 @@ function moveUnits(side, rand) {
       let next = null;
       if (isReserveHold) {
         next = chooseReserveStep(u, side, reserved, visitedThisMove);
+      } else if (shouldRejoin) {
+        next = chooseRejoinLineStep(u, side, reserved, visitedThisMove);
       } else if (isRearSupport) {
         next = chooseRearSupportStep(u, side, reserved, visitedThisMove);
       } else if (isFlankDefense) {
@@ -772,6 +781,58 @@ function moveUnits(side, rand) {
 
 
   });
+}
+
+function behindFrontlineDistance(unit, side) {
+  const anchor = frontlineAnchorForSide(side);
+  if (!anchor) return 0;
+  if (side === "A") return Math.max(0, anchor.q - unit.q);
+  return Math.max(0, unit.q - anchor.q);
+}
+
+function chooseRejoinLineStep(unit, side, reserved, visitedThisMove) {
+  const front = frontlineAnchorForSide(side);
+  if (!front) return null;
+  const enemySide = side === "A" ? "B" : "A";
+  const nearest = nearestEnemy(unit, enemySide);
+  const centerR = getCenterDivisionMeanR(side);
+  const targetR = unit.divisionId === "left" ? centerR - 3 : unit.divisionId === "right" ? centerR + 3 : centerR;
+  const targetQ = side === "A" ? front.q - 0.3 : front.q + 0.3;
+
+  const neighbors = getNeighbors(unit.q, unit.r)
+    .filter((h) => h
+      && h.active
+      && h.terrain !== "blocked"
+      && !h.occupantUnitId
+      && !reserved.has(`${h.q},${h.r}`)
+      && !visitedThisMove.has(`${h.q},${h.r}`));
+  if (!neighbors.length) return null;
+
+  let best = null;
+  let bestScore = -Infinity;
+  neighbors.forEach((h) => {
+    const curQDist = Math.abs((unit.q ?? 0) - targetQ);
+    const nextQDist = Math.abs(h.q - targetQ);
+    const curRDist = Math.abs((unit.r ?? 0) - targetR);
+    const nextRDist = Math.abs(h.r - targetR);
+    const nextEnemyDist = nearest ? hexDist(h.q, h.r, nearest.q, nearest.r) : 99;
+    let score = (curQDist - nextQDist) * 18;
+    score += (curRDist - nextRDist) * 8;
+
+    if (nextEnemyDist <= 1) score -= 24;
+    else if (nextEnemyDist >= 2 && nextEnemyDist <= 3) score += 6;
+
+    const adj = countAdjacentFriendly(h.q, h.r, unit.armyId);
+    score += adj * 5;
+
+    if (unit.prevQ === h.q && unit.prevR === h.r) score -= 10;
+
+    if (score > bestScore) {
+      bestScore = score;
+      best = h;
+    }
+  });
+  return best;
 }
 
 function selectMovementTargetEnemy(unit, side, enemySide, wing) {
@@ -1023,7 +1084,6 @@ function getActionAttackMultiplier(army, unit) {
   if (action === "flank_attack" && unitSector === sector) mult *= 1.2;
   if (action === "cavalry_charge" && unit.type === "cavalry" && (unitMatchesActionTarget(unit, sector) || sector === "center")) mult *= 1.2;
   if (action === "bombard_sector" && unit.type === "artillery" && unitMatchesActionTarget(unit, sector)) mult *= 1.2;
-  if (action === "advance" && unit.type === "infantry") mult *= 1.05;
   if (action === "defend_flank" && unitSector === sector) mult *= 1.05;
   if (action === "mass_assault") mult *= 1.2;
   if (action === "exploit_gap" && unitSector === sector) mult *= 1.2;
@@ -1474,8 +1534,9 @@ function routeAndCleanup(events) {
     const routedThisTurn = [];
     state.armies[side].units.forEach((u) => {
       if (!u.alive) return;
-      if (!u.statuses) u.statuses = { cavalryShockTurns: 0 };
+      if (!u.statuses) u.statuses = { cavalryShockTurns: 0, disengageTurns: 0 };
       if ((u.statuses.cavalryShockTurns || 0) > 0) u.statuses.cavalryShockTurns -= 1;
+      if ((u.statuses.disengageTurns || 0) > 0) u.statuses.disengageTurns -= 1;
       if (army.currentAction === "advance") {
         u.morale = Math.min(100, u.morale + 4);
       }
