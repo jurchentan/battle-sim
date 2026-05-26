@@ -146,6 +146,10 @@ const UNIT_ICONS = {
     artillery: loadIcon("./assets/icons/artillery-red.png"),
   },
 };
+const MORALE_ICONS = {
+  low: loadIcon("./assets/icons/lossmorale.png"),
+  critical: loadIcon("./assets/icons/lossalotofmorale.png"),
+};
 const COMMANDER_ACCENT = {
   napoleon: "#123d8d",
   genghis: "#5db9ff",

@@ -1587,8 +1587,9 @@ function routeAndCleanup(events) {
         let shock = 0;
         routedThisTurn.forEach((r) => {
           const d = hexDist(u.q, u.r, r.q, r.r);
-          if (d === 1) shock += 12;
-          else if (d === 2) shock += 6;
+          if (d === 1) shock += 18;
+          else if (d === 2) shock += 10;
+          else if (d === 3) shock += 4;
         });
         if (shock > 0) {
           u.morale = Math.max(0, u.morale - shock);
@@ -1596,6 +1597,25 @@ function routeAndCleanup(events) {
         }
       });
       if (shocked > 0) events.push(`${army.name} morale cascade: ${shocked} nearby units shaken.`);
+
+      const enemySide = side === "A" ? "B" : "A";
+      let inspired = 0;
+      state.armies[enemySide].units.forEach((u) => {
+        if (!u.alive) return;
+        let gain = 0;
+        routedThisTurn.forEach((r) => {
+          const d = hexDist(u.q, u.r, r.q, r.r);
+          if (d === 1) gain += 8;
+          else if (d === 2) gain += 5;
+          else if (d === 3) gain += 2;
+        });
+        gain = Math.min(12, gain);
+        if (gain > 0) {
+          u.morale = Math.min(100, u.morale + gain);
+          inspired += 1;
+        }
+      });
+      if (inspired > 0) events.push(`${state.armies[enemySide].name} morale surge: ${inspired} nearby units emboldened by enemy routs.`);
     }
   });
 }

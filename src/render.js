@@ -232,15 +232,30 @@ function drawUnits() {
         ctx.stroke();
       }
 
-      if (u.morale < 40) {
-        ctx.strokeStyle = "#d92f2f";
-        ctx.lineWidth = 2;
-        ctx.strokeRect(p.x - 12, p.y - 12, 24, 24);
+      if (u.morale < 60) {
+        drawMoraleIndicator(u, side, p.x, p.y, size);
       }
 
       drawHealthBar(u, p.x, p.y + 14);
     });
   });
+}
+
+function drawMoraleIndicator(unit, side, x, y, unitSize) {
+  const circleRadius = 7;
+  const iconSize = 10;
+  const cx = x + (unitSize / 2) + 1;
+  const cy = y - (unitSize / 2) - 1;
+
+  ctx.beginPath();
+  ctx.arc(cx, cy, circleRadius, 0, Math.PI * 2);
+  ctx.fillStyle = side === "A" ? "rgba(76,140,205,0.68)" : "rgba(208,98,88,0.68)";
+  ctx.fill();
+
+  const icon = unit.morale <= 30 ? MORALE_ICONS.critical : MORALE_ICONS.low;
+  if (icon && icon.complete && icon.naturalWidth > 0) {
+    ctx.drawImage(icon, cx - (iconSize / 2), cy - (iconSize / 2), iconSize, iconSize);
+  }
 }
 
 function animatedPixelForUnit(unit, now) {
