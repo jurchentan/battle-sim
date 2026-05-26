@@ -198,23 +198,39 @@ function terrainColor(t) {
 
 function drawUnits() {
   const now = performance.now();
+  const iconSize = 24;
+  const artillerySize = 30;
   ["A", "B"].forEach((side) => {
     state.armies[side].units.filter((u) => u.alive).forEach((u) => {
       const p = animatedPixelForUnit(u, now);
+      const size = u.type === "artillery" ? artillerySize : iconSize;
+      const half = size / 2;
+
+      const icon = UNIT_ICONS[side]?.[u.type];
+      if (icon && icon.complete && icon.naturalWidth > 0) {
+        if (side === "B") {
+          ctx.save();
+          ctx.translate(p.x, 0);
+          ctx.scale(-1, 1);
+          ctx.drawImage(icon, -half, p.y - half, size, size);
+          ctx.restore();
+        } else {
+          ctx.drawImage(icon, p.x - half, p.y - half, size, size);
+        }
+      } else {
+        ctx.fillStyle = "#fff";
+        ctx.font = "11px Verdana";
+        ctx.textAlign = "center";
+        ctx.fillText(iconFor(u.type), p.x, p.y + 3);
+      }
+
       ctx.beginPath();
       ctx.arc(p.x, p.y, 10, 0, Math.PI * 2);
-      ctx.fillStyle = side === "A" ? "#2d6ba8" : "#b0483e";
-      ctx.fill();
-
       if (state.selectedWingUnits.has(u.id) || state.selectedUnitId === u.id) {
         ctx.strokeStyle = "#ffffff";
         ctx.lineWidth = 2;
         ctx.stroke();
       }
-      ctx.fillStyle = "#fff";
-      ctx.font = "11px Verdana";
-      ctx.textAlign = "center";
-      ctx.fillText(iconFor(u.type), p.x, p.y + 3);
 
       if (u.morale < 40) {
         ctx.strokeStyle = "#d92f2f";
@@ -444,4 +460,3 @@ function refreshArmyCounts() {
     a.defeatedUnitCount = a.units.filter((u) => !u.alive).length;
   });
 }
-

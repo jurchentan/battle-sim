@@ -131,6 +131,18 @@ const PORTRAITS = {
   washington: loadPortrait("./assets/commanders/washington.jpeg"),
   mcclellan: loadPortrait("./assets/commanders/mcclellan.jpg"),
 };
+const UNIT_ICONS = {
+  A: {
+    infantry: loadIcon("./assets/icons/infantry-blue.png"),
+    cavalry: loadIcon("./assets/icons/cavalry-blue.png"),
+    artillery: loadIcon("./assets/icons/artillery-blue.png"),
+  },
+  B: {
+    infantry: loadIcon("./assets/icons/infantry-red.png"),
+    cavalry: loadIcon("./assets/icons/cavalry-red.png"),
+    artillery: loadIcon("./assets/icons/artillery-red.png"),
+  },
+};
 const COMMANDER_ACCENT = {
   napoleon: "#123d8d",
   genghis: "#5db9ff",
@@ -166,6 +178,15 @@ function getAnimationDurationMs() {
 
 function loadPortrait(src) {
   const img = new Image();
+  img.src = src;
+  return img;
+}
+
+function loadIcon(src) {
+  const img = new Image();
+  img.onload = () => {
+    if (typeof render === "function") render();
+  };
   img.src = src;
   return img;
 }
