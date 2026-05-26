@@ -34,12 +34,18 @@ function wireUi() {
 }
 
 function toggleReelsMode() {
+  const prevSize = getActiveBattleSideLength();
   state.reelsMode = !state.reelsMode;
   document.body.classList.toggle("reels-mode", state.reelsMode);
   els.reelsHud.classList.toggle("hidden", !state.reelsMode);
   els.reelsSideControls.classList.toggle("hidden", !state.reelsMode);
   els.reelsModeBtn.textContent = `Reels Mode: ${state.reelsMode ? "On" : "Off"}`;
   els.reelsSideModeBtn.textContent = `Reels: ${state.reelsMode ? "On" : "Off"}`;
+  const nextSize = getActiveBattleSideLength();
+  if (nextSize !== prevSize) {
+    rebuildBattlefieldForCurrentModeSize();
+    return;
+  }
   render();
 }
 
@@ -120,6 +126,9 @@ function captureTurnZeroSnapshot() {
     turnLimit: state.turnLimit,
     defeatThresholdPercent: state.defeatThresholdPercent,
     armyConfig: state.armyConfig,
+    baseBattleSideLength: state.baseBattleSideLength,
+    reelsBattleSideLength: state.reelsBattleSideLength,
+    currentBattleSideLength: state.currentBattleSideLength,
   }));
 }
 
@@ -132,6 +141,9 @@ function restoreTurnZeroSnapshot() {
   state.turnLimit = snap.turnLimit;
   state.defeatThresholdPercent = snap.defeatThresholdPercent;
   state.armyConfig = snap.armyConfig;
+  state.baseBattleSideLength = snap.baseBattleSideLength ?? state.baseBattleSideLength;
+  state.reelsBattleSideLength = snap.reelsBattleSideLength ?? state.reelsBattleSideLength;
+  state.currentBattleSideLength = snap.currentBattleSideLength ?? state.currentBattleSideLength;
   ["A", "B"].forEach((side) => hydrateArmyState(state.armies[side]));
   return true;
 }
@@ -207,6 +219,32 @@ function renderToolPanel() {
     c.innerHTML = "<h3>Army Brigade Counts</h3>";
     c.appendChild(armyConfigEditor("A"));
     c.appendChild(armyConfigEditor("B"));
+    t.appendChild(c);
+  }
+  if (state.mode === "rules") {
+    const c = document.createElement("div");
+    c.className = "tool-group";
+    c.innerHTML = "<h3>Battlefield Size</h3>";
+
+    const note = document.createElement("div");
+    note.className = "card";
+    note.textContent = `Current side length: ${state.currentBattleSideLength}${state.reelsMode ? " (Reels)" : ""}`;
+    c.appendChild(note);
+
+    c.appendChild(toolButtons("Base Side Length", ["9", "7"], String(state.baseBattleSideLength), (v) => {
+      state.baseBattleSideLength = Number(v);
+    }));
+
+    const reelsNote = document.createElement("div");
+    reelsNote.className = "card";
+    reelsNote.textContent = "Reels mode uses side length 7 for better screen fit.";
+    c.appendChild(reelsNote);
+
+    const apply = document.createElement("button");
+    apply.textContent = "Apply Map Size";
+    apply.onclick = () => rebuildBattlefieldForCurrentModeSize();
+    c.appendChild(apply);
+
     t.appendChild(c);
   }
 }

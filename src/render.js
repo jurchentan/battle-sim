@@ -143,7 +143,7 @@ function updateMapOrigin() {
   const mapW = maxX - minX;
   const mapH = maxY - minY;
   MAP_ORIGIN_X = (els.canvas.width - mapW) / 2 - minX;
-  MAP_ORIGIN_Y = (els.canvas.height - mapH) / 2 - minY;
+  MAP_ORIGIN_Y = (els.canvas.height - mapH) / 2 - minY + (state.reelsMode ? 18 : 0);
 }
 
 function isMajorActionTurn(turn) {

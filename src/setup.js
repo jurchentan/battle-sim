@@ -9,17 +9,44 @@ function init() {
   log("Ready. Setup your battle and press Simulate.");
 }
 
+function getActiveBattleSideLength() {
+  const reelsSize = Math.max(5, Number(state.reelsBattleSideLength) || 7);
+  const baseSize = Math.max(5, Number(state.baseBattleSideLength) || 9);
+  return state.reelsMode ? reelsSize : baseSize;
+}
+
 function buildMap() {
+  const sideLength = getActiveBattleSideLength();
+  const radius = sideLength - 1;
+  const mapSize = (radius * 2) + 1;
+  state.map.width = mapSize;
+  state.map.height = mapSize;
+  state.currentBattleSideLength = sideLength;
   state.map.hexes = [];
   const centerQ = Math.floor(state.map.width / 2);
   const centerR = Math.floor(state.map.height / 2);
-  const radius = 8;
   for (let r = 0; r < state.map.height; r += 1) {
     for (let q = 0; q < state.map.width; q += 1) {
       const active = hexDist(q, r, centerQ, centerR) <= radius;
       state.map.hexes.push({ q, r, terrain: "plain", occupantUnitId: null, active });
     }
   }
+}
+
+function rebuildBattlefieldForCurrentModeSize() {
+  stopSimulationLoop();
+  state.selectedUnitId = null;
+  state.moveSourceUnitId = null;
+  state.selectedWingUnits.clear();
+  state.actionHighlights = [];
+  state.battleOverlay = null;
+  state.unitAnimations = {};
+  state.turn = 0;
+  state.replay = { seed: state.seed, turns: [], finalResult: null };
+  buildMap();
+  placeDefaultUnits();
+  log(`Battlefield resized to side length ${state.currentBattleSideLength}${state.reelsMode ? " (Reels)" : ""}.`);
+  render();
 }
 
 function buildArmies() {

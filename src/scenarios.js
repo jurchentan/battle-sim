@@ -48,7 +48,12 @@ function saveScenario() {
   const payload = {
     map: state.map,
     armies: state.armies,
-    rules: { turnLimit: state.turnLimit, defeatThresholdPercent: state.defeatThresholdPercent },
+    rules: {
+      turnLimit: state.turnLimit,
+      defeatThresholdPercent: state.defeatThresholdPercent,
+      baseBattleSideLength: state.baseBattleSideLength,
+      reelsBattleSideLength: state.reelsBattleSideLength,
+    },
     seed: state.seed,
     armyConfig: state.armyConfig,
   };
@@ -71,6 +76,9 @@ function loadScenarioById(id) {
       ["A", "B"].forEach((side) => hydrateArmyState(state.armies[side]));
       state.turnLimit = loaded.rules?.turnLimit ?? state.turnLimit;
       state.defeatThresholdPercent = loaded.rules?.defeatThresholdPercent ?? state.defeatThresholdPercent;
+      state.baseBattleSideLength = loaded.rules?.baseBattleSideLength ?? state.baseBattleSideLength;
+      state.reelsBattleSideLength = loaded.rules?.reelsBattleSideLength ?? state.reelsBattleSideLength;
+      state.currentBattleSideLength = getActiveBattleSideLength();
       state.seed = loaded.seed ?? state.seed;
       state.armyConfig = loaded.armyConfig || state.armyConfig;
       state.turn = 0;
