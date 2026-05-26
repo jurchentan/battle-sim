@@ -1076,6 +1076,21 @@ function scoreMoveTile(unit, hex, nearest, wing, side, isFlankOrder) {
     if (nextDist > currentDist) score -= 4;
     if (nextDist === currentDist) score += 8;
   }
+  if (wing.currentOrder === "Advance") {
+    if (nextDist < currentDist) score += 7;
+    if (nextDist > currentDist) score -= 10;
+  }
+  if (wing.currentOrder === "Attack") {
+    if (nextDist < currentDist) score += 16;
+    if (nextDist > currentDist) score -= 16;
+    if (nextDist <= 1) score += 6;
+  }
+  if (wing.currentOrder === "Charge") {
+    if (nextDist < currentDist) score += 24;
+    if (nextDist > currentDist) score -= 24;
+    if (nextDist <= 1) score += 12;
+    if (unit.type === "cavalry" && nextDist <= 2) score += 8;
+  }
   if (wing.currentOrder === "Stay in Rear") {
     if (nextDist < currentDist) score -= 24;
     if (nextDist > currentDist) score += 6;
