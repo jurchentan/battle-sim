@@ -358,6 +358,7 @@ function getBattleStatus(side) {
 
 function getAvailableActionsForArmy(side) {
   const army = state.armies[side];
+  const creativity = COMMANDERS[army.armyCommanderId]?.traits?.creativity ?? 5;
   const alive = army.units.filter((u) => u.alive);
   const cavalryCount = alive.filter((u) => u.type === "cavalry").length;
   const artilleryCount = alive.filter((u) => u.type === "artillery").length;
@@ -368,7 +369,10 @@ function getAvailableActionsForArmy(side) {
   return MAJOR_ACTIONS.filter((action) => {
     if (action === "cavalry_charge" && cavalryCount < 2) return false;
     if (action === "bombard_sector" && artilleryCount === 0) return false;
-    if (action === "exploit_gap" && status.nearRatio < 0.2) return false;
+    if (action === "exploit_gap") {
+      const requiredGap = 0.35 + ((10 - creativity) / 10) * 0.8;
+      if (status.nearRatio < 0.24 || status.gapOpportunity < requiredGap) return false;
+    }
     if (action === "line_rotation" && status.myMorale > 85 && status.outnumberedRatio < 1.05) return false;
     if (action === "commit_reserve" && reserveCount === 0) return false;
     if (farBattle && action !== "advance") return false;
@@ -435,7 +439,9 @@ function getActionWeights(commander, phase, side) {
   base.rally *= 0.75 + ((10 - aggr) / 10) * 0.65;
   base.retreat *= 0.7 + ((10 - aggr) / 10) * 0.7;
   base.line_rotation *= 0.8 + (control / 10) * 0.7;
-  base.exploit_gap *= 0.8 + (creativity / 10) * 0.8;
+  const creativityNorm = clamp(creativity / 10, 0, 1);
+  const exploitCreativityFactor = 0.15 + (Math.pow(creativityNorm, 2.2) * 1.6);
+  base.exploit_gap *= exploitCreativityFactor;
   base.commit_reserve *= 0.8 + (control / 10) * 0.85;
 
   Object.keys(base).forEach((k) => {
@@ -793,7 +799,8 @@ function moveUnits(side, rand) {
     const isFlankDefense = wing.currentOrder === "Stay on Flanks";
     const flankDivision = u.divisionId === "left" || u.divisionId === "right";
     const behindFront = behindFrontlineDistance(u, side) > 2;
-    const shouldRejoin = flankDivision && u.divisionId !== "reserve" && (behindFront || (u.statuses?.disengageTurns || 0) > 0);
+    const shouldRejoin = u.divisionId !== "reserve"
+      && (flankDivision && (behindFront || (u.statuses?.disengageTurns || 0) > 0));
 
     if (wing.currentOrder === "Retreat") u.statuses.disengageTurns = Math.max(u.statuses.disengageTurns || 0, 3);
     if (wing.currentOrder === "Withdraw") u.statuses.disengageTurns = Math.max(u.statuses.disengageTurns || 0, 2);
@@ -839,13 +846,24 @@ function behindFrontlineDistance(unit, side) {
   return Math.max(0, unit.q - anchor.q);
 }
 
+function behindFrontlineDistanceAt(q, side) {
+  const anchor = frontlineAnchorForSide(side);
+  if (!anchor) return 0;
+  if (side === "A") return Math.max(0, anchor.q - q);
+  return Math.max(0, q - anchor.q);
+}
+
 function chooseRejoinLineStep(unit, side, reserved, visitedThisMove) {
   const front = frontlineAnchorForSide(side);
   if (!front) return null;
   const enemySide = side === "A" ? "B" : "A";
   const nearest = nearestEnemy(unit, enemySide);
   const centerR = getCenterDivisionMeanR(side);
-  const targetR = unit.divisionId === "left" ? centerR - 3 : unit.divisionId === "right" ? centerR + 3 : centerR;
+  const targetR = unit.divisionId === "left"
+    ? centerR + (getSideLaneSign(side, "left") * 3)
+    : unit.divisionId === "right"
+      ? centerR + (getSideLaneSign(side, "right") * 3)
+      : centerR;
   const targetQ = side === "A" ? front.q - 0.3 : front.q + 0.3;
 
   const neighbors = getNeighbors(unit.q, unit.r)
@@ -1023,7 +1041,18 @@ function chooseRearSupportStep(unit, side, reserved, visitedThisMove) {
 
 function chooseFlankDefenseStep(unit, side, reserved, visitedThisMove) {
   const enemySide = side === "A" ? "B" : "A";
-  const nearest = nearestEnemy(unit, enemySide);
+  const pinnedSign = getPinnedFlankSign(unit, side, getCenterDivisionMeanR(side));
+  const flankLane = side === "A"
+    ? (pinnedSign > 0 ? "left" : "right")
+    : (pinnedSign < 0 ? "left" : "right");
+  const flankEnemies = state.armies[enemySide].units
+    .filter((e) => e.alive && getTacticalLaneForUnit(e) === flankLane);
+  const nearest = flankEnemies.length
+    ? flankEnemies.reduce((best, e) => {
+      if (!best) return e;
+      return hexDist(unit.q, unit.r, e.q, e.r) < hexDist(unit.q, unit.r, best.q, best.r) ? e : best;
+    }, null)
+    : nearestEnemy(unit, enemySide);
   const centerR = getCenterDivisionMeanR(side);
   const flankSign = getPinnedFlankSign(unit, side, centerR);
   const targetR = centerR + (flankSign * 5);
@@ -1047,17 +1076,36 @@ function chooseFlankDefenseStep(unit, side, reserved, visitedThisMove) {
     const currentFrontDist = Math.abs((unit.q ?? 0) - targetQ);
     const nextFrontDist = Math.abs(h.q - targetQ);
     const nextEnemyDist = nearest ? hexDist(h.q, h.r, nearest.q, nearest.r) : 99;
+    const currentBehind = behindFrontlineDistance(unit, side);
+    const nextBehind = behindFrontlineDistanceAt(h.q, side);
     let score = (currentFlankDist - nextFlankDist) * 12;
     score += (currentFrontDist - nextFrontDist) * 14;
+    score += (currentBehind - nextBehind) * 16;
+    if (nextBehind > currentBehind) score -= 18;
 
     const behindBy = side === "A" ? (targetQ - h.q) : (h.q - targetQ);
     if (behindBy > 1) score -= 24 + ((behindBy - 1) * 16);
     const aheadBy = side === "A" ? (h.q - targetQ) : (targetQ - h.q);
     if (aheadBy > 1.5) score -= 10 + ((aheadBy - 1.5) * 10);
 
-    if (nextEnemyDist <= 1) score -= 28;
-    else if (nextEnemyDist === 2) score += 6;
-    else if (nextEnemyDist >= 3 && nextEnemyDist <= 4) score += 4;
+    // Stay on the flank but keep contact pressure near the enemy line.
+    if (unit.type === "cavalry") {
+      const closeDecision = evaluateCavalryCloseDecision(unit, h, side);
+      if (nextEnemyDist <= 1) {
+        score += closeDecision.canClose ? 14 : -22;
+      } else if (nextEnemyDist === 2) {
+        score += 12;
+      } else if (nextEnemyDist === 3) {
+        score += 2;
+      } else {
+        score -= (nextEnemyDist - 3) * 8;
+      }
+    } else {
+      if (nextEnemyDist <= 1) score += 6;
+      else if (nextEnemyDist === 2) score += 10;
+      else if (nextEnemyDist === 3) score += 4;
+      else score -= (nextEnemyDist - 3) * 6;
+    }
 
     const divisionAdj = countAdjacentDivision(h.q, h.r, unit.armyId, unit.divisionId, unit.id);
     score += divisionAdj * 7;
@@ -1077,13 +1125,19 @@ function getPinnedFlankSign(unit, side, centerR) {
   const fallback = (unit.preferredR ?? unit.r) >= centerR ? 1 : -1;
   const lane = getTacticalLaneForUnit(unit);
   if (lane === "left") {
-    unit.flankSign = side === "A" ? -1 : 1;
-  } else if (lane === "right") {
     unit.flankSign = side === "A" ? 1 : -1;
+  } else if (lane === "right") {
+    unit.flankSign = side === "A" ? -1 : 1;
   } else {
     unit.flankSign = fallback;
   }
   return unit.flankSign;
+}
+
+function getSideLaneSign(side, lane) {
+  if (lane === "left") return side === "A" ? 1 : -1;
+  if (lane === "right") return side === "A" ? -1 : 1;
+  return 0;
 }
 
 function getSectorForUnit(unit) {
