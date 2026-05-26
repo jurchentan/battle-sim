@@ -887,7 +887,7 @@ function chooseFlankDefenseStep(unit, side, reserved, visitedThisMove) {
   const flankSign = ((unit.preferredR ?? unit.r) >= centerR) ? 1 : -1;
   const targetR = centerR + (flankSign * 5);
   const front = frontlineAnchorForSide(side);
-  const targetQ = front ? front.q + (side === "A" ? -0.5 : 0.5) : unit.q;
+  const targetQ = front ? front.q + (side === "A" ? 0.2 : -0.2) : unit.q;
 
   const neighbors = getNeighbors(unit.q, unit.r)
     .filter((h) => h
@@ -907,11 +907,16 @@ function chooseFlankDefenseStep(unit, side, reserved, visitedThisMove) {
     const nextFrontDist = Math.abs(h.q - targetQ);
     const nextEnemyDist = nearest ? hexDist(h.q, h.r, nearest.q, nearest.r) : 99;
     let score = (currentFlankDist - nextFlankDist) * 12;
-    score += (currentFrontDist - nextFrontDist) * 5;
+    score += (currentFrontDist - nextFrontDist) * 14;
+
+    const behindBy = side === "A" ? (targetQ - h.q) : (h.q - targetQ);
+    if (behindBy > 1) score -= 24 + ((behindBy - 1) * 16);
+    const aheadBy = side === "A" ? (h.q - targetQ) : (targetQ - h.q);
+    if (aheadBy > 1.5) score -= 10 + ((aheadBy - 1.5) * 10);
 
     if (nextEnemyDist <= 1) score -= 28;
-    else if (nextEnemyDist === 2) score -= 6;
-    else if (nextEnemyDist >= 3 && nextEnemyDist <= 4) score += 8;
+    else if (nextEnemyDist === 2) score += 6;
+    else if (nextEnemyDist >= 3 && nextEnemyDist <= 4) score += 4;
 
     const divisionAdj = countAdjacentDivision(h.q, h.r, unit.armyId, unit.divisionId, unit.id);
     score += divisionAdj * 7;
