@@ -34,9 +34,32 @@ function runSimulation() {
       render();
       return;
     }
-    state.simTimer = setTimeout(loop, getSimStepDelayMs());
+    state.simTimer = setTimeout(loop, getTurnTransitionDelayMs());
   };
   loop();
+}
+
+function getTurnTransitionDelayMs() {
+  const baseDelay = getSimStepDelayMs();
+  if (!state.reelsMode) return baseDelay;
+  const animationDelay = getRemainingUnitAnimationMs();
+  return Math.max(baseDelay, animationDelay + 24);
+}
+
+function getRemainingUnitAnimationMs() {
+  const now = performance.now();
+  let maxRemaining = 0;
+  Object.values(state.unitAnimations).forEach((anim) => {
+    if (!anim) return;
+    const segCount = Array.isArray(anim.segments) ? anim.segments.length : 0;
+    if (segCount <= 0) return;
+    const segDuration = anim.segmentDuration || getAnimationDurationMs();
+    const total = segCount * segDuration;
+    const elapsed = now - (anim.start || now);
+    const remaining = Math.max(0, total - elapsed);
+    if (remaining > maxRemaining) maxRemaining = remaining;
+  });
+  return maxRemaining;
 }
 
 function stepTurn() {
