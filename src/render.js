@@ -485,8 +485,11 @@ function iconFor(type) {
 
 function renderInfo() {
   const selected = findUnit(state.selectedUnitId);
+  const selectedArmy = selected ? state.armies[selected.armyId] : null;
+  const selectedDivision = selectedArmy?.divisions?.[selected.divisionId];
+  const selectedOrder = selectedDivision?.currentOrder || "Hold";
   els.selectionInfo.textContent = selected
-    ? `${displayUnitId(selected.id)} ${selected.type} brigade | Division: ${selected.divisionId} | Move ${selected.move} | Range ${selected.range} | Str ${Math.round(selected.strength)} | Morale ${Math.round(selected.morale)}`
+    ? `${displayUnitId(selected.id)} ${selected.type} brigade | Division: ${selected.divisionId} | Order: ${selectedOrder} | Move ${selected.move} | Range ${selected.range} | Str ${Math.round(selected.strength)} | Morale ${Math.round(selected.morale)}`
     : "No selection";
 
   ["A", "B"].forEach((side) => {

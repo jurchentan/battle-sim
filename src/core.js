@@ -120,7 +120,7 @@ const COMMANDERS = {
         "Preparation first; decisive action next.",
       ],
     },
-    chargeDescription: "Charges from disciplined hold orders and preserved formation.",
+    chargeDescription: "Charges from preserving formations.",
     victoryQuotes: [
       "By preparation and precision, we prevailed.",
       "Nothing is lost by deliberation joined to action.",
