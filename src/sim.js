@@ -895,9 +895,70 @@ function scoreMoveTile(unit, hex, nearest, wing, side, isFlankOrder) {
   }
 
   if (unit.type === "infantry") score += 4;
-  if (unit.type === "cavalry" && !isFlankOrder && nextDist <= 1) score -= 6;
+  if (unit.type === "cavalry") {
+    const cavalryClose = evaluateCavalryCloseDecision(unit, hex, side);
+    if (!cavalryClose.canClose && nextDist <= 2) {
+      score -= 34;
+    } else if (cavalryClose.shouldPress && nextDist <= 2) {
+      score += 12;
+    }
+    if (!isFlankOrder && nextDist <= 1 && !cavalryClose.shouldPress) score -= 10;
+  }
 
   return score;
+}
+
+function unitPowerValue(unit) {
+  const typeWeight = { infantry: 1, cavalry: 0.95, artillery: 1.25 }[unit.type] || 1;
+  const baseStrength = UNIT_BASE[unit.type]?.strength || Math.max(1, unit.strength || 1);
+  const strengthPct = Math.max(0.15, Math.min(1.25, (unit.strength || baseStrength) / baseStrength));
+  const moraleFactor = 0.6 + (Math.max(0, Math.min(100, unit.morale || 0)) / 250);
+  return typeWeight * strengthPct * moraleFactor;
+}
+
+function localCombatPowerAt(q, r, side, radius) {
+  const enemySide = side === "A" ? "B" : "A";
+  const friendlyPower = state.armies[side].units
+    .filter((u) => u.alive && hexDist(q, r, u.q, u.r) <= radius)
+    .reduce((sum, u) => sum + unitPowerValue(u), 0);
+  const enemyPower = state.armies[enemySide].units
+    .filter((u) => u.alive && hexDist(q, r, u.q, u.r) <= radius)
+    .reduce((sum, u) => sum + unitPowerValue(u), 0);
+  return { friendlyPower, enemyPower, ratio: friendlyPower / Math.max(0.01, enemyPower) };
+}
+
+function isEnemyWeakNear(q, r, side, radius) {
+  const enemySide = side === "A" ? "B" : "A";
+  const enemies = state.armies[enemySide].units.filter((u) => u.alive && hexDist(q, r, u.q, u.r) <= radius);
+  if (!enemies.length) return true;
+  const avgMorale = enemies.reduce((sum, u) => sum + u.morale, 0) / enemies.length;
+  const weakCount = enemies.filter((u) => u.morale < 45 || u.strength < (UNIT_BASE[u.type].strength * 0.55)).length;
+  return avgMorale < 55 || weakCount >= Math.ceil(enemies.length * 0.5);
+}
+
+function evaluateCavalryCloseDecision(unit, targetHex, side) {
+  const commander = COMMANDERS[state.armies[side].armyCommanderId] || { traits: {} };
+  const aggr = commander.traits.aggression || 5;
+  const sig = state.armies[side].activeSignature;
+  const local = localCombatPowerAt(targetHex.q, targetHex.r, side, 2);
+  const enemyWeak = isEnemyWeakNear(targetHex.q, targetHex.r, side, 2);
+
+  let minToClose = 1.1 - ((aggr - 5) * 0.03);
+  let pressThreshold = 1.25 - ((aggr - 5) * 0.04);
+  if (sig?.type === "feigned_retreat") {
+    minToClose -= 0.1;
+    pressThreshold -= 0.12;
+  }
+  if (enemyWeak) {
+    minToClose -= 0.12;
+    pressThreshold -= 0.15;
+  }
+  minToClose = clamp(minToClose, 0.82, 1.2);
+  pressThreshold = clamp(pressThreshold, 0.95, 1.35);
+
+  const canClose = local.ratio >= minToClose;
+  const shouldPress = local.ratio >= pressThreshold;
+  return { canClose, shouldPress, ratio: local.ratio };
 }
 
 function getCenterDivisionMeanR(side) {
