@@ -13,7 +13,24 @@ const COMMANDERS = {
     preferredActions: ["concentrate_center", "bombard_sector"],
     traits: { aggression: 8, control: 8, creativity: 9, panicResistance: 9 },
     signature: { name: "Grand Battery", type: "artillery_barrage", duration: 5, description: "Artillery deals x2 damage in one sector for 5 turns." },
-    signatureQuote: "Artillery is the god of war.",
+    signatureQuotes: {
+      artillery_barrage: [
+        "Artillery is the god of war.",
+        "Concentrate the guns and break their center.",
+        "Let the batteries speak before the infantry moves.",
+      ],
+    },
+    chargeDescription: "Charges from dealing damage with artillery.",
+    victoryQuotes: [
+      "Victory belongs to the most persevering.",
+      "The battlefield has been won by decision and fire.",
+      "You must not fight too often with one enemy, or you will teach him all your art of war.",
+    ],
+    defeatQuotes: [
+      "A battle lost is a battle one thinks one has lost.",
+      "Courage is like love; it must have hope for nourishment.",
+      "In war, as in government, fortune favors the bold.",
+    ],
   },
   lee: {
     name: "Robert E. Lee",
@@ -21,7 +38,24 @@ const COMMANDERS = {
     preferredActions: ["flank_attack", "rally"],
     traits: { aggression: 5, control: 7, creativity: 9, panicResistance: 7 },
     signature: { name: "Jackson's Foot Cavalry", type: "foot_cavalry", duration: 5, description: "Infantry gains +1 move and morale shock in one sector for 5 turns." },
-    signatureQuote: "It is well that war is so terrible, otherwise we should grow too fond of it.",
+    signatureQuotes: {
+      foot_cavalry: [
+        "Press the march and strike where they bend.",
+        "Speed and order decide the field.",
+        "Keep the men moving; hit before they set.",
+      ],
+    },
+    chargeDescription: "Charges when Flank Attacks succeed",
+    victoryQuotes: [
+      "Those people delight me. They don't know what war is.",
+      "Duty is the sublimest word in our language.",
+      "The enemy gave way; we pressed with resolution.",
+    ],
+    defeatQuotes: [
+      "It is well that war is so terrible, otherwise we should grow too fond of it.",
+      "We failed in execution, not in spirit.",
+      "I cannot trust myself to speculate on defeat.",
+    ],
   },
   genghis: {
     name: "Genghis Khan",
@@ -29,7 +63,24 @@ const COMMANDERS = {
     preferredActions: ["flank_attack", "cavalry_charge"],
     traits: { aggression: 9, control: 3, creativity: 9, panicResistance: 8 },
     signature: { name: "Feigned Retreat", type: "feigned_retreat", duration: 5, description: "Cavalry retreats and attacks at range 2 for 5 turns." },
-    signatureQuote: "I am the punishment of God...",
+    signatureQuotes: {
+      feigned_retreat: [
+        "I am the punishment of God...",
+        "Draw them out, then close the ring.",
+        "Ride light, vanish, and return with steel.",
+      ],
+    },
+    chargeDescription: "Charges when Cavalry inflicts Morale Damage.",
+    victoryQuotes: [
+      "The greatest happiness is to scatter your enemy.",
+      "Even when a friend does something you do not like, he continues to be your friend.",
+      "With Heaven's aid, we have struck and prevailed.",
+    ],
+    defeatQuotes: [
+      "Walls can be rebuilt; horsemen can return.",
+      "A setback is a road, not an end.",
+      "Ride light, regroup, and strike where they weaken.",
+    ],
   },
   washington: {
     name: "George Washington",
@@ -37,7 +88,24 @@ const COMMANDERS = {
     preferredActions: ["defensive_stand", "defend_flank"],
     traits: { aggression: 3, control: 9, creativity: 6, panicResistance: 9 },
     signature: { name: "Fighting Withdrawal", type: "fighting_withdrawal", duration: 5, description: "Target sector retreats, recovers 20% morale once, and takes 20% less damage for 5 turns." },
-    signatureQuote: "Discipline is the soul of an army.",
+    signatureQuotes: {
+      fighting_withdrawal: [
+        "Discipline is the soul of an army.",
+        "Yield ground in order; preserve the force.",
+        "A steady withdrawal is strength, not weakness.",
+      ],
+    },
+    chargeDescription: "Charges when losses stay below the enemy's losses.",
+    victoryQuotes: [
+      "Perseverance and spirit have done wonders in all ages.",
+      "Discipline is the soul of an army.",
+      "By patience and order, we have carried the day.",
+    ],
+    defeatQuotes: [
+      "To be prepared for war is one of the most effectual means of preserving peace.",
+      "We must reform, regroup, and return with steadiness.",
+      "Let us raise a standard to which the wise and honest can repair.",
+    ],
   },
   mcclellan: {
     name: "George B. McClellan",
@@ -45,7 +113,24 @@ const COMMANDERS = {
     preferredActions: ["defensive_stand", "rally"],
     traits: { aggression: 0, control: 9, creativity: 3, panicResistance: 8 },
     signature: { name: "The Perfect Plan", type: "perfect_plan", duration: 5, description: "All units hold for 5 turns, then force an offensive action with +20% damage until the next major action turn." },
-    signatureQuote: "Let no detail be left to chance.",
+    signatureQuotes: {
+      perfect_plan: [
+        "Let no detail be left to chance.",
+        "We move when every piece is in place.",
+        "Preparation first; decisive action next.",
+      ],
+    },
+    chargeDescription: "Charges from disciplined hold orders and preserved formation.",
+    victoryQuotes: [
+      "By preparation and precision, we prevailed.",
+      "Nothing is lost by deliberation joined to action.",
+      "The plan held, and so did the line.",
+    ],
+    defeatQuotes: [
+      "The Seven Days proved caution cannot stop momentum alone.",
+      "On the Peninsula, delay cost the initiative.",
+      "A careful plan still needs a decisive hour.",
+    ],
   },
 };
 
@@ -83,6 +168,7 @@ const state = {
   simTimer: null,
   actionHighlights: [],
   battleOverlay: null,
+  reelsCommanderQuote: { A: null, B: null },
   unitAnimations: {},
   animationFramePending: false,
   replay: { seed: 0, turns: [], finalResult: null },
@@ -123,6 +209,10 @@ const els = {
   reelsRedName: document.getElementById("reelsRedName"),
   reelsBlueTraits: document.getElementById("reelsBlueTraits"),
   reelsRedTraits: document.getElementById("reelsRedTraits"),
+  reelsBlueQuote: document.getElementById("reelsBlueQuote"),
+  reelsRedQuote: document.getElementById("reelsRedQuote"),
+  reelsBlueMiniTraits: document.getElementById("reelsBlueMiniTraits"),
+  reelsRedMiniTraits: document.getElementById("reelsRedMiniTraits"),
   reelsBlueHealthFill: document.getElementById("reelsBlueHealthFill"),
   reelsRedHealthFill: document.getElementById("reelsRedHealthFill"),
   reelsBlueAbilityFill: document.getElementById("reelsBlueAbilityFill"),

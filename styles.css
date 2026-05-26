@@ -215,46 +215,16 @@ select {
 .order-popup.right { right: 14px; }
 .order-popup.left { left: 14px; }
 .order-popup.reels {
-  top: auto;
-  bottom: 8px;
+  top: 8px;
+  bottom: auto;
   max-width: calc(50% - 18px);
 }
 .order-popup.reels.left { left: 8px; right: auto; }
 .order-popup.reels.right { right: 8px; left: auto; }
-.order-popup.reels.stack-1 { bottom: 76px; }
+.order-popup.reels.stack-1 { top: 76px; }
 .order-popup-title { font-size: 0.8rem; font-weight: 700; margin-bottom: 2px; }
 .order-popup-desc { font-size: 0.74rem; color: var(--muted); line-height: 1.25; }
 
-.reels-quote-bubble {
-  position: absolute;
-  bottom: 134px;
-  max-width: 210px;
-  background: rgba(255, 252, 245, 0.96);
-  border: 1px solid #b9a282;
-  border-radius: 12px;
-  padding: 7px 9px;
-  font-size: 0.76rem;
-  line-height: 1.25;
-  color: #3d3124;
-  box-shadow: 0 2px 0 #e8dcc7;
-}
-
-.reels-quote-bubble.left { left: 8px; }
-.reels-quote-bubble.right { right: 8px; }
-
-.reels-quote-bubble::after {
-  content: "";
-  position: absolute;
-  bottom: -8px;
-  width: 0;
-  height: 0;
-  border-left: 8px solid transparent;
-  border-right: 8px solid transparent;
-  border-top: 8px solid rgba(255, 252, 245, 0.96);
-}
-
-.reels-quote-bubble.left::after { left: 18px; }
-.reels-quote-bubble.right::after { right: 18px; }
 
 .reels-side-controls {
   position: fixed;
@@ -284,6 +254,63 @@ select {
   grid-template-columns: 64px 1fr;
   gap: 8px;
   align-items: start;
+  position: relative;
+}
+
+.reels-portrait-quote {
+  position: absolute;
+  left: 6px;
+  top: -74px;
+  max-width: min(240px, calc(100% - 12px));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.97), rgba(247, 238, 220, 0.97));
+  border: 2px solid #2f271f;
+  border-radius: 14px;
+  padding: 7px 9px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.22;
+  color: #2f271f;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.65);
+  box-shadow: 0 4px 0 rgba(61,49,36,0.35), 0 8px 16px rgba(0,0,0,0.18);
+  opacity: 0;
+  transform: translateY(8px) scale(0.96) rotate(-1deg);
+  transition: opacity 160ms ease, transform 160ms ease;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.reels-portrait-quote.show {
+  opacity: 1;
+  transform: translateY(0) scale(1) rotate(0deg);
+  animation: quote-pop 300ms cubic-bezier(0.2, 0.9, 0.2, 1.1);
+}
+
+.reels-portrait-quote::after {
+  content: "";
+  position: absolute;
+  left: 22px;
+  bottom: -10px;
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 10px solid rgba(248, 240, 224, 0.98);
+}
+
+#reelsBlueCard .reels-portrait-quote {
+  border-color: #1f4f82;
+  box-shadow: 0 4px 0 rgba(23, 75, 125, 0.38), 0 10px 16px rgba(28, 83, 136, 0.2);
+}
+
+#reelsRedCard .reels-portrait-quote {
+  border-color: #8f3026;
+  box-shadow: 0 4px 0 rgba(122, 44, 32, 0.4), 0 10px 16px rgba(140, 55, 43, 0.22);
+}
+
+@keyframes quote-pop {
+  0% { transform: translateY(10px) scale(0.9) rotate(-2deg); }
+  60% { transform: translateY(-2px) scale(1.03) rotate(0.5deg); }
+  100% { transform: translateY(0) scale(1) rotate(0deg); }
 }
 
 .reels-card img {
@@ -293,6 +320,22 @@ select {
   border-radius: 6px;
   border: 1px solid #bba886;
   background: #d9ccb3;
+}
+
+.reels-mini-traits {
+  grid-column: 1;
+  grid-row: 2;
+  font-size: 0.68rem;
+  line-height: 1.15;
+  color: #4b3d2d;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.reels-card-info {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: start;
 }
 
 .reels-card h3 {
@@ -338,8 +381,8 @@ body.reels-mode #subtitle { display: none; }
 
 body.reels-mode .order-popup-layer {
   position: absolute;
-  top: auto;
-  bottom: 118px;
+  top: 72px;
+  bottom: auto;
   left: 8px;
   right: 8px;
 }
@@ -402,12 +445,17 @@ body.reels-mode .reels-hud {
 body.reels-mode .reels-card {
   padding: 6px;
   grid-template-columns: 56px 1fr;
+  grid-template-rows: auto auto;
   gap: 6px;
 }
 
 body.reels-mode .reels-card img {
   width: 56px;
   height: 56px;
+}
+
+body.reels-mode .reels-mini-traits {
+  font-size: 0.64rem;
 }
 
 body.reels-mode .reels-card h3 {

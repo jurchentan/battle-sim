@@ -338,6 +338,7 @@ function drawCommanders() {
     ctx.font = `bold ${Math.round(11 * scale)}px Verdana`;
     ctx.textAlign = "center";
     ctx.fillText(commander.name, center.x, center.y + (3 * scale));
+
   });
 
   if (!state.reelsMode) {
@@ -364,13 +365,31 @@ function updateReelsCard(side) {
   const abilityEl = isBlue ? els.reelsBlueAbilityFill : els.reelsRedAbilityFill;
   const abilityLabelEl = isBlue ? els.reelsBlueAbilityLabel : els.reelsRedAbilityLabel;
   const traitsEl = isBlue ? els.reelsBlueTraits : els.reelsRedTraits;
+  const quoteEl = isBlue ? els.reelsBlueQuote : els.reelsRedQuote;
+  const miniTraitsEl = isBlue ? els.reelsBlueMiniTraits : els.reelsRedMiniTraits;
 
   nameEl.textContent = commander?.name || (isBlue ? "Blue Commander" : "Red Commander");
   if (traitsEl && commander?.traits) {
     const aggr = commander.traits.aggression ?? 0;
     const control = commander.traits.control ?? 0;
     const creativity = commander.traits.creativity ?? 0;
-    traitsEl.innerHTML = `Aggression ${aggr}<br>Control ${control}<br>Creativity ${creativity}`;
+    traitsEl.textContent = commander.chargeDescription || "Super charge follows battlefield momentum.";
+    if (miniTraitsEl) {
+      miniTraitsEl.innerHTML = `AGG ${aggr}<br>CON ${control}<br>CRE ${creativity}`;
+    }
+  }
+  if (quoteEl) {
+    const quoteState = state.reelsCommanderQuote?.[side];
+    if (state.reelsMode && quoteState && (quoteState.expiresAt || 0) > Date.now()) {
+      quoteEl.textContent = `"${quoteState.text}"`;
+      quoteEl.classList.add("show");
+    } else {
+      quoteEl.textContent = "";
+      quoteEl.classList.remove("show");
+      if (state.reelsCommanderQuote?.[side] && (state.reelsCommanderQuote[side].expiresAt || 0) <= Date.now()) {
+        state.reelsCommanderQuote[side] = null;
+      }
+    }
   }
   if (portrait && portrait.src) portraitEl.src = portrait.src;
 

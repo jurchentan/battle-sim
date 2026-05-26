@@ -80,6 +80,7 @@ function resetBattleState() {
   state.selectedWingUnits.clear();
   state.actionHighlights = [];
   state.battleOverlay = null;
+  state.reelsCommanderQuote = { A: null, B: null };
   state.unitAnimations = {};
 
   if (!restored) {

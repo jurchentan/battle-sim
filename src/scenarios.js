@@ -28,6 +28,7 @@ function clearArmies() {
   state.selectedWingUnits.clear();
   state.actionHighlights = [];
   state.battleOverlay = null;
+  state.reelsCommanderQuote = { A: null, B: null };
   state.unitAnimations = {};
   state.turn = 0;
 
@@ -85,6 +86,7 @@ function loadScenarioById(id) {
       stopSimulationLoop();
       state.actionHighlights = [];
       state.battleOverlay = null;
+      state.reelsCommanderQuote = { A: null, B: null };
       state.unitAnimations = {};
       reconcileScenarioState();
       refreshArmyCounts();

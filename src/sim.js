@@ -599,21 +599,21 @@ function showMajorOrderPopup(side, action, sector) {
 
 function showReelsSignatureQuote(side, action) {
   if (!state.reelsMode) return;
-  const wrap = els.orderPopupLayer;
-  if (!wrap) return;
   const commander = COMMANDERS[state.armies[side].armyCommanderId] || {};
-  const quote = getSignatureQuote(commander, action);
+  const quote = getSignatureQuote(commander, action, side);
   if (!quote) return;
-
-  const div = document.createElement("div");
-  div.className = `reels-quote-bubble ${side === "A" ? "left" : "right"}`;
-  div.textContent = `"${quote}"`;
-  wrap.appendChild(div);
-  setTimeout(() => div.remove(), 3800);
+  state.reelsCommanderQuote[side] = {
+    text: quote,
+    expiresAt: Date.now() + 3800,
+  };
 }
 
-function getSignatureQuote(commander, action) {
-  if (commander.signatureQuote) return commander.signatureQuote;
+function getSignatureQuote(commander, action, side) {
+  const quotes = commander.signatureQuotes?.[action];
+  if (Array.isArray(quotes) && quotes.length) {
+    const seed = (state.turn || 0) + (side === "B" ? 1 : 0);
+    return quotes[seed % quotes.length];
+  }
   if (action === "artillery_barrage") return "Guns, open and break them.";
   if (action === "foot_cavalry") return "Press the march and strike hard.";
   if (action === "feigned_retreat") return "Fall back, then close the trap.";
@@ -1435,6 +1435,11 @@ function hexDist(q1, r1, q2, r2) {
 
 function resolveCombat(rand, events) {
   const damageDealt = { A: 0, B: 0 };
+  const damageTaken = { A: 0, B: 0 };
+  const artilleryDamage = { A: 0, B: 0 };
+  const cavalryMoraleInflicted = { A: 0, B: 0 };
+  const flankExec = { A: 0, B: 0 };
+  const holdUsage = { A: 0, B: 0 };
   const turnShockTracker = {};
   const aliveAtStart = new Set(
     [...state.armies.A.units, ...state.armies.B.units].filter((u) => u.alive).map((u) => u.id),
@@ -1469,6 +1474,9 @@ function resolveCombat(rand, events) {
       const dmg = base * moraleMod * (0.6 + rand() * 0.8);
 
       intents.push({ attacker: u, target, side, dmg, targetSupport });
+
+      const wing = state.armies[side].divisions[u.divisionId] || state.armies[side].divisions.center;
+      if (wing.currentOrder === "Hold") holdUsage[side] += 1;
     });
   });
 
@@ -1477,6 +1485,13 @@ function resolveCombat(rand, events) {
     if (!target.alive) return;
     target.strength -= dmg;
     damageDealt[side] += Math.max(0, dmg);
+    damageTaken[target.armyId] += Math.max(0, dmg);
+    if (attacker.type === "artillery") artilleryDamage[side] += Math.max(0, dmg);
+
+    const attackerWing = state.armies[side].divisions[attacker.divisionId] || state.armies[side].divisions.center;
+    if ((attackerWing.currentOrder === "Flank Left" || attackerWing.currentOrder === "Flank Right") && hexDist(attacker.q, attacker.r, target.q, target.r) <= 1) {
+      flankExec[side] += 1;
+    }
 
     let moraleShock = 0;
     const shockTags = [];
@@ -1506,6 +1521,9 @@ function resolveCombat(rand, events) {
     }
     const moraleShockMult = moraleShock < 0 ? getActionMoraleShockMultiplier(state.armies[target.armyId], target) : 1;
     target.morale += moraleShock * moraleShockMult;
+    if (attacker.type === "cavalry" && moraleShock < 0) {
+      cavalryMoraleInflicted[side] += Math.abs(moraleShock * moraleShockMult);
+    }
 
     if (moraleShock < 0) {
       const label = shockTags.length ? shockTags.join(" + ") : `MORALE SHOCK ${Math.round(moraleShock)}%`;
@@ -1516,7 +1534,33 @@ function resolveCombat(rand, events) {
   ["A", "B"].forEach((side) => {
     const army = state.armies[side];
     if (army.activeSignature) return;
-    const gain = 5 + Math.min(25, damageDealt[side] / 18);
+    const enemySide = side === "A" ? "B" : "A";
+    const commanderId = army.armyCommanderId;
+    let gain = 3;
+
+    if (commanderId === "napoleon") {
+      gain += Math.min(24, artilleryDamage[side] / 10);
+      gain += Math.min(8, damageDealt[side] / 40);
+    } else if (commanderId === "genghis") {
+      gain += Math.min(26, cavalryMoraleInflicted[side] / 4.5);
+      gain += Math.min(6, flankExec[side] * 1.2);
+    } else if (commanderId === "washington") {
+      if (damageTaken[side] < damageTaken[enemySide]) {
+        gain += 12 + Math.min(12, (damageTaken[enemySide] - damageTaken[side]) / 18);
+      } else {
+        gain += Math.min(5, damageDealt[side] / 55);
+      }
+    } else if (commanderId === "lee") {
+      gain += flankExec[side] * 6;
+      gain += Math.min(8, damageDealt[side] / 42);
+    } else if (commanderId === "mcclellan") {
+      gain += Math.min(22, holdUsage[side] * 0.9);
+      if ((army.currentAction || "") === "defensive_stand") gain += 5;
+    } else {
+      gain += Math.min(20, damageDealt[side] / 20);
+    }
+
+    gain = Math.max(1, Math.min(30, gain));
     army.abilityCharge = Math.min(100, army.abilityCharge + gain);
     if (army.abilityCharge >= 100) army.abilityReady = true;
   });
@@ -1667,7 +1711,46 @@ function endBattle(text) {
   log(report.winner);
   log(report.keyMoment);
   log(report.collapseReason);
+  emitCommanderEndQuotes();
   render();
+}
+
+function emitCommanderEndQuotes() {
+  const winnerSide = getWinnerSide();
+  if (!winnerSide) return;
+  const loserSide = winnerSide === "A" ? "B" : "A";
+
+  const winnerCommander = COMMANDERS[state.armies[winnerSide].armyCommanderId] || {};
+  const loserCommander = COMMANDERS[state.armies[loserSide].armyCommanderId] || {};
+  const winnerName = winnerCommander.name || (winnerSide === "A" ? "Blue Commander" : "Red Commander");
+  const loserName = loserCommander.name || (loserSide === "A" ? "Blue Commander" : "Red Commander");
+
+  const winQuote = pickCommanderEndQuote(winnerCommander, "victoryQuotes", winnerSide);
+  const loseQuote = pickCommanderEndQuote(loserCommander, "defeatQuotes", loserSide);
+  if (winQuote) log(`${winnerName}: "${winQuote}"`);
+  if (loseQuote) log(`${loserName}: "${loseQuote}"`);
+
+  if (state.reelsMode) {
+    state.reelsCommanderQuote[winnerSide] = { text: winQuote || "We have won the field.", expiresAt: Date.now() + 5200 };
+    state.reelsCommanderQuote[loserSide] = { text: loseQuote || "We will return to fight again.", expiresAt: Date.now() + 5200 };
+  }
+}
+
+function getWinnerSide() {
+  const a = state.armies.A;
+  const b = state.armies.B;
+  const aPct = (a.defeatedUnitCount / Math.max(1, a.startingUnitCount)) * 100;
+  const bPct = (b.defeatedUnitCount / Math.max(1, b.startingUnitCount)) * 100;
+  if (aPct >= state.defeatThresholdPercent) return "B";
+  if (bPct >= state.defeatThresholdPercent) return "A";
+  return null;
+}
+
+function pickCommanderEndQuote(commander, key, side) {
+  const pool = commander?.[key];
+  if (!Array.isArray(pool) || !pool.length) return null;
+  const idx = ((state.turn || 0) + (side === "B" ? 1 : 0)) % pool.length;
+  return pool[idx];
 }
 
 function buildBattleOverlay() {
