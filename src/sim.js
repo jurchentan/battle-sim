@@ -111,26 +111,49 @@ function chooseMajorAction(side, rand, events) {
 
   if (army.abilityReady && c.signature) {
     const sector = "all";
-    army.currentAction = c.signature.type;
+    let sigType = c.signature.type;
+    let sigName = c.signature.name;
+    let sigDuration = c.signature.duration || 5;
+
+    if (c.signature.type === "chaos_reigns") {
+      const others = Object.entries(COMMANDERS).filter(([id]) => id !== "chaos");
+      const picked = others[Math.floor(rand() * others.length)][1].signature;
+      sigType = picked.type;
+      sigName = picked.name;
+      sigDuration = picked.duration || 5;
+    }
+
+    army.currentAction = sigType;
     army.currentSector = sector;
     army.abilityCharge = 0;
     army.abilityReady = false;
     army.activeSignature = {
-      type: c.signature.type,
-      name: c.signature.name,
+      type: sigType,
+      name: sigName,
       sector,
-      turnsLeft: c.signature.duration || 5,
+      turnsLeft: sigDuration,
     };
-    if (c.signature.type === "fighting_withdrawal") {
+    if (sigType === "fighting_withdrawal") {
       army.units.forEach((u) => {
         if (u.alive) u.morale = Math.min(100, u.morale + 20);
       });
     }
-    events.push(`${c.name}: ${c.signature.name} ORDER (ARMY-WIDE)`);
+    events.push(`${c.name}: ${sigName} ORDER (ARMY-WIDE)`);
     return;
   }
 
   const availableActions = getAvailableActionsForArmy(side);
+
+  if (army.armyCommanderId === "chaos") {
+    const action = availableActions[Math.floor(rand() * availableActions.length)];
+    const sector = chooseSectorForAction(action, side, rand);
+    army.currentAction = action;
+    army.currentSector = sector;
+    army.activeSignature = null;
+    events.push(`${c.name}: ${formatActionName(action)} (${sector.toUpperCase()} sector) · CHAOS DECIDES`);
+    return;
+  }
+
   const phase = getBattlePhase(side);
   const actionWeights = getActionWeights(c, phase, side);
   const action = weightedPick(availableActions, actionWeights, rand);
@@ -1610,6 +1633,8 @@ function resolveCombat(rand, events) {
     } else if (commanderId === "mcclellan") {
       gain += Math.min(22, holdUsage[side] * 0.9);
       if ((army.currentAction || "") === "defensive_stand") gain += 5;
+    } else if (commanderId === "chaos") {
+      gain = 15;
     } else {
       gain += Math.min(20, damageDealt[side] / 20);
     }

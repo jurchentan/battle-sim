@@ -132,6 +132,30 @@ const COMMANDERS = {
       "A careful plan still needs a decisive hour.",
     ],
   },
+  chaos: {
+    name: "General Chaos",
+    majorOrders: [{ type: "defensive_stand", line: "Let chaos reign!", inspiredBy: "Chaos theory" }],
+    traits: { aggression: 5, control: 5, creativity: 10, panicResistance: 7 },
+    signature: { name: "Chaos Reigns", type: "chaos_reigns", duration: 5, description: "Picks a random signature ability from all other commanders." },
+    signatureQuotes: {
+      artillery_barrage: ["Fire at everything! Let the guns decide!", "Bombard chaos!", "Random shells for random people!"],
+      foot_cavalry: ["Run fast, don't think!", "Speed is its own form of chaos!", "Forget formations, just move!"],
+      feigned_retreat: ["Are we retreating? Attacking? Both!", "Confuse them by confusing ourselves!", "Retreat forward!"],
+      fighting_withdrawal: ["Fighting or fleeing? Who can tell!", "Orderly chaos - the best kind!", "Fall back chaotically!"],
+      perfect_plan: ["The plan is that there is no plan!", "Chaos is the plan!", "Perfectly unpredictable!"],
+    },
+    chargeDescription: "Randomly unleashes another general's ability!",
+    victoryQuotes: [
+      "Chaos wins again!",
+      "Order is overrated!",
+      "The dice gods smile upon chaos!",
+    ],
+    defeatQuotes: [
+      "Even chaos can't beat bad luck.",
+      "Not chaotic enough. Next time, more chaos!",
+      "The chaos was insufficient.",
+    ],
+  },
 };
 
 const ORDERS = ["Hold", "Advance", "Attack", "Flank Left", "Flank Right", "Retreat", "Withdraw", "Refuse Flank", "Support Center", "Bombard", "Charge", "Cavalry Charge", "Stay in Reserve", "Stay on Flanks", "Stay in Rear"];
@@ -233,6 +257,7 @@ const PORTRAITS = {
   genghis: loadPortrait("./assets/commanders/genghis.jpg"),
   washington: loadPortrait("./assets/commanders/washington.jpeg"),
   mcclellan: loadPortrait("./assets/commanders/mcclellan.jpg"),
+  chaos: loadPortrait("./assets/commanders/general chaos.png"),
 };
 const UNIT_ICONS = {
   A: {
@@ -256,6 +281,7 @@ const COMMANDER_ACCENT = {
   lee: "#b22222",
   washington: "#2e8b57",
   mcclellan: "#44586f",
+  chaos: "#8B008B",
 };
 
 const ctx = els.canvas.getContext("2d");
