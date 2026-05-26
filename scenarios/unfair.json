@@ -1,6 +1,6 @@
 {
-  "id": "fair_v2",
-  "name": "fair v2",
+  "id": "unfair",
+  "name": "unfair",
   "updatedAt": 0,
   "payload": {
     "map": {
@@ -354,7 +354,7 @@
           "q": 15,
           "r": 2,
           "terrain": "plain",
-          "occupantUnitId": "B_INF_09",
+          "occupantUnitId": null,
           "active": true
         },
         {
@@ -410,7 +410,7 @@
           "q": 6,
           "r": 3,
           "terrain": "plain",
-          "occupantUnitId": "B_INF_08",
+          "occupantUnitId": null,
           "active": true
         },
         {
@@ -473,7 +473,7 @@
           "q": 15,
           "r": 3,
           "terrain": "plain",
-          "occupantUnitId": "B_INF_10",
+          "occupantUnitId": null,
           "active": true
         },
         {
@@ -522,14 +522,14 @@
           "q": 5,
           "r": 4,
           "terrain": "plain",
-          "occupantUnitId": "B_INF_06",
+          "occupantUnitId": null,
           "active": true
         },
         {
           "q": 6,
           "r": 4,
           "terrain": "plain",
-          "occupantUnitId": "B_INF_07",
+          "occupantUnitId": null,
           "active": true
         },
         {
@@ -697,21 +697,21 @@
           "q": 13,
           "r": 5,
           "terrain": "plain",
-          "occupantUnitId": "B_CAV_01",
+          "occupantUnitId": null,
           "active": true
         },
         {
           "q": 14,
           "r": 5,
           "terrain": "plain",
-          "occupantUnitId": "B_CAV_02",
+          "occupantUnitId": null,
           "active": true
         },
         {
           "q": 15,
           "r": 5,
           "terrain": "plain",
-          "occupantUnitId": "B_CAV_03",
+          "occupantUnitId": null,
           "active": true
         },
         {
@@ -1439,14 +1439,14 @@
           "q": 0,
           "r": 12,
           "terrain": "plain",
-          "occupantUnitId": null,
+          "occupantUnitId": "A_INF_16",
           "active": true
         },
         {
           "q": 1,
           "r": 12,
           "terrain": "plain",
-          "occupantUnitId": null,
+          "occupantUnitId": "A_INF_17",
           "active": true
         },
         {
@@ -1565,7 +1565,7 @@
           "q": 1,
           "r": 13,
           "terrain": "plain",
-          "occupantUnitId": "A_INF_15",
+          "occupantUnitId": null,
           "active": true
         },
         {
@@ -1803,7 +1803,7 @@
           "q": 1,
           "r": 15,
           "terrain": "plain",
-          "occupantUnitId": null,
+          "occupantUnitId": "A_INF_18",
           "active": true
         },
         {
@@ -2043,9 +2043,8 @@
             "id": "left",
             "commanderId": "napoleon",
             "unitIds": [
-              "A_CAV_03",
-              "A_CAV_04",
-              "A_CAV_05"
+              "A_INF_16",
+              "A_INF_17"
             ],
             "currentOrder": "Advance",
             "lastFrictionEvent": null
@@ -2058,10 +2057,7 @@
               "A_INF_06",
               "A_INF_07",
               "A_INF_09",
-              "A_INF_10",
-              "A_ART_01",
-              "A_ART_02",
-              "A_ART_03"
+              "A_INF_10"
             ],
             "currentOrder": "Advance",
             "lastFrictionEvent": null
@@ -2075,6 +2071,38 @@
               "A_INF_13"
             ],
             "currentOrder": "Advance",
+            "lastFrictionEvent": null
+          },
+          "reserve": {
+            "id": "reserve",
+            "commanderId": "napoleon",
+            "unitIds": [
+              "A_INF_14",
+              "A_INF_18"
+            ],
+            "currentOrder": "Stay in Reserve",
+            "lastFrictionEvent": null
+          },
+          "cavalry": {
+            "id": "cavalry",
+            "commanderId": "napoleon",
+            "unitIds": [
+              "A_CAV_03",
+              "A_CAV_04",
+              "A_CAV_05"
+            ],
+            "currentOrder": "Hold",
+            "lastFrictionEvent": null
+          },
+          "artillery": {
+            "id": "artillery",
+            "commanderId": "napoleon",
+            "unitIds": [
+              "A_ART_01",
+              "A_ART_02",
+              "A_ART_03"
+            ],
+            "currentOrder": "Hold",
             "lastFrictionEvent": null
           }
         },
@@ -2271,7 +2299,7 @@
           {
             "id": "A_CAV_03",
             "armyId": "A",
-            "divisionId": "left",
+            "divisionId": "cavalry",
             "type": "cavalry",
             "q": 2,
             "r": 11,
@@ -2325,7 +2353,7 @@
           {
             "id": "A_CAV_04",
             "armyId": "A",
-            "divisionId": "left",
+            "divisionId": "cavalry",
             "type": "cavalry",
             "q": 1,
             "r": 11,
@@ -2352,7 +2380,7 @@
           {
             "id": "A_CAV_05",
             "armyId": "A",
-            "divisionId": "left",
+            "divisionId": "cavalry",
             "type": "cavalry",
             "q": 3,
             "r": 11,
@@ -2379,7 +2407,7 @@
           {
             "id": "A_ART_01",
             "armyId": "A",
-            "divisionId": "center",
+            "divisionId": "artillery",
             "type": "artillery",
             "q": 4,
             "r": 14,
@@ -2406,7 +2434,7 @@
           {
             "id": "A_ART_02",
             "armyId": "A",
-            "divisionId": "center",
+            "divisionId": "artillery",
             "type": "artillery",
             "q": 5,
             "r": 14,
@@ -2433,7 +2461,7 @@
           {
             "id": "A_ART_03",
             "armyId": "A",
-            "divisionId": "center",
+            "divisionId": "artillery",
             "type": "artillery",
             "q": 6,
             "r": 14,
@@ -2485,19 +2513,73 @@
             "prevR": -1
           },
           {
-            "id": "A_INF_15",
+            "id": "A_INF_16",
             "armyId": "A",
-            "divisionId": "reserve",
+            "divisionId": "left",
             "type": "infantry",
-            "q": 1,
-            "r": 13,
+            "q": 0,
+            "r": 12,
             "strength": 250,
             "morale": 100,
             "state": "steady",
             "move": 1,
             "range": 1,
             "attack": 12,
-            "preferredR": 13,
+            "preferredR": 12,
+            "shockLocks": {
+              "isolated": false,
+              "flanked": false,
+              "surrounded": false
+            },
+            "statuses": {
+              "cavalryShockTurns": 0
+            },
+            "currentOrder": "Hold",
+            "alive": true,
+            "prevQ": -1,
+            "prevR": -1
+          },
+          {
+            "id": "A_INF_17",
+            "armyId": "A",
+            "divisionId": "left",
+            "type": "infantry",
+            "q": 1,
+            "r": 12,
+            "strength": 250,
+            "morale": 100,
+            "state": "steady",
+            "move": 1,
+            "range": 1,
+            "attack": 12,
+            "preferredR": 12,
+            "shockLocks": {
+              "isolated": false,
+              "flanked": false,
+              "surrounded": false
+            },
+            "statuses": {
+              "cavalryShockTurns": 0
+            },
+            "currentOrder": "Hold",
+            "alive": true,
+            "prevQ": -1,
+            "prevR": -1
+          },
+          {
+            "id": "A_INF_18",
+            "armyId": "A",
+            "divisionId": "reserve",
+            "type": "infantry",
+            "q": 1,
+            "r": 15,
+            "strength": 250,
+            "morale": 100,
+            "state": "steady",
+            "move": 1,
+            "range": 1,
+            "attack": 12,
+            "preferredR": 15,
             "shockLocks": {
               "isolated": false,
               "flanked": false,
@@ -2512,10 +2594,10 @@
             "prevR": -1
           }
         ],
-        "startingUnitCount": 16,
+        "startingUnitCount": 18,
         "defeatedUnitCount": 0,
-        "currentAction": "advance",
-        "currentSector": "right",
+        "currentAction": null,
+        "currentSector": "center",
         "abilityCharge": 0,
         "abilityReady": false,
         "activeSignature": null,
@@ -2533,11 +2615,7 @@
           "left": {
             "id": "left",
             "commanderId": "napoleon",
-            "unitIds": [
-              "B_CAV_01",
-              "B_CAV_02",
-              "B_CAV_03"
-            ],
+            "unitIds": [],
             "currentOrder": "Hold",
             "lastFrictionEvent": null
           },
@@ -2549,10 +2627,7 @@
               "B_INF_02",
               "B_INF_03",
               "B_INF_04",
-              "B_INF_05",
-              "B_ART_01",
-              "B_ART_02",
-              "B_ART_03"
+              "B_INF_05"
             ],
             "currentOrder": "Hold",
             "lastFrictionEvent": null
@@ -2560,10 +2635,31 @@
           "right": {
             "id": "right",
             "commanderId": "lee",
+            "unitIds": [],
+            "currentOrder": "Hold",
+            "lastFrictionEvent": null
+          },
+          "reserve": {
+            "id": "reserve",
+            "commanderId": "lee",
+            "unitIds": [],
+            "currentOrder": "Stay in Reserve",
+            "lastFrictionEvent": null
+          },
+          "cavalry": {
+            "id": "cavalry",
+            "commanderId": "lee",
+            "unitIds": [],
+            "currentOrder": "Hold",
+            "lastFrictionEvent": null
+          },
+          "artillery": {
+            "id": "artillery",
+            "commanderId": "lee",
             "unitIds": [
-              "B_INF_06",
-              "B_INF_07",
-              "B_INF_08"
+              "B_ART_01",
+              "B_ART_02",
+              "B_ART_03"
             ],
             "currentOrder": "Hold",
             "lastFrictionEvent": null
@@ -2706,171 +2802,9 @@
             "prevR": -1
           },
           {
-            "id": "B_INF_06",
-            "armyId": "B",
-            "divisionId": "right",
-            "type": "infantry",
-            "q": 5,
-            "r": 4,
-            "strength": 250,
-            "morale": 100,
-            "state": "steady",
-            "move": 1,
-            "range": 1,
-            "attack": 12,
-            "preferredR": 4,
-            "shockLocks": {
-              "isolated": false,
-              "flanked": false,
-              "surrounded": false
-            },
-            "statuses": {
-              "cavalryShockTurns": 0
-            },
-            "currentOrder": "Hold",
-            "alive": true,
-            "prevQ": -1,
-            "prevR": -1
-          },
-          {
-            "id": "B_INF_07",
-            "armyId": "B",
-            "divisionId": "right",
-            "type": "infantry",
-            "q": 6,
-            "r": 4,
-            "strength": 250,
-            "morale": 100,
-            "state": "steady",
-            "move": 1,
-            "range": 1,
-            "attack": 12,
-            "preferredR": 4,
-            "shockLocks": {
-              "isolated": false,
-              "flanked": false,
-              "surrounded": false
-            },
-            "statuses": {
-              "cavalryShockTurns": 0
-            },
-            "currentOrder": "Hold",
-            "alive": true,
-            "prevQ": -1,
-            "prevR": -1
-          },
-          {
-            "id": "B_INF_08",
-            "armyId": "B",
-            "divisionId": "right",
-            "type": "infantry",
-            "q": 6,
-            "r": 3,
-            "strength": 250,
-            "morale": 100,
-            "state": "steady",
-            "move": 1,
-            "range": 1,
-            "attack": 12,
-            "preferredR": 3,
-            "shockLocks": {
-              "isolated": false,
-              "flanked": false,
-              "surrounded": false
-            },
-            "statuses": {
-              "cavalryShockTurns": 0
-            },
-            "currentOrder": "Hold",
-            "alive": true,
-            "prevQ": -1,
-            "prevR": -1
-          },
-          {
-            "id": "B_CAV_01",
-            "armyId": "B",
-            "divisionId": "left",
-            "type": "cavalry",
-            "q": 13,
-            "r": 5,
-            "strength": 180,
-            "morale": 100,
-            "state": "steady",
-            "move": 2,
-            "range": 1,
-            "attack": 10,
-            "preferredR": 5,
-            "shockLocks": {
-              "isolated": false,
-              "flanked": false,
-              "surrounded": false
-            },
-            "statuses": {
-              "cavalryShockTurns": 0
-            },
-            "currentOrder": "Hold",
-            "alive": true,
-            "prevQ": -1,
-            "prevR": -1
-          },
-          {
-            "id": "B_CAV_02",
-            "armyId": "B",
-            "divisionId": "left",
-            "type": "cavalry",
-            "q": 14,
-            "r": 5,
-            "strength": 180,
-            "morale": 100,
-            "state": "steady",
-            "move": 2,
-            "range": 1,
-            "attack": 10,
-            "preferredR": 5,
-            "shockLocks": {
-              "isolated": false,
-              "flanked": false,
-              "surrounded": false
-            },
-            "statuses": {
-              "cavalryShockTurns": 0
-            },
-            "currentOrder": "Hold",
-            "alive": true,
-            "prevQ": -1,
-            "prevR": -1
-          },
-          {
-            "id": "B_CAV_03",
-            "armyId": "B",
-            "divisionId": "left",
-            "type": "cavalry",
-            "q": 15,
-            "r": 5,
-            "strength": 180,
-            "morale": 100,
-            "state": "steady",
-            "move": 2,
-            "range": 1,
-            "attack": 10,
-            "preferredR": 5,
-            "shockLocks": {
-              "isolated": false,
-              "flanked": false,
-              "surrounded": false
-            },
-            "statuses": {
-              "cavalryShockTurns": 0
-            },
-            "currentOrder": "Hold",
-            "alive": true,
-            "prevQ": -1,
-            "prevR": -1
-          },
-          {
             "id": "B_ART_01",
             "armyId": "B",
-            "divisionId": "center",
+            "divisionId": "artillery",
             "type": "artillery",
             "q": 10,
             "r": 2,
@@ -2897,7 +2831,7 @@
           {
             "id": "B_ART_02",
             "armyId": "B",
-            "divisionId": "center",
+            "divisionId": "artillery",
             "type": "artillery",
             "q": 11,
             "r": 2,
@@ -2924,7 +2858,7 @@
           {
             "id": "B_ART_03",
             "armyId": "B",
-            "divisionId": "center",
+            "divisionId": "artillery",
             "type": "artillery",
             "q": 12,
             "r": 2,
@@ -2947,66 +2881,12 @@
             "alive": true,
             "prevQ": -1,
             "prevR": -1
-          },
-          {
-            "id": "B_INF_09",
-            "armyId": "B",
-            "divisionId": "reserve",
-            "type": "infantry",
-            "q": 15,
-            "r": 2,
-            "strength": 250,
-            "morale": 100,
-            "state": "steady",
-            "move": 1,
-            "range": 1,
-            "attack": 12,
-            "preferredR": 2,
-            "shockLocks": {
-              "isolated": false,
-              "flanked": false,
-              "surrounded": false
-            },
-            "statuses": {
-              "cavalryShockTurns": 0
-            },
-            "currentOrder": "Hold",
-            "alive": true,
-            "prevQ": -1,
-            "prevR": -1
-          },
-          {
-            "id": "B_INF_10",
-            "armyId": "B",
-            "divisionId": "reserve",
-            "type": "infantry",
-            "q": 15,
-            "r": 3,
-            "strength": 250,
-            "morale": 100,
-            "state": "steady",
-            "move": 1,
-            "range": 1,
-            "attack": 12,
-            "preferredR": 3,
-            "shockLocks": {
-              "isolated": false,
-              "flanked": false,
-              "surrounded": false
-            },
-            "statuses": {
-              "cavalryShockTurns": 0
-            },
-            "currentOrder": "Hold",
-            "alive": true,
-            "prevQ": -1,
-            "prevR": -1
           }
         ],
-        "startingUnitCount": 16,
+        "startingUnitCount": 8,
         "defeatedUnitCount": 0,
-        "currentAction": "advance",
-        "currentSector": "right",
+        "currentAction": null,
+        "currentSector": "center",
         "abilityCharge": 0,
         "abilityReady": false,
         "activeSignature": null,
@@ -3020,7 +2900,7 @@
       "turnLimit": 20,
       "defeatThresholdPercent": 60
     },
-    "seed": 562100094,
+    "seed": 963511553,
     "armyConfig": {
       "A": {
         "infantry": 8,
