@@ -394,7 +394,20 @@ function setUnitPos(unit, q, r) {
   if (unit.preferredR === null || unit.preferredR === undefined) unit.preferredR = r;
   next.occupantUnitId = unit.id;
   if (state.reelsMode && fromQ >= 0 && fromR >= 0 && (fromQ !== q || fromR !== r)) {
-    state.unitAnimations[unit.id] = { fromQ, fromR, toQ: q, toR: r, start: performance.now(), duration: getAnimationDurationMs() };
+    const now = performance.now();
+    const segment = { fromQ, fromR, toQ: q, toR: r };
+    const existing = state.unitAnimations[unit.id];
+    if (existing && Array.isArray(existing.segments) && existing.segments.length > 0) {
+      existing.segments.push(segment);
+      existing.segmentDuration = getAnimationDurationMs();
+      state.unitAnimations[unit.id] = existing;
+    } else {
+      state.unitAnimations[unit.id] = {
+        segments: [segment],
+        start: now,
+        segmentDuration: getAnimationDurationMs(),
+      };
+    }
   }
   return true;
 }
@@ -820,7 +833,12 @@ function render() {
 
 function requestAnimationRenderIfNeeded() {
   const now = performance.now();
-  const hasActive = Object.values(state.unitAnimations).some((a) => (now - a.start) < a.duration);
+  const hasActive = Object.values(state.unitAnimations).some((a) => {
+    if (!a) return false;
+    const segCount = Array.isArray(a.segments) ? a.segments.length : 0;
+    const segDuration = a.segmentDuration || getAnimationDurationMs();
+    return segCount > 0 && (now - a.start) < (segCount * segDuration);
+  });
   if (!hasActive || state.animationFramePending) return;
   state.animationFramePending = true;
   requestAnimationFrame(() => {
@@ -1019,13 +1037,20 @@ function drawUnits() {
 function animatedPixelForUnit(unit, now) {
   const anim = state.unitAnimations[unit.id];
   if (!anim) return hexToPixel(unit.q, unit.r);
-  const t = Math.max(0, Math.min(1, (now - anim.start) / anim.duration));
-  if (t >= 1) {
+  const segs = Array.isArray(anim.segments) ? anim.segments : [];
+  const segDuration = anim.segmentDuration || getAnimationDurationMs();
+  const totalDuration = Math.max(1, segs.length * segDuration);
+  const elapsed = Math.max(0, now - anim.start);
+  if (!segs.length || elapsed >= totalDuration) {
     delete state.unitAnimations[unit.id];
     return hexToPixel(unit.q, unit.r);
   }
-  const from = hexToPixel(anim.fromQ, anim.fromR);
-  const to = hexToPixel(anim.toQ, anim.toR);
+  const segIndex = Math.min(segs.length - 1, Math.floor(elapsed / segDuration));
+  const localElapsed = elapsed - (segIndex * segDuration);
+  const t = Math.max(0, Math.min(1, localElapsed / segDuration));
+  const seg = segs[segIndex];
+  const from = hexToPixel(seg.fromQ, seg.fromR);
+  const to = hexToPixel(seg.toQ, seg.toR);
   return { x: from.x + ((to.x - from.x) * t), y: from.y + ((to.y - from.y) * t) };
 }
 
@@ -1394,7 +1419,9 @@ function chooseSectorForAction(action, side, rand) {
     let best = "center";
     let bestScore = -Infinity;
     sectors.forEach((s) => {
-      const score = aliveCountInSector(side, s) - aliveCountInSector(enemySide, s);
+      const my = aliveCountInSector(side, s);
+      const enemy = aliveCountInSector(enemySide, s);
+      const score = (my * 1.2) - (enemy * 1.8);
       if (score > bestScore) {
         bestScore = score;
         best = s;
@@ -1485,6 +1512,11 @@ function getBattleStatus(side) {
     flankWeakPressure: Math.max(enLeft - myLeft, enRight - myRight),
     centerAdvantage: myCenter - enCenter,
     flankAdvantage: Math.max(myLeft - enLeft, myRight - enRight),
+    gapOpportunity: Math.max(
+      clamp((myLeft * 1.1 - enLeft * 1.8) / 3, 0, 2),
+      clamp((myCenter * 1.1 - enCenter * 1.8) / 3, 0, 2),
+      clamp((myRight * 1.1 - enRight * 1.8) / 3, 0, 2)
+    ),
   };
 }
 
@@ -1548,7 +1580,7 @@ function getActionWeights(commander, phase, side) {
     retreat: 0.05 + veryLowMorale * 2.6 + pressure * 0.7,
     mass_assault: 0.08 + enemyBroken * 2.1 + engagement * 0.8,
     line_rotation: 0.2 + flankThreat * 1.8 + lowMorale * 1.1,
-    exploit_gap: 0.08 + flankStrong * 1.7 + engagement * 0.9,
+    exploit_gap: 0.08 + status.gapOpportunity * 2.2 + engagement * 0.5,
   };
 
   const aggr = commander.traits.aggression || 5;
