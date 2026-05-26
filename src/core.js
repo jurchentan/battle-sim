@@ -209,6 +209,8 @@ const els = {
   reelsRedName: document.getElementById("reelsRedName"),
   reelsBlueTraits: document.getElementById("reelsBlueTraits"),
   reelsRedTraits: document.getElementById("reelsRedTraits"),
+  reelsBlueSuperName: document.getElementById("reelsBlueSuperName"),
+  reelsRedSuperName: document.getElementById("reelsRedSuperName"),
   reelsBlueQuote: document.getElementById("reelsBlueQuote"),
   reelsRedQuote: document.getElementById("reelsRedQuote"),
   reelsBlueMiniTraits: document.getElementById("reelsBlueMiniTraits"),
