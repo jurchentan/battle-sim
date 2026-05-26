@@ -1,0 +1,1198 @@
+AI COMMANDER HEX BATTLE SIMULATOR — v0.1 DESIGN SPEC
+Inspired by: European War-style hex tactics + simple mobile/reels games like territory.io / earclacks.fun
+Purpose: Fast AI-vs-AI battle scenario simulator for short-form content, not a normal player strategy game.
+
+================================================================================
+1. CORE PRODUCT IDEA
+================================================================================
+
+This is a sandbox battle simulator where the creator sets up two armies on a hex map,
+assigns commanders, presses simulate, and watches the battle unfold.
+
+The player does NOT directly control units during the battle.
+
+The creator experience is:
+
+1. Pick or create a map.
+2. Place units.
+3. Assign units into divisions/wings.
+4. Assign commanders to those divisions/wings.
+5. Assign an army commander to each side.
+6. Pick army presets or manually edit the army.
+7. Press Simulate.
+8. Watch AI commanders issue orders and units fight.
+9. Save/replay/export the result for Instagram Reels.
+
+The unique hook:
+Simple units + simple hex board, but the battle is driven by commander personalities,
+major-order citations, and visible chain-of-command problems.
+
+Example reel:
+"Napoleon vs. Lee on a random hex battlefield"
+- Napoleon orders an artillery concentration inspired by Austerlitz.
+- Lee orders a flank attack inspired by Chancellorsville.
+- Lee's right wing overextends.
+- Napoleon's cavalry hits the exposed flank.
+- Morale collapses.
+- Lee loses 60% of his army.
+
+================================================================================
+2. DESIGN STYLE / UI AESTHETIC
+================================================================================
+
+The UI should be extremely simple, readable, and mobile-friendly.
+
+Reference style:
+- Beige/off-white background.
+- Minimal flat shapes.
+- No heavy textures.
+- Big clear battlefield.
+- Small pixel/grid look.
+- Simple color-coded factions.
+- Short labels.
+- Simple bottom cards/menu.
+- Minimal text, but high drama when something happens.
+
+Visual inspiration:
+- Territory-style circular/hex battlefield with tiny square/hex cells.
+- Earclacks-style minimal duel screen: large blank arena, two simple units, clean labels, simple stats.
+- The UI should feel like a toy/sandbox, not a complicated Paradox-style war game.
+
+Recommended colors:
+- Background: warm beige / off-white.
+- Grid cells: light sand.
+- Army A: blue.
+- Army B: red or gold.
+- Neutral terrain: pale tan.
+- Hills: muted brown.
+- Forest: muted green.
+- River: muted blue.
+- Roads: light gray.
+- Selected units: white outline or simple glow.
+- Danger/morale break: flashing red outline.
+- Command events: big short labels above units.
+
+Do NOT use:
+- complicated realistic military symbols in v0.1
+- dense menus
+- full historical map detail
+- complicated unit stat panels
+- small unreadable text
+- cluttered UI
+
+Main screen layout:
+
+Mobile vertical version:
+- Top: battle title and turn number.
+- Center: hex battlefield.
+- Bottom: current orders / event log / simulation controls.
+
+Desktop/web version:
+- Left panel: sandbox setup tools.
+- Center: map.
+- Right panel: selected army/unit/commander info.
+- Bottom: timeline / play controls / event log.
+
+The game should be readable in a 9:16 vertical video.
+
+================================================================================
+3. V0.1 SCOPE
+================================================================================
+
+V0.1 must include:
+
+- Hex-based map.
+- Sandbox setup phase.
+- Save/load preset system.
+- AI vs AI simulation.
+- Infantry, cavalry, artillery only.
+- Units can be assigned to divisions/wings.
+- Division commanders appear visually "leading" their division.
+- Army commander appears at the back as a non-combat leader marker.
+- Commanders cannot be killed in v0.1.
+- Major orders require historical citations.
+- Minor moves do not need citations.
+- Simple morale system based on flanking/surrounding/cavalry.
+- Simple combat.
+- Simple chain-of-command friction:
+  - delay
+  - misunderstanding
+  - panic
+  - overextension
+  - heroic initiative
+- Win condition: percentage of army defeated.
+- Replay seed so good simulations can be reproduced.
+
+V0.1 should NOT include:
+- commander death
+- deep terrain rules
+- real supply
+- complex fatigue
+- reinforcements
+- skirmishers
+- guards
+- fog of war
+- detailed historical orders of battle
+- player intervention during battle
+- economy / tech / diplomacy
+
+================================================================================
+4. SANDBOX SETUP PHASE
+================================================================================
+
+The setup phase is a major feature. It should feel like a simple battle toy/editor.
+
+The creator should be able to quickly:
+- paint terrain
+- place units
+- drag units around
+- assign units to divisions/wings
+- assign commanders
+- choose formations
+- save the scenario
+- load a preset
+- randomize a scenario
+- simulate instantly
+
+Setup phase modes:
+
+A. Paint Mode
+- Click/drag on hexes to paint terrain.
+- Terrain brush options:
+  - Plain
+  - Hill
+  - Forest
+  - River
+  - Road
+  - Town
+  - Blocked/Impassable
+
+B. Unit Mode
+- Place units on hexes.
+- Unit types:
+  - Infantry
+  - Cavalry
+  - Artillery
+- Choose army:
+  - Army A
+  - Army B
+- Units should be represented by simple icons:
+  - Infantry: [X] or small block of soldiers
+  - Cavalry: [\] or horse/slash icon
+  - Artillery: tiny cannon icon
+- Each unit has a colored base matching its army.
+
+C. Division/Wing Mode
+- Select multiple units and assign them to:
+  - Left Wing
+  - Center
+  - Right Wing
+  - Reserve optional, but can be post-v0.1 if too much
+- Each division gets a commander.
+- A division commander is shown visually near/above/inside the division cluster.
+- The commander marker is not a combat unit.
+- The commander marker moves with/behind the division for clarity.
+
+D. Army Commander Mode
+- Each army has one overall commander.
+- The army commander appears at the back of the army.
+- The army commander is not a combat unit.
+- The army commander cannot be killed in v0.1.
+- The army commander issues major plans and personality-driven orders.
+- The army commander should be visually represented by a small portrait/name card or banner behind the army.
+
+E. Formation Mode
+- Apply formation presets to an army or wing.
+- Examples:
+  - Line
+  - Column
+  - Defensive Line
+  - Cavalry Wings
+  - Artillery Center
+  - Artillery Behind Line
+  - Refused Left
+  - Refused Right
+  - Box
+  - Ambush
+
+F. Commander Assignment Mode
+- Assign army commander.
+- Assign division commanders.
+- Edit commander traits if using custom commanders.
+- Choose commander personality preset.
+
+Recommended setup UI:
+- Top: "Setup Battle"
+- Center: map
+- Bottom toolbar:
+  [Terrain] [Units] [Wings] [Commanders] [Formations] [Save] [Simulate]
+- Keep each button large and clean.
+
+================================================================================
+5. PRESET SYSTEM
+================================================================================
+
+The preset system must be very strong because the whole game depends on easy scenario creation.
+
+Preset types:
+
+1. Map Preset
+2. Army Preset
+3. Commander Preset
+4. Formation Preset
+5. Scenario Preset
+6. Replay Preset/File
+
+Everything should be JSON-based so users/devs can edit easily.
+
+--------------------------------------------------------------------------------
+5.1 MAP PRESET
+--------------------------------------------------------------------------------
+
+A map preset stores:
+- map name
+- size
+- terrain per hex
+- optional suggested deployment zones
+- optional objective labels for future versions
+
+Example:
+
+{
+  "id": "twin_hills",
+  "name": "Twin Hills",
+  "size": { "width": 11, "height": 11 },
+  "terrain": [
+    { "q": 3, "r": 4, "type": "hill" },
+    { "q": 7, "r": 5, "type": "hill" },
+    { "q": 5, "r": 6, "type": "forest" }
+  ],
+  "deploymentZones": {
+    "armyA": [[0,3], [0,4], [1,3], [1,4]],
+    "armyB": [[10,6], [10,7], [9,6], [9,7]]
+  }
+}
+
+V0.1 map sizes:
+- Small: 9x9
+- Medium/default: 11x11
+- Large: 13x13
+
+For reels, default should be 11x11.
+
+--------------------------------------------------------------------------------
+5.2 ARMY PRESET
+--------------------------------------------------------------------------------
+
+An army preset stores:
+- army name
+- unit mix
+- default formation
+- default morale
+- color
+
+Example army presets:
+
+Balanced Army:
+- 8 Infantry
+- 2 Cavalry
+- 2 Artillery
+
+Aggressive Army:
+- 7 Infantry
+- 4 Cavalry
+- 1 Artillery
+
+Defensive Army:
+- 10 Infantry
+- 1 Cavalry
+- 3 Artillery
+
+Cavalry Heavy:
+- 6 Infantry
+- 5 Cavalry
+- 1 Artillery
+
+Artillery Heavy:
+- 7 Infantry
+- 1 Cavalry
+- 4 Artillery
+
+JSON example:
+
+{
+  "id": "balanced_army",
+  "name": "Balanced Army",
+  "color": "blue",
+  "units": [
+    { "type": "infantry", "count": 8 },
+    { "type": "cavalry", "count": 2 },
+    { "type": "artillery", "count": 2 }
+  ],
+  "defaultFormation": "line_with_artillery_rear",
+  "defaultMorale": 100
+}
+
+--------------------------------------------------------------------------------
+5.3 COMMANDER PRESET
+--------------------------------------------------------------------------------
+
+Commander presets are the main personality system.
+
+Commander fields:
+- id
+- name
+- era/faction optional
+- portrait optional
+- command style
+- traits
+- major order citation library
+- personality lines
+
+Trait scale:
+0 to 10.
+
+Core traits:
+- aggression
+- caution
+- riskTolerance
+- control
+- initiative
+- panicResistance
+- flankPreference
+- frontalAttackPreference
+- artilleryPreference
+- cavalryPreference
+- reserveDiscipline
+
+Example:
+
+{
+  "id": "napoleon",
+  "name": "Napoleon",
+  "style": "Decisive concentration",
+  "traits": {
+    "aggression": 8,
+    "caution": 3,
+    "riskTolerance": 8,
+    "control": 8,
+    "initiative": 9,
+    "panicResistance": 9,
+    "flankPreference": 7,
+    "frontalAttackPreference": 6,
+    "artilleryPreference": 9,
+    "cavalryPreference": 7,
+    "reserveDiscipline": 8
+  },
+  "majorOrders": [
+    {
+      "type": "artillery_concentration",
+      "line": "Concentrate the guns and break their center.",
+      "inspiredBy": "Austerlitz"
+    },
+    {
+      "type": "decisive_attack",
+      "line": "Hold them in place, then strike the decisive point.",
+      "inspiredBy": "Jena"
+    }
+  ]
+}
+
+Major order citations:
+- Required for major orders.
+- Not required for minor movement.
+- Displayed as short dramatic cards.
+
+Format:
+COMMANDER NAME
+Order: [short order]
+Inspired by: [battle]
+
+Example:
+NAPOLEON
+Order: Concentrate artillery on the center.
+Inspired by: Austerlitz
+
+--------------------------------------------------------------------------------
+5.4 FORMATION PRESET
+--------------------------------------------------------------------------------
+
+Formation presets auto-place units relative to a deployment zone.
+
+Examples:
+- Straight Line
+- Cavalry Wings
+- Artillery Rear
+- Refused Left
+- Refused Right
+- Defensive Box
+- Column
+- Ambush
+
+Formation behavior:
+- Infantry should form the main battle line.
+- Artillery should default behind infantry.
+- Cavalry should default to flanks.
+- The army commander should appear behind the army.
+- Division commanders should appear near their division, not as killable units.
+
+Example:
+
+{
+  "id": "cavalry_wings",
+  "name": "Cavalry Wings",
+  "rules": {
+    "infantry": "center_line",
+    "artillery": "behind_infantry",
+    "cavalry": "left_and_right_flanks",
+    "armyCommander": "rear_center"
+  }
+}
+
+--------------------------------------------------------------------------------
+5.5 SCENARIO PRESET
+--------------------------------------------------------------------------------
+
+Scenario preset ties everything together.
+
+Example:
+
+{
+  "id": "crossroads_ambush",
+  "scenarioName": "Crossroads Ambush",
+  "mapPreset": "forest_crossroads",
+  "armies": [
+    {
+      "side": "A",
+      "armyPreset": "balanced_army",
+      "armyCommander": "napoleon",
+      "formation": "cavalry_wings",
+      "deploymentZone": "south"
+    },
+    {
+      "side": "B",
+      "armyPreset": "defensive_army",
+      "armyCommander": "wellington",
+      "formation": "defensive_line",
+      "deploymentZone": "north"
+    }
+  ],
+  "rules": {
+    "turnLimit": 20,
+    "defeatThresholdPercent": 60,
+    "moraleRules": "default_v01"
+  },
+  "seed": 48192
+}
+
+--------------------------------------------------------------------------------
+5.6 REPLAY FILE
+--------------------------------------------------------------------------------
+
+Replay files are important for reels.
+
+Replay must save:
+- scenario
+- seed
+- every order
+- every movement
+- every combat result
+- every morale event
+- every command friction event
+- final result
+
+This lets creators reproduce a good battle exactly.
+
+================================================================================
+6. UNITS
+================================================================================
+
+V0.1 unit types:
+
+1. Infantry
+2. Cavalry
+3. Artillery
+
+Unit stats should be minimal.
+
+Suggested default stats:
+
+Infantry:
+- HP/Strength: 250
+- Morale: 100
+- Move: 1
+- Range: 1
+- Attack: low-medium (designed for longer exchanges)
+- Role: holds line and fights reliably
+
+Cavalry:
+- HP/Strength: 180
+- Morale: 100
+- Move: 2
+- Range: 1
+- Attack: medium on flanks, lower in frontal grind
+- Special: attacking causes -20 morale shock
+- Role: flanking, pursuit, morale shock
+
+Artillery:
+- HP/Strength: 120
+- Morale: 100
+- Move: 1
+- Range: 2
+- Attack: 8 at range 2, 16 at range 1
+- Weak if attacked directly
+- Role: soften enemy line
+
+Unit data example:
+
+{
+  "id": "A_INF_01",
+  "side": "A",
+  "type": "infantry",
+  "division": "center",
+  "hex": { "q": 4, "r": 7 },
+  "strength": 250,
+  "morale": 100,
+  "state": "steady",
+  "currentOrder": "hold"
+}
+
+================================================================================
+7. COMMANDERS AND CHAIN OF COMMAND
+================================================================================
+
+There are two commander levels in v0.1:
+
+1. Army Commander
+2. Division/Wing Commander
+
+Army commander:
+- chooses overall major plan
+- personality affects strategy
+- appears at rear
+- cannot be killed
+- not a unit
+
+Division commander: (TODO — wing commanderId field exists but no logic reads it)
+- attached to Left/Center/Right division
+- visually appears leading that group
+- cannot be killed
+- not a unit
+
+V0.1 army command structure:
+
+Army Commander
+- Left Wing
+- Center
+- Right Wing
+
+Each wing gets one order per turn:
+- Hold
+- Advance
+- Attack
+- Flank Left
+- Flank Right
+- Retreat
+- Support Center
+- Bombard
+- Charge
+
+Order pacing update for reel readability:
+- Major commander action is chosen at battle start (Turn 1) and then every 5 turns.
+- Between these action turns, units continue movement/combat using the current action intent.
+- This reduces order spam and creates clear narrative "chapters" for short-form content.
+
+Action cadence example:
+- Turn 1: choose major action.
+- Turns 2-5: execute and adapt locally without new major action.
+- Turn 6: choose next major action.
+- Repeat every 5 turns.
+
+Only major orders need citations:
+- full assault
+- flank attack
+- retreat
+- commit reserve
+- artillery concentration
+- cavalry charge
+- encirclement attempt
+- defensive stand
+- bait-and-counterattack
+
+Recommended major action set for v0.1 reel mode:
+- Advance
+- Concentrate Center
+- Flank Attack
+- Cavalry Charge
+- Defensive Stand
+- Bombard Sector
+
+Action bonuses (current v0.1 tuning):
+- Advance: infantry pressure bonus (small offensive boost)
+- Concentrate Center: +20% damage for center sector attackers
+- Flank Attack: flank-wing attackers get offensive bonus
+- Cavalry Charge: cavalry attackers get offensive bonus in action sector
+- Defensive Stand: units in target sector take 20% less damage
+- Bombard Sector: artillery in target sector gets offensive bonus
+
+Sector model for v0.1:
+- Left sector
+- Center sector
+- Right sector
+
+Actions should be selected against a sector when relevant.
+
+Minor movement does not need citation.
+
+================================================================================
+8. COMMAND FRICTION EVENTS (DISABLED IN v0.1)
+================================================================================
+
+Command friction is commented out in the current build. All orders
+always succeed — no delays, misunderstandings, panic, overextension,
+or heroic initiative.
+
+The `applyFriction()` function is a no-op. Wing `lastFrictionEvent`
+fields exist but are never set or read.
+
+Design (reserved for v0.2):
+
+Events:
+
+1. DELAYED
+2. MISUNDERSTOOD
+3. PANIC
+4. OVEREXTENDED
+5. HEROIC INITIATIVE
+
+These should appear as big readable labels above the wing:
+- ORDER DELAYED
+- MISUNDERSTOOD
+- PANIC
+- OVEREXTENDED
+- INITIATIVE
+
+--------------------------------------------------------------------------------
+8.1–8.6 (reserved — see original design for friction mechanics)
+--------------------------------------------------------------------------------
+
+Friction is planned for v0.2. Original design notes preserved above
+for reference.
+
+================================================================================
+9. MORALE SYSTEM
+================================================================================
+
+Morale is mainly positional in v0.1.
+
+Default morale rules:
+
+- Attacked from two opposite sides: -50% morale.
+- Surrounded on all six sides: -90% morale.
+- Attacked by cavalry: -20% morale.
+
+Rules:
+- Morale penalties can stack, but cap combat-event morale loss at -90%.
+- Morale affects combat power.
+- At 0 morale, unit routs.
+- Routed units count as defeated.
+
+Morale states:
+- Steady: 70–100
+- Shaken: 40–69
+- Broken: 1–39
+- Routed: 0
+
+Visuals:
+- Steady: normal.
+- Shaken: slight shake animation.
+- Broken: flashing outline / retreat arrow.
+- Routed: flees or disappears.
+
+Important:
+Morale should be obvious to viewers. Use short popups:
+- FLANKED -50%
+- CAVALRY SHOCK -20%
+- SURROUNDED -90%
+- ROUTED
+
+================================================================================
+10. COMBAT SYSTEM
+================================================================================
+
+Combat should be simple and readable.
+
+Combat pacing target in v0.1:
+- Units should exchange fire/combat for multiple turns before collapse.
+- Position and morale shocks should decide battles more than raw damage race.
+
+Combat process:
+1. Build attack intents for all units that have legal targets at phase start.
+2. Calculate damage from intents.
+3. Resolve intents in batch for same-turn mutual engagement.
+4. Apply morale effects.
+5. Apply flanking/surrounding/state morale shock.
+6. Check retreat/rout.
+7. Update defeated percentage.
+
+Same-turn engagement rule:
+- If two units are both in range at combat-phase start, both can deal damage in that turn.
+- This removes first-processed unit advantage and improves fairness/readability.
+
+Range legality rule:
+- Units only attack targets within their own range.
+- No "fight back" occurs from out of range.
+- Example: artillery at range 2 can hit infantry at range 2, but infantry (range 1) cannot return fire unless distance closes.
+
+Artillery:
+- Range 2.
+- Deals damage without adjacent contact.
+- Damage profile in current v0.1 tuning:
+  - range 2 hit: lower damage
+  - range 1 hit: higher damage
+- Best when protected behind infantry.
+- Weak if enemy reaches it.
+
+Cavalry:
+- Fast.
+- Causes morale shock.
+- Best against flanks, artillery, and broken units.
+- Should not be best in frontal attacks against steady infantry.
+
+Infantry:
+- Main line.
+- Most stable unit.
+- Best for holding ground.
+
+Line cohesion and anti-funneling behavior:
+- Infantry prefers to maintain a broad continuous line, not stack into 1-2 hex funnels.
+- Units get a modest combat bonus when supported by adjacent friendly units.
+- Isolated units take extra morale pressure when attacked.
+- Movement AI should penalize overcrowded hex corridors and reward line continuity.
+
+V0.1 defeated system:
+- A unit is defeated when strength reaches 0 or morale reaches 0 and it routs off/gets removed.
+- Army defeated percentage = defeated units / starting units.
+- Default loss threshold: 60%.
+- First army to lose 60% of its units loses.
+
+================================================================================
+11. SIMULATION TURN STRUCTURE
+================================================================================
+
+Each turn:
+
+1. Situation Assessment
+- Each army commander reviews visible battle state.
+- For v0.1, perfect information is fine unless fog is added later.
+
+2. Major Plan / Orders
+- Commander chooses orders for Left, Center, Right.
+- Major orders get historical citation.
+- Minor movement gets no citation.
+
+Updated pacing:
+- Turn 1 and every 5th turn after: commander chooses a new major action.
+- Other turns: no new major action; units execute existing action intent and local AI.
+
+3. Command Friction Check
+- Each wing may delay, misunderstand, panic, overextend, or show initiative.
+
+4. Movement
+- Units move according to orders and movement limits.
+- Non-flanking units should prefer nearest valid engagement rather than walking past enemies.
+- Flank orders may bypass immediate contact to attack side/rear angles.
+- Artillery should prefer rear standoff positions and fire when in range, not drift into front-line melee.
+
+5. Combat
+- Artillery fires.
+- Adjacent units attack.
+- Cavalry charges resolve.
+- Morale shocks apply.
+
+6. Rout / Defeat Check
+- Units with 0 morale or 0 strength are defeated/routed.
+- Army defeated percentage updates.
+
+7. Battle Log
+- Short text explains what happened.
+- Dramatic events are highlighted.
+
+8. End Condition Check
+- If an army has lost the required percentage, battle ends.
+
+================================================================================
+12. AI SYSTEM: HYBRID
+================================================================================
+
+Use hybrid AI.
+
+The simulation engine must enforce legal moves.
+The AI personality chooses intent and explains decisions.
+
+Recommended:
+- Rule-based engine for actual movement/combat.
+- Commander personality weights to choose strategies.
+- Optional LLM layer for dramatic text, citations, and post-battle report.
+
+Do NOT let the LLM directly move units illegally.
+The engine should convert commander intent into valid actions.
+
+Example:
+Commander intent:
+"Strike the enemy left with cavalry while the center holds."
+
+Engine converts to:
+- Left Wing: Hold
+- Center: Hold
+- Right Wing: Flank Left
+- Cavalry units move toward enemy flank
+- Infantry maintain line
+
+Major order card:
+ROBERT E. LEE
+Order: Strike the exposed flank.
+Inspired by: Chancellorsville
+
+Major-action AI guidance:
+- On action turns, select one high-level action and a target sector.
+- On non-action turns, preserve intent and avoid constant oscillation.
+
+Action-selection interval:
+- `actionIntervalTurns = 5` (turn 1, then every 5 turns).
+
+Action memory:
+- Keep the chosen action active until next action turn unless emergency retreat triggers.
+
+Sector selection (current v0.1 implementation):
+- `concentrate_center` always targets the center sector.
+- `bombard_sector` picks a sector that has alive artillery units, weighted by unit count.
+- `cavalry_charge` picks a sector that has alive cavalry units, weighted by unit count.
+- `flank_attack` picks between left/right sectors weighted by alive unit count.
+- All other actions pick any sector weighted by alive unit count.
+- Empty sectors (0 units) get zero weight; fallback to uniform 1 if all sectors empty.
+
+Action availability filtering (current v0.1):
+- `cavalry_charge` is removed if the army has fewer than 2 alive cavalry.
+- `bombard_sector` is removed if the army has 0 alive artillery.
+
+Action weights (current v0.1 implementation — needs rework):
+- Opening/approach phase: all commanders use identical weights:
+    advance: 3.2, concentrate_center: 1.1, flank_attack: 0.8,
+    cavalry_charge: 0.5, defensive_stand: 0.7, bombard_sector: 0.9
+- Mid/contact phase: commander traits produce tiny deltas:
+    concentrate_center = 2 + control/12        (Nap 2.67, Lee 2.50)
+    flank_attack      = 1.8 + initiative/12    (Nap 2.55, Lee 2.47)
+    cavalry_charge    = 1.3 + aggression/14    (Nap 1.87, Lee 1.80)
+    defensive_stand   = 1 + (10-aggression)/14 (Nap 1.14, Lee 1.21)
+    bombard_sector    = 1.2 + control/16       (Nap 1.70, Lee 1.58)
+- Result: commanders differ by ~1-2 percentage points in practice.
+- Opening phase is entirely commander-blind.
+
+-------------------------------------------------------------------------------
+12.1 SIGNATURE ABILITIES (COMMANDER POWER BAR)
+-------------------------------------------------------------------------------
+
+Purpose:
+- Create anticipation and dramatic spikes for reels.
+- Reinforce commander personality with recognizable signature moments.
+
+Core rules (v0.1):
+- Each army commander has a signature ability.
+- Commander has an ability charge bar from 0 to 100.
+- Charge increases from damage dealt to enemy units.
+- Charge also gains a passive +5 per turn.
+- When bar reaches 100, signature ability can be activated.
+- Signature ability replaces the normal major action on an action turn.
+- Ability effects are short (3 turns in current v0.1 tuning) and clearly telegraphed.
+- After activation, charge resets to 0.
+
+Balance guardrails:
+- Cap charge gain per turn to prevent runaway snowball.
+- Optional mild catch-up bonus to trailing side.
+- Keep effects sector-limited when possible for readability and fairness.
+
+UI requirements:
+- Show each commander's ability bar in army panel.
+- Show clear "Ready" state when full.
+- On activation, display a big action card with commander name and ability name.
+- On major action selection, draw a temporary wing/division highlight box with action label.
+- Action highlight should fade after a few seconds for reel readability.
+
+Example signature abilities:
+
+Napoleon — Artillery Barrage
+- Effect: artillery in chosen sector deals x2 damage for 3 turns.
+- Visual: sector highlight + "BARRAGE" banner.
+
+Lee — Jackson's Foot Cavalry
+- Effect: infantry in chosen sector gains +1 move and applies extra morale shock for 3 turns.
+- Visual: sector highlight + "FOOT CAVALRY" banner.
+
+Genghis Khan — Feigned Retreat
+- Effect: cavalry retreats and attacks at range 2 for 3 turns.
+- Visual: sector highlight + "FEIGNED RETREAT" banner.
+
+================================================================================
+13. BATTLE LOG AND REEL-FRIENDLY OUTPUT
+================================================================================
+
+The battle log is a major content feature.
+
+Log entries should be short:
+- Turn 1: Napoleon concentrates artillery on the center.
+- Turn 2: Lee orders a flank attack inspired by Chancellorsville.
+- Turn 3: Right Wing overextends.
+- Turn 4: Cavalry hits the exposed flank. CAVALRY SHOCK -20%.
+- Turn 5: Infantry attacked from opposite sides. FLANKED -50%.
+- Turn 6: Center routs.
+- Result: Lee loses 60% of army. Napoleon wins.
+
+At the end, generate a short post-battle report:
+
+Winner:
+Napoleon defeats Lee after 11 turns.
+
+Key Moment:
+Lee's right wing overextended on Turn 4 and was hit by cavalry.
+
+Collapse Reason:
+Two units were attacked from opposite sides, causing -50% morale shock.
+The center panicked and routed.
+
+Historical Logic:
+Napoleon's plan resembled Austerlitz: pressure the enemy center, then strike the decisive point.
+
+================================================================================
+14. SETUP UI DETAILS
+================================================================================
+
+Recommended setup screen:
+
+Top:
+- Scenario name
+- Save button
+- Load button
+- Simulate button
+
+Center:
+- Hex map
+
+Bottom toolbar:
+[Terrain] [Units] [Wings] [Commanders] [Formations] [Rules]
+
+When Terrain selected:
+- Plain
+- Hill
+- Forest
+- River
+- Road
+- Town
+- Erase
+
+When Units selected:
+- Blue / Red army toggle
+- Infantry
+- Cavalry
+- Artillery
+- Delete
+- Move
+
+When Wings selected:
+- Select units
+- Assign to Left
+- Assign to Center
+- Assign to Right
+- Assign to Reserve if implemented later
+
+Division assignment must remain directly accessible in setup:
+- Creator can select individual brigades and assign them to divisions.
+- Minimum v0.1 requirement: Left / Center / Right assignment buttons are always available in Wings mode.
+- Division assignment should be obvious and one-tap after selection.
+
+When Commanders selected:
+- Blue army commander
+- Red army commander
+- Left Wing commander  (TODO: wing commanderId field exists but is never read)
+- Center commander    (TODO: wing commanderId field exists but is never read)
+- Right Wing commander (TODO: wing commanderId field exists but is never read)
+- Custom commander editor
+
+When Formations selected:
+- Line
+- Cavalry Wings
+- Artillery Rear
+- Refused Left
+- Refused Right
+- Defensive Box
+- Ambush
+
+When Rules selected:
+- Defeat threshold percentage
+- Turn limit
+- Morale rules preset
+- Command friction frequency (UNUSED — friction disabled in v0.1)
+- Random seed
+
+Keep this UI big, touch-friendly, and simple.
+
+================================================================================
+15. COMMANDER VISUAL RULES
+================================================================================
+
+V0.1 commander visuals:
+
+Army commander:
+- Appears behind the army as a banner/portrait/name marker.
+- Does not occupy a combat hex or block movement.
+- Cannot be attacked.
+- Cannot be killed.
+- Used only for visual identity and order generation.
+
+Division commander:
+- Appears near the division.
+- Can be shown as a small portrait/name tab attached to the group.
+- Does not fight.
+- Cannot be killed.
+- Moves with the general center of that division.
+- Helps viewers know who is leading which units.
+
+Example visual:
+- Blue infantry line has a small label: "Ney — Center"
+- Blue cavalry wing has a label: "Murat — Right"
+- Rear label: "Napoleon"
+
+Do not overcomplicate this.
+
+================================================================================
+16. DATA MODEL SUMMARY
+================================================================================
+
+Core objects:
+
+GameScenario:
+- id
+- name
+- map
+- armies
+- rules
+- seed
+
+Map:
+- width
+- height
+- hexes
+
+Hex:
+- q
+- r
+- terrain
+- occupantUnitId optional
+
+Army:
+- id
+- name
+- side
+- color
+- armyCommanderId
+- divisions
+- units
+- startingUnitCount
+- defeatedUnitCount
+
+Division:
+- id
+- name
+- armyId
+- commanderId
+- unitIds
+- currentOrder
+- moraleAverage
+- lastFrictionEvent
+
+Unit:
+- id
+- armyId
+- divisionId
+- type
+- q
+- r
+- strength
+- morale
+- state
+- move
+- range
+- currentOrder
+
+Commander:
+- id
+- name
+- level: army or division
+- traits
+- majorOrders
+- portrait optional
+
+BattleLogEntry:
+- turn
+- type
+- text
+- unitsInvolved
+- commanderInvolved optional
+
+Replay:
+- scenario
+- seed
+- turns
+- finalResult
+
+================================================================================
+17. V0.2 ROADMAP
+================================================================================
+
+Add later:
+- Reinforcements
+- Terrain effects
+- Deeper command delay
+- Named sub-commanders
+- Reserve system
+- Skirmishers
+- Guards
+- Fog of war
+- Objectives beyond defeated percentage
+- Defensive works
+- Bridge crossings
+- Retreat path logic
+- Army-wide morale
+- Cinematic replay exporter
+- Better AI personality tuning
+- Historical scenario packs
+
+Reinforcements v0.2 example:
+
+{
+  "reinforcements": [
+    {
+      "turn": 5,
+      "army": "A",
+      "entryHexes": [[0,5], [0,6]],
+      "units": [
+        { "type": "infantry", "count": 2 },
+        { "type": "cavalry", "count": 1 }
+      ]
+    }
+  ]
+}
+
+================================================================================
+18. FINAL V0.1 PITCH
+================================================================================
+
+A simple hex-based AI-vs-AI battle sandbox for creating viral commander matchups.
+
+You build a scenario, place units, assign commanders, and watch historical personalities
+fight through morale shocks, flanking, cavalry charges, and chaotic chain-of-command events.
+
+The armies are simple.
+The commanders are dramatic.
+The sandbox is easy to edit.
+The output is made for short-form battle reels.

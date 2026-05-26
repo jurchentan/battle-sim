@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Commander Hex Battle Simulator v0.1</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div>
+        <h1>AI Commander Hex Battle Simulator</h1>
+        <p id="subtitle">Setup Battle · Turn 0</p>
+      </div>
+      <div class="top-actions">
+        <button id="saveScenarioBtn">Save</button>
+        <button id="loadScenarioBtn">Load</button>
+        <button id="clearTerrainBtn">Clear Terrain</button>
+        <button id="clearArmiesBtn">Clear Armies</button>
+        <button id="reelsModeBtn">Reels Mode: Off</button>
+        <button id="simulateBtn" class="accent">Simulate</button>
+        <button id="stepBtn">Step</button>
+        <button id="resetBtn">Reset</button>
+      </div>
+    </header>
+
+    <div id="orderPopupLayer" class="order-popup-layer"></div>
+
+    <aside id="reelsSideControls" class="reels-side-controls hidden">
+      <button id="reelsSideSimBtn" class="accent">Simulate</button>
+      <button id="reelsSideStepBtn">Step</button>
+      <button id="reelsSideModeBtn">Reels: On</button>
+    </aside>
+
+    <main class="layout">
+      <aside class="left-panel panel">
+        <h2>Setup Tools</h2>
+        <div class="mode-row" id="modeTabs"></div>
+
+        <section id="toolPanel"></section>
+      </aside>
+
+      <section class="center panel">
+        <canvas id="mapCanvas" width="900" height="900" aria-label="Hex battlefield"></canvas>
+      </section>
+
+      <aside class="right-panel panel">
+        <h2>Info</h2>
+        <div id="selectionInfo" class="card">No selection</div>
+        <div class="card">
+          <h3>Blue Army</h3>
+          <div id="armyAInfo"></div>
+        </div>
+        <div class="card">
+          <h3>Red Army</h3>
+          <div id="armyBInfo"></div>
+        </div>
+      </aside>
+    </main>
+
+    <footer class="bottom panel">
+      <div class="controls">
+        <label>Seed <input id="seedInput" type="number" /></label>
+        <button id="randomizeSeedBtn">Random Seed</button>
+        <label>Sim Speed
+          <select id="simSpeedSelect">
+            <option value="slow">Slow</option>
+            <option value="normal" selected>Normal</option>
+            <option value="fast">Fast</option>
+          </select>
+        </label>
+        <label>Turn Limit <input id="turnLimitInput" type="number" min="1" max="99" /></label>
+        <label>Defeat % <input id="defeatInput" type="number" min="10" max="100" /></label>
+      </div>
+      <div id="eventBanner" class="event-banner">Ready.</div>
+      <div id="log" class="log"></div>
+    </footer>
+
+    <section id="reelsHud" class="reels-hud hidden">
+      <article class="reels-card" id="reelsBlueCard">
+        <img id="reelsBluePortrait" alt="Blue commander portrait" />
+        <div>
+          <h3 id="reelsBlueName">Blue Commander</h3>
+          <div class="reels-bar-label">Army Health</div>
+          <div class="reels-bar"><span id="reelsBlueHealthFill"></span></div>
+          <div class="reels-bar-label" id="reelsBlueAbilityLabel">Ability</div>
+          <div class="reels-bar"><span id="reelsBlueAbilityFill"></span></div>
+        </div>
+      </article>
+      <article class="reels-card" id="reelsRedCard">
+        <img id="reelsRedPortrait" alt="Red commander portrait" />
+        <div>
+          <h3 id="reelsRedName">Red Commander</h3>
+          <div class="reels-bar-label">Army Health</div>
+          <div class="reels-bar"><span id="reelsRedHealthFill"></span></div>
+          <div class="reels-bar-label" id="reelsRedAbilityLabel">Ability</div>
+          <div class="reels-bar"><span id="reelsRedAbilityFill"></span></div>
+        </div>
+      </article>
+    </section>
+
+    <section id="scenarioLibrary" class="scenario-library hidden panel">
+      <div class="library-head">
+        <h2>Scenario Library</h2>
+        <button id="closeLibraryBtn" class="x-close" aria-label="Close">&times;</button>
+      </div>
+      <div class="library-save-row">
+        <input id="scenarioNameInput" type="text" placeholder="Scenario name" />
+        <button id="saveNamedScenarioBtn" class="accent">Save Current</button>
+      </div>
+      <div class="library-save-row">
+        <button id="importScenarioBtn">Import File</button>
+        <input id="importScenarioInput" type="file" accept="application/json" class="hidden" />
+      </div>
+      <div id="scenarioList" class="scenario-list"></div>
+    </section>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>

@@ -1,0 +1,3385 @@
+{
+  "id": "Fair_Battle",
+  "name": "Fair Battle",
+  "updatedAt": 0,
+  "payload": {
+    "map": {
+      "width": 17,
+      "height": 17,
+      "hexes": [
+        {
+          "q": 0,
+          "r": 0,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 1,
+          "r": 0,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 2,
+          "r": 0,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 3,
+          "r": 0,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 4,
+          "r": 0,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 5,
+          "r": 0,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 6,
+          "r": 0,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 7,
+          "r": 0,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 8,
+          "r": 0,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 9,
+          "r": 0,
+          "terrain": "plain",
+          "occupantUnitId": "B_ART_05",
+          "active": true
+        },
+        {
+          "q": 10,
+          "r": 0,
+          "terrain": "plain",
+          "occupantUnitId": "B_ART_06",
+          "active": true
+        },
+        {
+          "q": 11,
+          "r": 0,
+          "terrain": "plain",
+          "occupantUnitId": "B_ART_07",
+          "active": true
+        },
+        {
+          "q": 12,
+          "r": 0,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 13,
+          "r": 0,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 14,
+          "r": 0,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 15,
+          "r": 0,
+          "terrain": "plain",
+          "occupantUnitId": "B_ART_01",
+          "active": true
+        },
+        {
+          "q": 16,
+          "r": 0,
+          "terrain": "plain",
+          "occupantUnitId": "B_ART_02",
+          "active": true
+        },
+        {
+          "q": 0,
+          "r": 1,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 1,
+          "r": 1,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 2,
+          "r": 1,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 3,
+          "r": 1,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 4,
+          "r": 1,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 5,
+          "r": 1,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 6,
+          "r": 1,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 7,
+          "r": 1,
+          "terrain": "plain",
+          "occupantUnitId": "B_CAV_02",
+          "active": true
+        },
+        {
+          "q": 8,
+          "r": 1,
+          "terrain": "plain",
+          "occupantUnitId": "B_CAV_01",
+          "active": true
+        },
+        {
+          "q": 9,
+          "r": 1,
+          "terrain": "plain",
+          "occupantUnitId": "B_INF_01",
+          "active": true
+        },
+        {
+          "q": 10,
+          "r": 1,
+          "terrain": "plain",
+          "occupantUnitId": "B_INF_02",
+          "active": true
+        },
+        {
+          "q": 11,
+          "r": 1,
+          "terrain": "plain",
+          "occupantUnitId": "B_INF_03",
+          "active": true
+        },
+        {
+          "q": 12,
+          "r": 1,
+          "terrain": "plain",
+          "occupantUnitId": "B_INF_04",
+          "active": true
+        },
+        {
+          "q": 13,
+          "r": 1,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 14,
+          "r": 1,
+          "terrain": "plain",
+          "occupantUnitId": "B_INF_05",
+          "active": true
+        },
+        {
+          "q": 15,
+          "r": 1,
+          "terrain": "plain",
+          "occupantUnitId": "B_INF_06",
+          "active": true
+        },
+        {
+          "q": 16,
+          "r": 1,
+          "terrain": "plain",
+          "occupantUnitId": "B_ART_04",
+          "active": true
+        },
+        {
+          "q": 0,
+          "r": 2,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 1,
+          "r": 2,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 2,
+          "r": 2,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 3,
+          "r": 2,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 4,
+          "r": 2,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 5,
+          "r": 2,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 6,
+          "r": 2,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 7,
+          "r": 2,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 8,
+          "r": 2,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 9,
+          "r": 2,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 10,
+          "r": 2,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 11,
+          "r": 2,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 12,
+          "r": 2,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 13,
+          "r": 2,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 14,
+          "r": 2,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 15,
+          "r": 2,
+          "terrain": "plain",
+          "occupantUnitId": "B_INF_07",
+          "active": true
+        },
+        {
+          "q": 16,
+          "r": 2,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 0,
+          "r": 3,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 1,
+          "r": 3,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 2,
+          "r": 3,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 3,
+          "r": 3,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 4,
+          "r": 3,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 5,
+          "r": 3,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 6,
+          "r": 3,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 7,
+          "r": 3,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 8,
+          "r": 3,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 9,
+          "r": 3,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 10,
+          "r": 3,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 11,
+          "r": 3,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 12,
+          "r": 3,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 13,
+          "r": 3,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 14,
+          "r": 3,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 15,
+          "r": 3,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 16,
+          "r": 3,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 0,
+          "r": 4,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 1,
+          "r": 4,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 2,
+          "r": 4,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 3,
+          "r": 4,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 4,
+          "r": 4,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 5,
+          "r": 4,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 6,
+          "r": 4,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 7,
+          "r": 4,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 8,
+          "r": 4,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 9,
+          "r": 4,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 10,
+          "r": 4,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 11,
+          "r": 4,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 12,
+          "r": 4,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 13,
+          "r": 4,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 14,
+          "r": 4,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 15,
+          "r": 4,
+          "terrain": "plain",
+          "occupantUnitId": "B_INF_08",
+          "active": true
+        },
+        {
+          "q": 16,
+          "r": 4,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 0,
+          "r": 5,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 1,
+          "r": 5,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 2,
+          "r": 5,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 3,
+          "r": 5,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 4,
+          "r": 5,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 5,
+          "r": 5,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 6,
+          "r": 5,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 7,
+          "r": 5,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 8,
+          "r": 5,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 9,
+          "r": 5,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 10,
+          "r": 5,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 11,
+          "r": 5,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 12,
+          "r": 5,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 13,
+          "r": 5,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 14,
+          "r": 5,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 15,
+          "r": 5,
+          "terrain": "plain",
+          "occupantUnitId": "B_INF_09",
+          "active": true
+        },
+        {
+          "q": 16,
+          "r": 5,
+          "terrain": "plain",
+          "occupantUnitId": "B_ART_09",
+          "active": true
+        },
+        {
+          "q": 0,
+          "r": 6,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 1,
+          "r": 6,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 2,
+          "r": 6,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 3,
+          "r": 6,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 4,
+          "r": 6,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 5,
+          "r": 6,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 6,
+          "r": 6,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 7,
+          "r": 6,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 8,
+          "r": 6,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 9,
+          "r": 6,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 10,
+          "r": 6,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 11,
+          "r": 6,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 12,
+          "r": 6,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 13,
+          "r": 6,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 14,
+          "r": 6,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 15,
+          "r": 6,
+          "terrain": "plain",
+          "occupantUnitId": "B_INF_11",
+          "active": true
+        },
+        {
+          "q": 16,
+          "r": 6,
+          "terrain": "plain",
+          "occupantUnitId": "B_ART_10",
+          "active": true
+        },
+        {
+          "q": 0,
+          "r": 7,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 1,
+          "r": 7,
+          "terrain": "plain",
+          "occupantUnitId": "A_CAV_02",
+          "active": true
+        },
+        {
+          "q": 2,
+          "r": 7,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 3,
+          "r": 7,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 4,
+          "r": 7,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 5,
+          "r": 7,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 6,
+          "r": 7,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 7,
+          "r": 7,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 8,
+          "r": 7,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 9,
+          "r": 7,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 10,
+          "r": 7,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 11,
+          "r": 7,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 12,
+          "r": 7,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 13,
+          "r": 7,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 14,
+          "r": 7,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 15,
+          "r": 7,
+          "terrain": "plain",
+          "occupantUnitId": "B_INF_10",
+          "active": true
+        },
+        {
+          "q": 16,
+          "r": 7,
+          "terrain": "plain",
+          "occupantUnitId": "B_ART_08",
+          "active": true
+        },
+        {
+          "q": 0,
+          "r": 8,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 1,
+          "r": 8,
+          "terrain": "plain",
+          "occupantUnitId": "A_CAV_01",
+          "active": true
+        },
+        {
+          "q": 2,
+          "r": 8,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 3,
+          "r": 8,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 4,
+          "r": 8,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 5,
+          "r": 8,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 6,
+          "r": 8,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 7,
+          "r": 8,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 8,
+          "r": 8,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 9,
+          "r": 8,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 10,
+          "r": 8,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 11,
+          "r": 8,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 12,
+          "r": 8,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 13,
+          "r": 8,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 14,
+          "r": 8,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 15,
+          "r": 8,
+          "terrain": "plain",
+          "occupantUnitId": "B_CAV_03",
+          "active": true
+        },
+        {
+          "q": 16,
+          "r": 8,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 0,
+          "r": 9,
+          "terrain": "plain",
+          "occupantUnitId": "A_ART_01",
+          "active": true
+        },
+        {
+          "q": 1,
+          "r": 9,
+          "terrain": "plain",
+          "occupantUnitId": "A_INF_02",
+          "active": true
+        },
+        {
+          "q": 2,
+          "r": 9,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 3,
+          "r": 9,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 4,
+          "r": 9,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 5,
+          "r": 9,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 6,
+          "r": 9,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 7,
+          "r": 9,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 8,
+          "r": 9,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 9,
+          "r": 9,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 10,
+          "r": 9,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 11,
+          "r": 9,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 12,
+          "r": 9,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 13,
+          "r": 9,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 14,
+          "r": 9,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 15,
+          "r": 9,
+          "terrain": "plain",
+          "occupantUnitId": "B_CAV_04",
+          "active": true
+        },
+        {
+          "q": 16,
+          "r": 9,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 0,
+          "r": 10,
+          "terrain": "plain",
+          "occupantUnitId": "A_ART_02",
+          "active": true
+        },
+        {
+          "q": 1,
+          "r": 10,
+          "terrain": "plain",
+          "occupantUnitId": "A_INF_03",
+          "active": true
+        },
+        {
+          "q": 2,
+          "r": 10,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 3,
+          "r": 10,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 4,
+          "r": 10,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 5,
+          "r": 10,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 6,
+          "r": 10,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 7,
+          "r": 10,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 8,
+          "r": 10,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 9,
+          "r": 10,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 10,
+          "r": 10,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 11,
+          "r": 10,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 12,
+          "r": 10,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 13,
+          "r": 10,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 14,
+          "r": 10,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 15,
+          "r": 10,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 16,
+          "r": 10,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 0,
+          "r": 11,
+          "terrain": "plain",
+          "occupantUnitId": "A_ART_03",
+          "active": true
+        },
+        {
+          "q": 1,
+          "r": 11,
+          "terrain": "plain",
+          "occupantUnitId": "A_INF_04",
+          "active": true
+        },
+        {
+          "q": 2,
+          "r": 11,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 3,
+          "r": 11,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 4,
+          "r": 11,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 5,
+          "r": 11,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 6,
+          "r": 11,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 7,
+          "r": 11,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 8,
+          "r": 11,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 9,
+          "r": 11,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 10,
+          "r": 11,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 11,
+          "r": 11,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 12,
+          "r": 11,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 13,
+          "r": 11,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 14,
+          "r": 11,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 15,
+          "r": 11,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 16,
+          "r": 11,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 0,
+          "r": 12,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 1,
+          "r": 12,
+          "terrain": "plain",
+          "occupantUnitId": "A_INF_13",
+          "active": true
+        },
+        {
+          "q": 2,
+          "r": 12,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 3,
+          "r": 12,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 4,
+          "r": 12,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 5,
+          "r": 12,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 6,
+          "r": 12,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 7,
+          "r": 12,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 8,
+          "r": 12,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 9,
+          "r": 12,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 10,
+          "r": 12,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 11,
+          "r": 12,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 12,
+          "r": 12,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 13,
+          "r": 12,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 14,
+          "r": 12,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 15,
+          "r": 12,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 16,
+          "r": 12,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 0,
+          "r": 13,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 1,
+          "r": 13,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 2,
+          "r": 13,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 3,
+          "r": 13,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 4,
+          "r": 13,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 5,
+          "r": 13,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 6,
+          "r": 13,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 7,
+          "r": 13,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 8,
+          "r": 13,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 9,
+          "r": 13,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 10,
+          "r": 13,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 11,
+          "r": 13,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 12,
+          "r": 13,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 13,
+          "r": 13,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 14,
+          "r": 13,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 15,
+          "r": 13,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 16,
+          "r": 13,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 0,
+          "r": 14,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 1,
+          "r": 14,
+          "terrain": "plain",
+          "occupantUnitId": "A_INF_06",
+          "active": true
+        },
+        {
+          "q": 2,
+          "r": 14,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 3,
+          "r": 14,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 4,
+          "r": 14,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 5,
+          "r": 14,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 6,
+          "r": 14,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 7,
+          "r": 14,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 8,
+          "r": 14,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 9,
+          "r": 14,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 10,
+          "r": 14,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 11,
+          "r": 14,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 12,
+          "r": 14,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 13,
+          "r": 14,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 14,
+          "r": 14,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 15,
+          "r": 14,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 16,
+          "r": 14,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 0,
+          "r": 15,
+          "terrain": "plain",
+          "occupantUnitId": "A_ART_07",
+          "active": true
+        },
+        {
+          "q": 1,
+          "r": 15,
+          "terrain": "plain",
+          "occupantUnitId": "A_INF_07",
+          "active": true
+        },
+        {
+          "q": 2,
+          "r": 15,
+          "terrain": "plain",
+          "occupantUnitId": "A_INF_08",
+          "active": true
+        },
+        {
+          "q": 3,
+          "r": 15,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 4,
+          "r": 15,
+          "terrain": "plain",
+          "occupantUnitId": "A_INF_14",
+          "active": true
+        },
+        {
+          "q": 5,
+          "r": 15,
+          "terrain": "plain",
+          "occupantUnitId": "A_INF_10",
+          "active": true
+        },
+        {
+          "q": 6,
+          "r": 15,
+          "terrain": "plain",
+          "occupantUnitId": "A_INF_11",
+          "active": true
+        },
+        {
+          "q": 7,
+          "r": 15,
+          "terrain": "plain",
+          "occupantUnitId": "A_INF_12",
+          "active": true
+        },
+        {
+          "q": 8,
+          "r": 15,
+          "terrain": "plain",
+          "occupantUnitId": "A_CAV_03",
+          "active": true
+        },
+        {
+          "q": 9,
+          "r": 15,
+          "terrain": "plain",
+          "occupantUnitId": "A_CAV_04",
+          "active": true
+        },
+        {
+          "q": 10,
+          "r": 15,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 11,
+          "r": 15,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 12,
+          "r": 15,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 13,
+          "r": 15,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 14,
+          "r": 15,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 15,
+          "r": 15,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 16,
+          "r": 15,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 0,
+          "r": 16,
+          "terrain": "plain",
+          "occupantUnitId": "A_ART_08",
+          "active": true
+        },
+        {
+          "q": 1,
+          "r": 16,
+          "terrain": "plain",
+          "occupantUnitId": "A_ART_09",
+          "active": true
+        },
+        {
+          "q": 2,
+          "r": 16,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 3,
+          "r": 16,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 4,
+          "r": 16,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 5,
+          "r": 16,
+          "terrain": "plain",
+          "occupantUnitId": "A_ART_06",
+          "active": true
+        },
+        {
+          "q": 6,
+          "r": 16,
+          "terrain": "plain",
+          "occupantUnitId": "A_ART_05",
+          "active": true
+        },
+        {
+          "q": 7,
+          "r": 16,
+          "terrain": "plain",
+          "occupantUnitId": "A_ART_04",
+          "active": true
+        },
+        {
+          "q": 8,
+          "r": 16,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": true
+        },
+        {
+          "q": 9,
+          "r": 16,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 10,
+          "r": 16,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 11,
+          "r": 16,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 12,
+          "r": 16,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 13,
+          "r": 16,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 14,
+          "r": 16,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 15,
+          "r": 16,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        },
+        {
+          "q": 16,
+          "r": 16,
+          "terrain": "plain",
+          "occupantUnitId": null,
+          "active": false
+        }
+      ]
+    },
+    "armies": {
+      "A": {
+        "id": "A",
+        "name": "Blue Army",
+        "color": "#2d6ba8",
+        "armyCommanderId": "napoleon",
+        "divisions": {
+          "left": {
+            "id": "left",
+            "commanderId": "napoleon",
+            "unitIds": [
+              "A_INF_02",
+              "A_INF_03",
+              "A_INF_04",
+              "A_INF_13",
+              "A_CAV_01",
+              "A_CAV_02",
+              "A_ART_01",
+              "A_ART_02",
+              "A_ART_03"
+            ],
+            "currentOrder": "Hold",
+            "lastFrictionEvent": null
+          },
+          "center": {
+            "id": "center",
+            "commanderId": "napoleon",
+            "unitIds": [
+              "A_INF_06",
+              "A_INF_07",
+              "A_INF_08",
+              "A_ART_07",
+              "A_ART_08",
+              "A_ART_09"
+            ],
+            "currentOrder": "Hold",
+            "lastFrictionEvent": null
+          },
+          "right": {
+            "id": "right",
+            "commanderId": "lee",
+            "unitIds": [
+              "A_INF_10",
+              "A_INF_11",
+              "A_INF_12",
+              "A_INF_14",
+              "A_CAV_03",
+              "A_CAV_04",
+              "A_ART_04",
+              "A_ART_05",
+              "A_ART_06"
+            ],
+            "currentOrder": "Hold",
+            "lastFrictionEvent": null
+          }
+        },
+        "units": [
+          {
+            "id": "A_INF_02",
+            "armyId": "A",
+            "divisionId": "left",
+            "type": "infantry",
+            "q": 1,
+            "r": 9,
+            "strength": 250,
+            "morale": 100,
+            "state": "steady",
+            "move": 1,
+            "range": 1,
+            "attack": 12,
+            "preferredR": 9,
+            "shockLocks": {
+              "isolated": false,
+              "flanked": false,
+              "surrounded": false
+            },
+            "statuses": {
+              "cavalryShockTurns": 0
+            },
+            "currentOrder": "Hold",
+            "alive": true
+          },
+          {
+            "id": "A_INF_03",
+            "armyId": "A",
+            "divisionId": "left",
+            "type": "infantry",
+            "q": 1,
+            "r": 10,
+            "strength": 250,
+            "morale": 100,
+            "state": "steady",
+            "move": 1,
+            "range": 1,
+            "attack": 12,
+            "preferredR": 10,
+            "shockLocks": {
+              "isolated": false,
+              "flanked": false,
+              "surrounded": false
+            },
+            "statuses": {
+              "cavalryShockTurns": 0
+            },
+            "currentOrder": "Hold",
+            "alive": true
+          },
+          {
+            "id": "A_INF_04",
+            "armyId": "A",
+            "divisionId": "left",
+            "type": "infantry",
+            "q": 1,
+            "r": 11,
+            "strength": 250,
+            "morale": 100,
+            "state": "steady",
+            "move": 1,
+            "range": 1,
+            "attack": 12,
+            "preferredR": 11,
+            "shockLocks": {
+              "isolated": false,
+              "flanked": false,
+              "surrounded": false
+            },
+            "statuses": {
+              "cavalryShockTurns": 0
+            },
+            "currentOrder": "Hold",
+            "alive": true
+          },
+          {
+            "id": "A_INF_06",
+            "armyId": "A",
+            "divisionId": "center",
+            "type": "infantry",
+            "q": 1,
+            "r": 14,
+            "strength": 250,
+            "morale": 100,
+            "state": "steady",
+            "move": 1,
+            "range": 1,
+            "attack": 12,
+            "preferredR": 14,
+            "shockLocks": {
+              "isolated": false,
+              "flanked": false,
+              "surrounded": false
+            },
+            "statuses": {
+              "cavalryShockTurns": 0
+            },
+            "currentOrder": "Hold",
+            "alive": true
+          },
+          {
+            "id": "A_INF_07",
+            "armyId": "A",
+            "divisionId": "center",
+            "type": "infantry",
+            "q": 1,
+            "r": 15,
+            "strength": 250,
+            "morale": 100,
+            "state": "steady",
+            "move": 1,
+            "range": 1,
+            "attack": 12,
+            "preferredR": 15,
+            "shockLocks": {
+              "isolated": false,
+              "flanked": false,
+              "surrounded": false
+            },
+            "statuses": {
+              "cavalryShockTurns": 0
+            },
+            "currentOrder": "Hold",
+            "alive": true
+          },
+          {
+            "id": "A_INF_08",
+            "armyId": "A",
+            "divisionId": "center",
+            "type": "infantry",
+            "q": 2,
+            "r": 15,
+            "strength": 250,
+            "morale": 100,
+            "state": "steady",
+            "move": 1,
+            "range": 1,
+            "attack": 12,
+            "preferredR": 15,
+            "shockLocks": {
+              "isolated": false,
+              "flanked": false,
+              "surrounded": false
+            },
+            "statuses": {
+              "cavalryShockTurns": 0
+            },
+            "currentOrder": "Hold",
+            "alive": true
+          },
+          {
+            "id": "A_INF_10",
+            "armyId": "A",
+            "divisionId": "right",
+            "type": "infantry",
+            "q": 5,
+            "r": 15,
+            "strength": 250,
+            "morale": 100,
+            "state": "steady",
+            "move": 1,
+            "range": 1,
+            "attack": 12,
+            "preferredR": 15,
+            "shockLocks": {
+              "isolated": false,
+              "flanked": false,
+              "surrounded": false
+            },
+            "statuses": {
+              "cavalryShockTurns": 0
+            },
+            "currentOrder": "Hold",
+            "alive": true
+          },
+          {
+            "id": "A_INF_11",
+            "armyId": "A",
+            "divisionId": "right",
+            "type": "infantry",
+            "q": 6,
+            "r": 15,
+            "strength": 250,
+            "morale": 100,
+            "state": "steady",
+            "move": 1,
+            "range": 1,
+            "attack": 12,
+            "preferredR": 15,
+            "shockLocks": {
+              "isolated": false,
+              "flanked": false,
+              "surrounded": false
+            },
+            "statuses": {
+              "cavalryShockTurns": 0
+            },
+            "currentOrder": "Hold",
+            "alive": true
+          },
+          {
+            "id": "A_INF_12",
+            "armyId": "A",
+            "divisionId": "right",
+            "type": "infantry",
+            "q": 7,
+            "r": 15,
+            "strength": 250,
+            "morale": 100,
+            "state": "steady",
+            "move": 1,
+            "range": 1,
+            "attack": 12,
+            "preferredR": 15,
+            "shockLocks": {
+              "isolated": false,
+              "flanked": false,
+              "surrounded": false
+            },
+            "statuses": {
+              "cavalryShockTurns": 0
+            },
+            "currentOrder": "Hold",
+            "alive": true
+          },
+          {
+            "id": "A_INF_13",
+            "armyId": "A",
+            "divisionId": "left",
+            "type": "infantry",
+            "q": 1,
+            "r": 12,
+            "strength": 250,
+            "morale": 100,
+            "state": "steady",
+            "move": 1,
+            "range": 1,
+            "attack": 12,
+            "preferredR": 12,
+            "shockLocks": {
+              "isolated": false,
+              "flanked": false,
+              "surrounded": false
+            },
+            "statuses": {
+              "cavalryShockTurns": 0
+            },
+            "currentOrder": "Hold",
+            "alive": true
+          },
+          {
+            "id": "A_INF_14",
+            "armyId": "A",
+            "divisionId": "right",
+            "type": "infantry",
+            "q": 4,
+            "r": 15,
+            "strength": 250,
+            "morale": 100,
+            "state": "steady",
+            "move": 1,
+            "range": 1,
+            "attack": 12,
+            "preferredR": 15,
+            "shockLocks": {
+              "isolated": false,
+              "flanked": false,
+              "surrounded": false
+            },
+            "statuses": {
+              "cavalryShockTurns": 0
+            },
+            "currentOrder": "Hold",
+            "alive": true
+          },
+          {
+            "id": "A_CAV_01",
+            "armyId": "A",
+            "divisionId": "left",
+            "type": "cavalry",
+            "q": 1,
+            "r": 8,
+            "strength": 180,
+            "morale": 100,
+            "state": "steady",
+            "move": 2,
+            "range": 1,
+            "attack": 10,
+            "preferredR": 8,
+            "shockLocks": {
+              "isolated": false,
+              "flanked": false,
+              "surrounded": false
+            },
+            "statuses": {
+              "cavalryShockTurns": 0
+            },
+            "currentOrder": "Hold",
+            "alive": true
+          },
+          {
+            "id": "A_CAV_02",
+            "armyId": "A",
+            "divisionId": "left",
+            "type": "cavalry",
+            "q": 1,
+            "r": 7,
+            "strength": 180,
+            "morale": 100,
+            "state": "steady",
+            "move": 2,
+            "range": 1,
+            "attack": 10,
+            "preferredR": 7,
+            "shockLocks": {
+              "isolated": false,
+              "flanked": false,
+              "surrounded": false
+            },
+            "statuses": {
+              "cavalryShockTurns": 0
+            },
+            "currentOrder": "Hold",
+            "alive": true
+          },
+          {
+            "id": "A_CAV_03",
+            "armyId": "A",
+            "divisionId": "right",
+            "type": "cavalry",
+            "q": 8,
+            "r": 15,
+            "strength": 180,
+            "morale": 100,
+            "state": "steady",
+            "move": 2,
+            "range": 1,
+            "attack": 10,
+            "preferredR": 15,
+            "shockLocks": {
+              "isolated": false,
+              "flanked": false,
+              "surrounded": false
+            },
+            "statuses": {
+              "cavalryShockTurns": 0
+            },
+            "currentOrder": "Hold",
+            "alive": true
+          },
+          {
+            "id": "A_CAV_04",
+            "armyId": "A",
+            "divisionId": "right",
+            "type": "cavalry",
+            "q": 9,
+            "r": 15,
+            "strength": 180,
+            "morale": 100,
+            "state": "steady",
+            "move": 2,
+            "range": 1,
+            "attack": 10,
+            "preferredR": 15,
+            "shockLocks": {
+              "isolated": false,
+              "flanked": false,
+              "surrounded": false
+            },
+            "statuses": {
+              "cavalryShockTurns": 0
+            },
+            "currentOrder": "Hold",
+            "alive": true
+          },
+          {
+            "id": "A_ART_01",
+            "armyId": "A",
+            "divisionId": "left",
+            "type": "artillery",
+            "q": 0,
+            "r": 9,
+            "strength": 120,
+            "morale": 100,
+            "state": "steady",
+            "move": 1,
+            "range": 2,
+            "attack": 8,
+            "preferredR": 9,
+            "shockLocks": {
+              "isolated": false,
+              "flanked": false,
+              "surrounded": false
+            },
+            "statuses": {
+              "cavalryShockTurns": 0
+            },
+            "currentOrder": "Hold",
+            "alive": true
+          },
+          {
+            "id": "A_ART_02",
+            "armyId": "A",
+            "divisionId": "left",
+            "type": "artillery",
+            "q": 0,
+            "r": 10,
+            "strength": 120,
+            "morale": 100,
+            "state": "steady",
+            "move": 1,
+            "range": 2,
+            "attack": 8,
+            "preferredR": 10,
+            "shockLocks": {
+              "isolated": false,
+              "flanked": false,
+              "surrounded": false
+            },
+            "statuses": {
+              "cavalryShockTurns": 0
+            },
+            "currentOrder": "Hold",
+            "alive": true
+          },
+          {
+            "id": "A_ART_03",
+            "armyId": "A",
+            "divisionId": "left",
+            "type": "artillery",
+            "q": 0,
+            "r": 11,
+            "strength": 120,
+            "morale": 100,
+            "state": "steady",
+            "move": 1,
+            "range": 2,
+            "attack": 8,
+            "preferredR": 11,
+            "shockLocks": {
+              "isolated": false,
+              "flanked": false,
+              "surrounded": false
+            },
+            "statuses": {
+              "cavalryShockTurns": 0
+            },
+            "currentOrder": "Hold",
+            "alive": true
+          },
+          {
+            "id": "A_ART_04",
+            "armyId": "A",
+            "divisionId": "right",
+            "type": "artillery",
+            "q": 7,
+            "r": 16,
+            "strength": 120,
+            "morale": 100,
+            "state": "steady",
+            "move": 1,
+            "range": 2,
+            "attack": 8,
+            "preferredR": 16,
+            "shockLocks": {
+              "isolated": false,
+              "flanked": false,
+              "surrounded": false
+            },
+            "statuses": {
+              "cavalryShockTurns": 0
+            },
+            "currentOrder": "Hold",
+            "alive": true
+          },
+          {
+            "id": "A_ART_05",
+            "armyId": "A",
+            "divisionId": "right",
+            "type": "artillery",
+            "q": 6,
+            "r": 16,
+            "strength": 120,
+            "morale": 100,
+            "state": "steady",
+            "move": 1,
+            "range": 2,
+            "attack": 8,
+            "preferredR": 16,
+            "shockLocks": {
+              "isolated": false,
+              "flanked": false,
+              "surrounded": false
+            },
+            "statuses": {
+              "cavalryShockTurns": 0
+            },
+            "currentOrder": "Hold",
+            "alive": true
+          },
+          {
+            "id": "A_ART_06",
+            "armyId": "A",
+            "divisionId": "right",
+            "type": "artillery",
+            "q": 5,
+            "r": 16,
+            "strength": 120,
+            "morale": 100,
+            "state": "steady",
+            "move": 1,
+            "range": 2,
+            "attack": 8,
+            "preferredR": 16,
+            "shockLocks": {
+              "isolated": false,
+              "flanked": false,
+              "surrounded": false
+            },
+            "statuses": {
+              "cavalryShockTurns": 0
+            },
+            "currentOrder": "Hold",
+            "alive": true
+          },
+          {
+            "id": "A_ART_07",
+            "armyId": "A",
+            "divisionId": "center",
+            "type": "artillery",
+            "q": 0,
+            "r": 15,
+            "strength": 120,
+            "morale": 100,
+            "state": "steady",
+            "move": 1,
+            "range": 2,
+            "attack": 8,
+            "preferredR": 15,
+            "shockLocks": {
+              "isolated": false,
+              "flanked": false,
+              "surrounded": false
+            },
+            "statuses": {
+              "cavalryShockTurns": 0
+            },
+            "currentOrder": "Hold",
+            "alive": true
+          },
+          {
+            "id": "A_ART_08",
+            "armyId": "A",
+            "divisionId": "center",
+            "type": "artillery",
+            "q": 0,
+            "r": 16,
+            "strength": 120,
+            "morale": 100,
+            "state": "steady",
+            "move": 1,
+            "range": 2,
+            "attack": 8,
+            "preferredR": 16,
+            "shockLocks": {
+              "isolated": false,
+              "flanked": false,
+              "surrounded": false
+            },
+            "statuses": {
+              "cavalryShockTurns": 0
+            },
+            "currentOrder": "Hold",
+            "alive": true
+          },
+          {
+            "id": "A_ART_09",
+            "armyId": "A",
+            "divisionId": "center",
+            "type": "artillery",
+            "q": 1,
+            "r": 16,
+            "strength": 120,
+            "morale": 100,
+            "state": "steady",
+            "move": 1,
+            "range": 2,
+            "attack": 8,
+            "preferredR": 16,
+            "shockLocks": {
+              "isolated": false,
+              "flanked": false,
+              "surrounded": false
+            },
+            "statuses": {
+              "cavalryShockTurns": 0
+            },
+            "currentOrder": "Hold",
+            "alive": true
+          }
+        ],
+        "startingUnitCount": 24,
+        "defeatedUnitCount": 0,
+        "currentAction": null,
+        "currentSector": "center",
+        "abilityCharge": 0,
+        "abilityReady": false,
+        "activeSignature": null
+      },
+      "B": {
+        "id": "B",
+        "name": "Red Army",
+        "color": "#b0483e",
+        "armyCommanderId": "lee",
+        "divisions": {
+          "left": {
+            "id": "left",
+            "commanderId": "napoleon",
+            "unitIds": [
+              "B_INF_01",
+              "B_INF_02",
+              "B_INF_03",
+              "B_INF_04",
+              "B_CAV_01",
+              "B_CAV_02",
+              "B_ART_05",
+              "B_ART_06",
+              "B_ART_07"
+            ],
+            "currentOrder": "Hold",
+            "lastFrictionEvent": null
+          },
+          "center": {
+            "id": "center",
+            "commanderId": "napoleon",
+            "unitIds": [
+              "B_INF_05",
+              "B_INF_06",
+              "B_INF_07",
+              "B_ART_01",
+              "B_ART_02",
+              "B_ART_04"
+            ],
+            "currentOrder": "Hold",
+            "lastFrictionEvent": null
+          },
+          "right": {
+            "id": "right",
+            "commanderId": "lee",
+            "unitIds": [
+              "B_INF_08",
+              "B_INF_09",
+              "B_INF_10",
+              "B_INF_11",
+              "B_CAV_03",
+              "B_CAV_04",
+              "B_ART_08",
+              "B_ART_09",
+              "B_ART_10"
+            ],
+            "currentOrder": "Hold",
+            "lastFrictionEvent": null
+          }
+        },
+        "units": [
+          {
+            "id": "B_INF_01",
+            "armyId": "B",
+            "divisionId": "left",
+            "type": "infantry",
+            "q": 9,
+            "r": 1,
+            "strength": 250,
+            "morale": 100,
+            "state": "steady",
+            "move": 1,
+            "range": 1,
+            "attack": 12,
+            "preferredR": 1,
+            "shockLocks": {
+              "isolated": false,
+              "flanked": false,
+              "surrounded": false
+            },
+            "statuses": {
+              "cavalryShockTurns": 0
+            },
+            "currentOrder": "Hold",
+            "alive": true
+          },
+          {
+            "id": "B_INF_02",
+            "armyId": "B",
+            "divisionId": "left",
+            "type": "infantry",
+            "q": 10,
+            "r": 1,
+            "strength": 250,
+            "morale": 100,
+            "state": "steady",
+            "move": 1,
+            "range": 1,
+            "attack": 12,
+            "preferredR": 1,
+            "shockLocks": {
+              "isolated": false,
+              "flanked": false,
+              "surrounded": false
+            },
+            "statuses": {
+              "cavalryShockTurns": 0
+            },
+            "currentOrder": "Hold",
+            "alive": true
+          },
+          {
+            "id": "B_INF_03",
+            "armyId": "B",
+            "divisionId": "left",
+            "type": "infantry",
+            "q": 11,
+            "r": 1,
+            "strength": 250,
+            "morale": 100,
+            "state": "steady",
+            "move": 1,
+            "range": 1,
+            "attack": 12,
+            "preferredR": 1,
+            "shockLocks": {
+              "isolated": false,
+              "flanked": false,
+              "surrounded": false
+            },
+            "statuses": {
+              "cavalryShockTurns": 0
+            },
+            "currentOrder": "Hold",
+            "alive": true
+          },
+          {
+            "id": "B_INF_04",
+            "armyId": "B",
+            "divisionId": "left",
+            "type": "infantry",
+            "q": 12,
+            "r": 1,
+            "strength": 250,
+            "morale": 100,
+            "state": "steady",
+            "move": 1,
+            "range": 1,
+            "attack": 12,
+            "preferredR": 1,
+            "shockLocks": {
+              "isolated": false,
+              "flanked": false,
+              "surrounded": false
+            },
+            "statuses": {
+              "cavalryShockTurns": 0
+            },
+            "currentOrder": "Hold",
+            "alive": true
+          },
+          {
+            "id": "B_INF_05",
+            "armyId": "B",
+            "divisionId": "center",
+            "type": "infantry",
+            "q": 14,
+            "r": 1,
+            "strength": 250,
+            "morale": 100,
+            "state": "steady",
+            "move": 1,
+            "range": 1,
+            "attack": 12,
+            "preferredR": 1,
+            "shockLocks": {
+              "isolated": false,
+              "flanked": false,
+              "surrounded": false
+            },
+            "statuses": {
+              "cavalryShockTurns": 0
+            },
+            "currentOrder": "Hold",
+            "alive": true
+          },
+          {
+            "id": "B_INF_06",
+            "armyId": "B",
+            "divisionId": "center",
+            "type": "infantry",
+            "q": 15,
+            "r": 1,
+            "strength": 250,
+            "morale": 100,
+            "state": "steady",
+            "move": 1,
+            "range": 1,
+            "attack": 12,
+            "preferredR": 1,
+            "shockLocks": {
+              "isolated": false,
+              "flanked": false,
+              "surrounded": false
+            },
+            "statuses": {
+              "cavalryShockTurns": 0
+            },
+            "currentOrder": "Hold",
+            "alive": true
+          },
+          {
+            "id": "B_INF_07",
+            "armyId": "B",
+            "divisionId": "center",
+            "type": "infantry",
+            "q": 15,
+            "r": 2,
+            "strength": 250,
+            "morale": 100,
+            "state": "steady",
+            "move": 1,
+            "range": 1,
+            "attack": 12,
+            "preferredR": 2,
+            "shockLocks": {
+              "isolated": false,
+              "flanked": false,
+              "surrounded": false
+            },
+            "statuses": {
+              "cavalryShockTurns": 0
+            },
+            "currentOrder": "Hold",
+            "alive": true
+          },
+          {
+            "id": "B_INF_08",
+            "armyId": "B",
+            "divisionId": "right",
+            "type": "infantry",
+            "q": 15,
+            "r": 4,
+            "strength": 250,
+            "morale": 100,
+            "state": "steady",
+            "move": 1,
+            "range": 1,
+            "attack": 12,
+            "preferredR": 4,
+            "shockLocks": {
+              "isolated": false,
+              "flanked": false,
+              "surrounded": false
+            },
+            "statuses": {
+              "cavalryShockTurns": 0
+            },
+            "currentOrder": "Hold",
+            "alive": true
+          },
+          {
+            "id": "B_INF_09",
+            "armyId": "B",
+            "divisionId": "right",
+            "type": "infantry",
+            "q": 15,
+            "r": 5,
+            "strength": 250,
+            "morale": 100,
+            "state": "steady",
+            "move": 1,
+            "range": 1,
+            "attack": 12,
+            "preferredR": 5,
+            "shockLocks": {
+              "isolated": false,
+              "flanked": false,
+              "surrounded": false
+            },
+            "statuses": {
+              "cavalryShockTurns": 0
+            },
+            "currentOrder": "Hold",
+            "alive": true
+          },
+          {
+            "id": "B_INF_10",
+            "armyId": "B",
+            "divisionId": "right",
+            "type": "infantry",
+            "q": 15,
+            "r": 7,
+            "strength": 250,
+            "morale": 100,
+            "state": "steady",
+            "move": 1,
+            "range": 1,
+            "attack": 12,
+            "preferredR": 7,
+            "shockLocks": {
+              "isolated": false,
+              "flanked": false,
+              "surrounded": false
+            },
+            "statuses": {
+              "cavalryShockTurns": 0
+            },
+            "currentOrder": "Hold",
+            "alive": true
+          },
+          {
+            "id": "B_INF_11",
+            "armyId": "B",
+            "divisionId": "right",
+            "type": "infantry",
+            "q": 15,
+            "r": 6,
+            "strength": 250,
+            "morale": 100,
+            "state": "steady",
+            "move": 1,
+            "range": 1,
+            "attack": 12,
+            "preferredR": 6,
+            "shockLocks": {
+              "isolated": false,
+              "flanked": false,
+              "surrounded": false
+            },
+            "statuses": {
+              "cavalryShockTurns": 0
+            },
+            "currentOrder": "Hold",
+            "alive": true
+          },
+          {
+            "id": "B_CAV_01",
+            "armyId": "B",
+            "divisionId": "left",
+            "type": "cavalry",
+            "q": 8,
+            "r": 1,
+            "strength": 180,
+            "morale": 100,
+            "state": "steady",
+            "move": 2,
+            "range": 1,
+            "attack": 10,
+            "preferredR": 1,
+            "shockLocks": {
+              "isolated": false,
+              "flanked": false,
+              "surrounded": false
+            },
+            "statuses": {
+              "cavalryShockTurns": 0
+            },
+            "currentOrder": "Hold",
+            "alive": true
+          },
+          {
+            "id": "B_CAV_02",
+            "armyId": "B",
+            "divisionId": "left",
+            "type": "cavalry",
+            "q": 7,
+            "r": 1,
+            "strength": 180,
+            "morale": 100,
+            "state": "steady",
+            "move": 2,
+            "range": 1,
+            "attack": 10,
+            "preferredR": 1,
+            "shockLocks": {
+              "isolated": false,
+              "flanked": false,
+              "surrounded": false
+            },
+            "statuses": {
+              "cavalryShockTurns": 0
+            },
+            "currentOrder": "Hold",
+            "alive": true
+          },
+          {
+            "id": "B_CAV_03",
+            "armyId": "B",
+            "divisionId": "right",
+            "type": "cavalry",
+            "q": 15,
+            "r": 8,
+            "strength": 180,
+            "morale": 100,
+            "state": "steady",
+            "move": 2,
+            "range": 1,
+            "attack": 10,
+            "preferredR": 8,
+            "shockLocks": {
+              "isolated": false,
+              "flanked": false,
+              "surrounded": false
+            },
+            "statuses": {
+              "cavalryShockTurns": 0
+            },
+            "currentOrder": "Hold",
+            "alive": true
+          },
+          {
+            "id": "B_CAV_04",
+            "armyId": "B",
+            "divisionId": "right",
+            "type": "cavalry",
+            "q": 15,
+            "r": 9,
+            "strength": 180,
+            "morale": 100,
+            "state": "steady",
+            "move": 2,
+            "range": 1,
+            "attack": 10,
+            "preferredR": 9,
+            "shockLocks": {
+              "isolated": false,
+              "flanked": false,
+              "surrounded": false
+            },
+            "statuses": {
+              "cavalryShockTurns": 0
+            },
+            "currentOrder": "Hold",
+            "alive": true
+          },
+          {
+            "id": "B_ART_01",
+            "armyId": "B",
+            "divisionId": "center",
+            "type": "artillery",
+            "q": 15,
+            "r": 0,
+            "strength": 120,
+            "morale": 100,
+            "state": "steady",
+            "move": 1,
+            "range": 2,
+            "attack": 8,
+            "preferredR": 0,
+            "shockLocks": {
+              "isolated": false,
+              "flanked": false,
+              "surrounded": false
+            },
+            "statuses": {
+              "cavalryShockTurns": 0
+            },
+            "currentOrder": "Hold",
+            "alive": true
+          },
+          {
+            "id": "B_ART_02",
+            "armyId": "B",
+            "divisionId": "center",
+            "type": "artillery",
+            "q": 16,
+            "r": 0,
+            "strength": 120,
+            "morale": 100,
+            "state": "steady",
+            "move": 1,
+            "range": 2,
+            "attack": 8,
+            "preferredR": 0,
+            "shockLocks": {
+              "isolated": false,
+              "flanked": false,
+              "surrounded": false
+            },
+            "statuses": {
+              "cavalryShockTurns": 0
+            },
+            "currentOrder": "Hold",
+            "alive": true
+          },
+          {
+            "id": "B_ART_04",
+            "armyId": "B",
+            "divisionId": "center",
+            "type": "artillery",
+            "q": 16,
+            "r": 1,
+            "strength": 120,
+            "morale": 100,
+            "state": "steady",
+            "move": 1,
+            "range": 2,
+            "attack": 8,
+            "preferredR": 1,
+            "shockLocks": {
+              "isolated": false,
+              "flanked": false,
+              "surrounded": false
+            },
+            "statuses": {
+              "cavalryShockTurns": 0
+            },
+            "currentOrder": "Hold",
+            "alive": true
+          },
+          {
+            "id": "B_ART_05",
+            "armyId": "B",
+            "divisionId": "left",
+            "type": "artillery",
+            "q": 9,
+            "r": 0,
+            "strength": 120,
+            "morale": 100,
+            "state": "steady",
+            "move": 1,
+            "range": 2,
+            "attack": 8,
+            "preferredR": 0,
+            "shockLocks": {
+              "isolated": false,
+              "flanked": false,
+              "surrounded": false
+            },
+            "statuses": {
+              "cavalryShockTurns": 0
+            },
+            "currentOrder": "Hold",
+            "alive": true
+          },
+          {
+            "id": "B_ART_06",
+            "armyId": "B",
+            "divisionId": "left",
+            "type": "artillery",
+            "q": 10,
+            "r": 0,
+            "strength": 120,
+            "morale": 100,
+            "state": "steady",
+            "move": 1,
+            "range": 2,
+            "attack": 8,
+            "preferredR": 0,
+            "shockLocks": {
+              "isolated": false,
+              "flanked": false,
+              "surrounded": false
+            },
+            "statuses": {
+              "cavalryShockTurns": 0
+            },
+            "currentOrder": "Hold",
+            "alive": true
+          },
+          {
+            "id": "B_ART_07",
+            "armyId": "B",
+            "divisionId": "left",
+            "type": "artillery",
+            "q": 11,
+            "r": 0,
+            "strength": 120,
+            "morale": 100,
+            "state": "steady",
+            "move": 1,
+            "range": 2,
+            "attack": 8,
+            "preferredR": 0,
+            "shockLocks": {
+              "isolated": false,
+              "flanked": false,
+              "surrounded": false
+            },
+            "statuses": {
+              "cavalryShockTurns": 0
+            },
+            "currentOrder": "Hold",
+            "alive": true
+          },
+          {
+            "id": "B_ART_08",
+            "armyId": "B",
+            "divisionId": "right",
+            "type": "artillery",
+            "q": 16,
+            "r": 7,
+            "strength": 120,
+            "morale": 100,
+            "state": "steady",
+            "move": 1,
+            "range": 2,
+            "attack": 8,
+            "preferredR": 7,
+            "shockLocks": {
+              "isolated": false,
+              "flanked": false,
+              "surrounded": false
+            },
+            "statuses": {
+              "cavalryShockTurns": 0
+            },
+            "currentOrder": "Hold",
+            "alive": true
+          },
+          {
+            "id": "B_ART_09",
+            "armyId": "B",
+            "divisionId": "right",
+            "type": "artillery",
+            "q": 16,
+            "r": 5,
+            "strength": 120,
+            "morale": 100,
+            "state": "steady",
+            "move": 1,
+            "range": 2,
+            "attack": 8,
+            "preferredR": 5,
+            "shockLocks": {
+              "isolated": false,
+              "flanked": false,
+              "surrounded": false
+            },
+            "statuses": {
+              "cavalryShockTurns": 0
+            },
+            "currentOrder": "Hold",
+            "alive": true
+          },
+          {
+            "id": "B_ART_10",
+            "armyId": "B",
+            "divisionId": "right",
+            "type": "artillery",
+            "q": 16,
+            "r": 6,
+            "strength": 120,
+            "morale": 100,
+            "state": "steady",
+            "move": 1,
+            "range": 2,
+            "attack": 8,
+            "preferredR": 6,
+            "shockLocks": {
+              "isolated": false,
+              "flanked": false,
+              "surrounded": false
+            },
+            "statuses": {
+              "cavalryShockTurns": 0
+            },
+            "currentOrder": "Hold",
+            "alive": true
+          }
+        ],
+        "startingUnitCount": 24,
+        "defeatedUnitCount": 0,
+        "currentAction": null,
+        "currentSector": "center",
+        "abilityCharge": 0,
+        "abilityReady": false,
+        "activeSignature": null
+      }
+    },
+    "rules": {
+      "turnLimit": 20,
+      "defeatThresholdPercent": 60
+    },
+    "seed": 590846424,
+    "armyConfig": {
+      "A": {
+        "infantry": 8,
+        "cavalry": 2,
+        "artillery": 2
+      },
+      "B": {
+        "infantry": 10,
+        "cavalry": 1,
+        "artillery": 3
+      }
+    }
+  }
+}
