@@ -116,6 +116,8 @@ const els = {
   reelsRedPortrait: document.getElementById("reelsRedPortrait"),
   reelsBlueName: document.getElementById("reelsBlueName"),
   reelsRedName: document.getElementById("reelsRedName"),
+  reelsBlueTraits: document.getElementById("reelsBlueTraits"),
+  reelsRedTraits: document.getElementById("reelsRedTraits"),
   reelsBlueHealthFill: document.getElementById("reelsBlueHealthFill"),
   reelsRedHealthFill: document.getElementById("reelsRedHealthFill"),
   reelsBlueAbilityFill: document.getElementById("reelsBlueAbilityFill"),
@@ -162,7 +164,7 @@ const COMMANDER_ACCENT = {
 };
 
 const ctx = els.canvas.getContext("2d");
-const HEX_SIZE = 28;
+let HEX_SIZE = 28;
 let MAP_ORIGIN_X = 60;
 let MAP_ORIGIN_Y = 60;
 

@@ -24,6 +24,11 @@ function render() {
   requestAnimationRenderIfNeeded();
 }
 
+function reelsVisualScale() {
+  if (!state.reelsMode) return 1;
+  return state.currentBattleSideLength <= 7 ? 1.3 : 1.15;
+}
+
 function requestAnimationRenderIfNeeded() {
   const now = performance.now();
   const hasActive = Object.values(state.unitAnimations).some((a) => {
@@ -128,6 +133,30 @@ function drawActionHighlights() {
 function updateMapOrigin() {
   const active = state.map.hexes.filter((h) => h.active);
   if (!active.length) return;
+
+  const unitMin = {
+    minX: Infinity,
+    maxX: -Infinity,
+    minY: Infinity,
+    maxY: -Infinity,
+  };
+  active.forEach((h) => {
+    const x = (Math.sqrt(3) * h.q + (Math.sqrt(3) / 2) * h.r);
+    const y = 1.5 * h.r;
+    unitMin.minX = Math.min(unitMin.minX, x - 1);
+    unitMin.maxX = Math.max(unitMin.maxX, x + 1);
+    unitMin.minY = Math.min(unitMin.minY, y - 1);
+    unitMin.maxY = Math.max(unitMin.maxY, y + 1);
+  });
+  const unitW = unitMin.maxX - unitMin.minX;
+  const unitH = unitMin.maxY - unitMin.minY;
+  const edgePadding = state.reelsMode ? 4 : 18;
+  const targetW = Math.max(40, els.canvas.width - (edgePadding * 2));
+  const targetH = Math.max(40, els.canvas.height - (edgePadding * 2));
+  const fitScale = Math.min(targetW / unitW, targetH / unitH);
+  const reelsBoost = state.reelsMode && state.currentBattleSideLength <= 7 ? 1.12 : 1;
+  HEX_SIZE = Math.max(16, Math.min(38, fitScale * reelsBoost));
+
   let minX = Infinity;
   let maxX = -Infinity;
   let minY = Infinity;
@@ -143,7 +172,7 @@ function updateMapOrigin() {
   const mapW = maxX - minX;
   const mapH = maxY - minY;
   MAP_ORIGIN_X = (els.canvas.width - mapW) / 2 - minX;
-  MAP_ORIGIN_Y = (els.canvas.height - mapH) / 2 - minY + (state.reelsMode ? 18 : 0);
+  MAP_ORIGIN_Y = (els.canvas.height - mapH) / 2 - minY;
 }
 
 function isMajorActionTurn(turn) {
@@ -198,8 +227,9 @@ function terrainColor(t) {
 
 function drawUnits() {
   const now = performance.now();
-  const iconSize = 24;
-  const artillerySize = 30;
+  const reelsUnitBoost = reelsVisualScale();
+  const iconSize = Math.round(24 * reelsUnitBoost);
+  const artillerySize = Math.round(30 * reelsUnitBoost);
   ["A", "B"].forEach((side) => {
     state.armies[side].units.filter((u) => u.alive).forEach((u) => {
       const p = animatedPixelForUnit(u, now);
@@ -219,7 +249,7 @@ function drawUnits() {
         }
       } else {
         ctx.fillStyle = "#fff";
-        ctx.font = "11px Verdana";
+        ctx.font = `${Math.round(11 * reelsUnitBoost)}px Verdana`;
         ctx.textAlign = "center";
         ctx.fillText(iconFor(u.type), p.x, p.y + 3);
       }
@@ -242,14 +272,15 @@ function drawUnits() {
 }
 
 function drawMoraleIndicator(unit, side, x, y, unitSize) {
-  const circleRadius = 7;
-  const iconSize = 10;
+  const scale = reelsVisualScale();
+  const circleRadius = Math.round(7 * scale);
+  const iconSize = Math.round((state.reelsMode ? 12 : 10) * scale);
   const cx = x + (unitSize / 2) + 1;
   const cy = y - (unitSize / 2) - 1;
 
   ctx.beginPath();
   ctx.arc(cx, cy, circleRadius, 0, Math.PI * 2);
-  ctx.fillStyle = side === "A" ? "rgba(76,140,205,0.68)" : "rgba(208,98,88,0.68)";
+  ctx.fillStyle = side === "A" ? "rgba(126,205,255,0.72)" : "rgba(208,98,88,0.68)";
   ctx.fill();
 
   const icon = unit.morale <= 30 ? MORALE_ICONS.critical : MORALE_ICONS.low;
@@ -279,10 +310,11 @@ function animatedPixelForUnit(unit, now) {
 }
 
 function drawHealthBar(unit, x, y) {
+  const scale = reelsVisualScale();
   const max = UNIT_BASE[unit.type].strength;
   const pct = Math.max(0, Math.min(1, unit.strength / max));
-  const width = 22;
-  const height = 4;
+  const width = Math.round(22 * scale);
+  const height = Math.round(4 * scale);
   ctx.fillStyle = "#3f3a32";
   ctx.fillRect(x - width / 2 - 1, y - 1, width + 2, height + 2);
   const r = Math.round(220 * (1 - pct));
@@ -292,6 +324,7 @@ function drawHealthBar(unit, x, y) {
 }
 
 function drawCommanders() {
+  const scale = reelsVisualScale();
   ["A", "B"].forEach((side) => {
     const army = state.armies[side];
     const alive = army.units.filter((u) => u.alive);
@@ -300,11 +333,11 @@ function drawCommanders() {
     const center = hexToPixel(avg.q / alive.length, avg.r / alive.length + (side === "A" ? 2 : -2));
     const commander = COMMANDERS[army.armyCommanderId];
     ctx.fillStyle = "#fff8";
-    ctx.fillRect(center.x - 36, center.y - 10, 72, 18);
+    ctx.fillRect(center.x - (36 * scale), center.y - (10 * scale), 72 * scale, 18 * scale);
     ctx.fillStyle = side === "A" ? "#174b7d" : "#7a2c20";
-    ctx.font = "bold 11px Verdana";
+    ctx.font = `bold ${Math.round(11 * scale)}px Verdana`;
     ctx.textAlign = "center";
-    ctx.fillText(commander.name, center.x, center.y + 3);
+    ctx.fillText(commander.name, center.x, center.y + (3 * scale));
   });
 
   if (!state.reelsMode) {
@@ -330,8 +363,15 @@ function updateReelsCard(side) {
   const healthEl = isBlue ? els.reelsBlueHealthFill : els.reelsRedHealthFill;
   const abilityEl = isBlue ? els.reelsBlueAbilityFill : els.reelsRedAbilityFill;
   const abilityLabelEl = isBlue ? els.reelsBlueAbilityLabel : els.reelsRedAbilityLabel;
+  const traitsEl = isBlue ? els.reelsBlueTraits : els.reelsRedTraits;
 
   nameEl.textContent = commander?.name || (isBlue ? "Blue Commander" : "Red Commander");
+  if (traitsEl && commander?.traits) {
+    const aggr = commander.traits.aggression ?? 0;
+    const control = commander.traits.control ?? 0;
+    const creativity = commander.traits.creativity ?? 0;
+    traitsEl.innerHTML = `Aggression ${aggr}<br>Control ${control}<br>Creativity ${creativity}`;
+  }
   if (portrait && portrait.src) portraitEl.src = portrait.src;
 
   const defeatedPct = (army.defeatedUnitCount / Math.max(1, army.startingUnitCount)) * 100;

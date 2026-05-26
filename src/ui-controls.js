@@ -231,13 +231,17 @@ function renderToolPanel() {
     note.textContent = `Current side length: ${state.currentBattleSideLength}${state.reelsMode ? " (Reels)" : ""}`;
     c.appendChild(note);
 
-    c.appendChild(toolButtons("Base Side Length", ["9", "7"], String(state.baseBattleSideLength), (v) => {
+    c.appendChild(toolButtons("Normal Side Length", ["9", "7"], String(state.baseBattleSideLength), (v) => {
       state.baseBattleSideLength = Number(v);
+    }));
+
+    c.appendChild(toolButtons("Reels Side Length", ["9", "7"], String(state.reelsBattleSideLength), (v) => {
+      state.reelsBattleSideLength = Number(v);
     }));
 
     const reelsNote = document.createElement("div");
     reelsNote.className = "card";
-    reelsNote.textContent = "Reels mode uses side length 7 for better screen fit.";
+    reelsNote.textContent = "You can set both normal and reels battlefield side length (7 or 9).";
     c.appendChild(reelsNote);
 
     const apply = document.createElement("button");
