@@ -47,6 +47,7 @@ function stepTurn() {
   if (isMajorActionTurn(state.turn)) {
     ["A", "B"].forEach((side) => chooseMajorAction(side, rand, turnEvents));
   }
+  ["A", "B"].forEach((side) => autoCommitReservesIfDivisionCollapsed(side, turnEvents));
   ["A", "B"].forEach((side) => issueOrdersFromAction(side, turnEvents));
   ["A", "B"].forEach((side) => applyFriction(side, rand, turnEvents));
   ["A", "B"].forEach((side) => moveUnits(side, rand));
@@ -155,9 +156,9 @@ function avgMoraleInSector(side, sector) {
   return units.reduce((sum, u) => sum + u.morale, 0) / units.length;
 }
 
-function chooseReserveReinforcementSector(side) {
+function chooseReserveReinforcementSector(side, candidateSectors = ["left", "center", "right"]) {
   const enemySide = side === "A" ? "B" : "A";
-  const sectors = ["left", "center", "right"];
+  const sectors = candidateSectors;
   let target = "center";
   let worstScore = -Infinity;
 
@@ -175,6 +176,22 @@ function chooseReserveReinforcementSector(side) {
   });
 
   return target;
+}
+
+function autoCommitReservesIfDivisionCollapsed(side, events) {
+  const army = state.armies[side];
+  const reserveUnits = army.units.filter((u) => u.alive && u.divisionId === "reserve");
+  if (!reserveUnits.length) return;
+
+  const depletedSectors = ["left", "center", "right"].filter((sector) => aliveCountInSector(side, sector) === 0);
+  if (!depletedSectors.length) return;
+
+  const target = chooseReserveReinforcementSector(side, depletedSectors);
+  reserveUnits.forEach((u) => {
+    u.divisionId = target;
+  });
+  assignWingMembership(army);
+  events.push(`${army.name} auto-commits reserves to ${target.toUpperCase()} after a division collapses.`);
 }
 
 function reserveAnchorForSide(side) {
@@ -536,7 +553,7 @@ function isSignatureAction(action) {
 
 function actionDescription(action, sector) {
   const s = sector === "all" ? "army-wide" : `${sector} sector`;
-  if (action === "advance") return "Infantry gets +5% attack while advancing.";
+  if (action === "advance") return "All units recover 4 morale per turn; infantry also gets +5% attack while advancing.";
   if (action === "concentrate_center") return "Center wing gets +20% attack damage.";
   if (action === "flank_attack") return `Flank wing in ${s} gets +20% attack damage.`;
   if (action === "cavalry_charge") return `Cavalry in ${s} gets +20% attack damage.`;
@@ -1175,6 +1192,9 @@ function routeAndCleanup(events) {
       if (!u.alive) return;
       if (!u.statuses) u.statuses = { cavalryShockTurns: 0 };
       if ((u.statuses.cavalryShockTurns || 0) > 0) u.statuses.cavalryShockTurns -= 1;
+      if (army.currentAction === "advance") {
+        u.morale = Math.min(100, u.morale + 4);
+      }
       if (moraleRecoverySector && getSectorForUnit(u) === moraleRecoverySector) {
         const gain = army.currentAction === "line_rotation" ? 5 : 8;
         u.morale = Math.min(100, u.morale + gain);
