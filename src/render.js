@@ -76,10 +76,10 @@ function requestAnimationRenderIfNeeded() {
 function drawBattleOverlay() {
   if (!state.battleOverlay) return;
   const o = state.battleOverlay;
-  const w = Math.min(760, els.canvas.width - 40);
-  const h = 210;
-  const x = (els.canvas.width - w) / 2;
-  const y = (els.canvas.height - h) / 2;
+  const w = 760;
+  const h = 230;
+  const x = state.reelsMode ? 110 : Math.round((els.canvas.width - w) / 2);
+  const y = state.reelsMode ? 375 : Math.round((els.canvas.height - h) / 2);
 
   ctx.fillStyle = "rgba(20, 16, 12, 0.82)";
   ctx.fillRect(x, y, w, h);
@@ -88,31 +88,49 @@ function drawBattleOverlay() {
   ctx.strokeRect(x, y, w, h);
 
   ctx.fillStyle = "#fff3dc";
-  ctx.font = "bold 34px Verdana";
+  const titleLen = (o.title || "").length;
+  let titlePx = 44;
+  if (titleLen > 44) titlePx = 28;
+  else if (titleLen > 36) titlePx = 32;
+  else if (titleLen > 30) titlePx = 36;
+  else if (titleLen > 24) titlePx = 40;
+  ctx.font = `bold ${titlePx}px Verdana`;
   ctx.textAlign = "center";
-  ctx.fillText(o.title, x + w / 2, y + 48);
+  ctx.fillText(o.title, x + w / 2, y + 52, w - 36);
 
   ctx.font = "bold 15px Verdana";
   ctx.fillStyle = "#f5e8cf";
-  ctx.fillText("Casualties", x + w / 2, y + 78);
+  ctx.fillText("Casualties", x + w / 2, y + 86);
 
-  const leftX = x + 28;
-  const rightX = x + w - 28;
-  const startY = y + 108;
+  const colWidth = 200;
+  const leftX = x + Math.round((w * 0.25));
+  const rightX = x + Math.round((w * 0.75));
+  const startY = y + 122;
 
-  ctx.textAlign = "left";
+  const leftLen = (o.leftName || "").length;
+  const rightLen = (o.rightName || "").length;
+  let leftNamePx = 30;
+  let rightNamePx = 30;
+  if (leftLen > 20) leftNamePx = 18;
+  else if (leftLen > 16) leftNamePx = 22;
+  else if (leftLen > 12) leftNamePx = 26;
+  if (rightLen > 20) rightNamePx = 18;
+  else if (rightLen > 16) rightNamePx = 22;
+  else if (rightLen > 12) rightNamePx = 26;
+
+  ctx.textAlign = "center";
   ctx.fillStyle = "#cfe0ff";
-  ctx.font = "bold 22px Verdana";
-  ctx.fillText(o.leftName, leftX, startY);
+  ctx.font = `bold ${leftNamePx}px Verdana`;
+  ctx.fillText(o.leftName, leftX, startY, colWidth);
   ctx.font = "18px Verdana";
   ctx.fillText(`INF ${o.left.infantry}`, leftX, startY + 32);
   ctx.fillText(`CAV ${o.left.cavalry}`, leftX, startY + 58);
   ctx.fillText(`ART ${o.left.artillery}`, leftX, startY + 84);
 
-  ctx.textAlign = "right";
+  ctx.textAlign = "center";
   ctx.fillStyle = "#ffd2ce";
-  ctx.font = "bold 22px Verdana";
-  ctx.fillText(o.rightName, rightX, startY);
+  ctx.font = `bold ${rightNamePx}px Verdana`;
+  ctx.fillText(o.rightName, rightX, startY, colWidth);
   ctx.font = "18px Verdana";
   ctx.fillText(`INF ${o.right.infantry}`, rightX, startY + 32);
   ctx.fillText(`CAV ${o.right.cavalry}`, rightX, startY + 58);
@@ -436,7 +454,7 @@ function fitReelsOrderName(nameEl, text) {
   else if (len > 22) px = 34;
   else if (len > 18) px = 38;
   else if (len > 14) px = 42;
-  nameEl.style.fontSize = `${px}px`;
+  fitTextBlock(nameEl, px, 34, 0.92, false);
 }
 
 function fitReelsOrderDesc(descEl, text) {
@@ -447,8 +465,17 @@ function fitReelsOrderDesc(descEl, text) {
   else if (len > 75) px = 18;
   else if (len > 60) px = 20;
   else if (len > 45) px = 22;
-  descEl.style.fontSize = `${px}px`;
-  descEl.style.lineHeight = "1.1";
+  fitTextBlock(descEl, px, 12, 1.1, true);
+}
+
+function fitTextBlock(el, startPx, minPx, lineHeight, checkWidth) {
+  el.style.fontSize = `${startPx}px`;
+  el.style.lineHeight = String(lineHeight);
+  let size = startPx;
+  while (size > minPx && (el.scrollHeight > el.clientHeight || (checkWidth && el.scrollWidth > el.clientWidth))) {
+    size -= 1;
+    el.style.fontSize = `${size}px`;
+  }
 }
 
 function fitReelsTitleName(nameEl, text) {
