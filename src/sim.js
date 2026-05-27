@@ -547,7 +547,7 @@ function issueOrdersFromAction(side, events) {
       ? { left: "Retreat", center: "Hold", right: "Hold" }
       : sector === "right"
         ? { left: "Hold", center: "Hold", right: "Retreat" }
-        : { left: "Hold", center: "Retreat", right: "Hold" },
+        : { left: "Hold", center: "Retreat", right: "Hold"},
     mass_assault: { left: "Charge", center: "Charge", right: "Charge" },
     line_rotation: sector === "left"
       ? { left: "Withdraw", center: "Hold", right: "Advance" }
@@ -566,8 +566,8 @@ function issueOrdersFromAction(side, events) {
         : { left: "Hold", center: "Attack", right: "Hold", reserve: "Advance" },
     artillery_barrage: { left: "Hold", center: "Hold", right: "Hold", artillery: "Bombard" },
     foot_cavalry: { left: "Flank Left", center: "Hold", right: "Flank Right" },
-    feigned_retreat: { left: "Withdraw", center: "Withdraw", right: "Withdraw" },
-    fighting_withdrawal: { left: "Withdraw", center: "Withdraw", right: "Withdraw" },
+    feigned_retreat: { left: "Withdraw", center: "Withdraw", right: "Withdraw", reserve: "Withdraw", cavalry: "Withdraw", artillery: "Withdraw" },
+    fighting_withdrawal: { left: "Withdraw", center: "Withdraw", right: "Withdraw", reserve: "Withdraw", cavalry: "Withdraw", artillery: "Withdraw" },
   };
   const orders = mapByAction[action] || mapByAction.concentrate_center;
   Object.entries(orders).forEach(([wing, order]) => {
@@ -823,7 +823,8 @@ function moveUnits(side, rand) {
       return;
     }
 
-    if (u.type === "artillery") {
+    const isDisengageOrder = wing.currentOrder === "Retreat" || wing.currentOrder === "Withdraw";
+    if (u.type === "artillery" && !isDisengageOrder) {
       if (distToNearest <= u.range && distToNearest > 1) return;
       if (distToNearest <= 1) {
         const awayQ = u.q + Math.sign(u.q - nearest.q);
@@ -843,7 +844,8 @@ function moveUnits(side, rand) {
     const isFlankDefense = wing.currentOrder === "Stay on Flanks";
     const flankDivision = u.divisionId === "left" || u.divisionId === "right";
     const behindFront = behindFrontlineDistance(u, side) > 2;
-    const shouldRejoin = u.divisionId !== "reserve"
+    const shouldRejoin = !isFlankOrder
+      && u.divisionId !== "reserve"
       && (flankDivision && (behindFront || (u.statuses?.disengageTurns || 0) > 0));
 
     if (wing.currentOrder === "Retreat") u.statuses.disengageTurns = Math.max(u.statuses.disengageTurns || 0, 3);
@@ -955,6 +957,26 @@ function selectMovementTargetEnemy(unit, side, enemySide, wing) {
 
   const lane = getTacticalLaneForUnit(unit);
   const laneEnemies = allEnemies.filter((e) => getTacticalLaneForUnit(e) === lane);
+  const isFlankOrder = wing.currentOrder === "Flank Left" || wing.currentOrder === "Flank Right";
+
+  if (isFlankOrder && laneEnemies.length) {
+    let best = null;
+    let bestScore = -Infinity;
+    laneEnemies.forEach((e) => {
+      const dist = hexDist(unit.q, unit.r, e.q, e.r);
+      const forwardDelta = side === "A" ? (e.q - unit.q) : (unit.q - e.q);
+      const lateral = Math.abs((unit.r ?? 0) - e.r);
+      let score = forwardDelta * 1.25;
+      score -= dist * 0.6;
+      score -= lateral * 0.25;
+      if (score > bestScore) {
+        bestScore = score;
+        best = e;
+      }
+    });
+    if (best) return best;
+  }
+
   const offensiveOrder = wing.currentOrder === "Advance"
     || wing.currentOrder === "Attack"
     || wing.currentOrder === "Charge"
@@ -1089,9 +1111,7 @@ function chooseRearSupportStep(unit, side, reserved, visitedThisMove) {
 function chooseFlankDefenseStep(unit, side, reserved, visitedThisMove) {
   const enemySide = side === "A" ? "B" : "A";
   const pinnedSign = getPinnedFlankSign(unit, side, getCenterDivisionMeanR(side));
-  const flankLane = side === "A"
-    ? (pinnedSign > 0 ? "left" : "right")
-    : (pinnedSign < 0 ? "left" : "right");
+  const flankLane = pinnedSign > 0 ? "left" : "right";
   const flankEnemies = state.armies[enemySide].units
     .filter((e) => e.alive && getTacticalLaneForUnit(e) === flankLane);
   const nearest = flankEnemies.length
@@ -1172,9 +1192,9 @@ function getPinnedFlankSign(unit, side, centerR) {
   const fallback = (unit.preferredR ?? unit.r) >= centerR ? 1 : -1;
   const lane = getTacticalLaneForUnit(unit);
   if (lane === "left") {
-    unit.flankSign = side === "A" ? 1 : -1;
+    unit.flankSign = 1;
   } else if (lane === "right") {
-    unit.flankSign = side === "A" ? -1 : 1;
+    unit.flankSign = -1;
   } else {
     unit.flankSign = fallback;
   }
@@ -1182,8 +1202,8 @@ function getPinnedFlankSign(unit, side, centerR) {
 }
 
 function getSideLaneSign(side, lane) {
-  if (lane === "left") return side === "A" ? 1 : -1;
-  if (lane === "right") return side === "A" ? -1 : 1;
+  if (lane === "left") return 1;
+  if (lane === "right") return -1;
   return 0;
 }
 
@@ -1303,6 +1323,26 @@ function scoreMoveTile(unit, hex, nearest, wing, side, isFlankOrder) {
   if (isFlankOrder) {
     const flankBias = getFlankBias(side, wing.currentOrder);
     score += (hex.r - unit.r) * flankBias * 7;
+    const forwardStep = side === "A" ? (hex.q - unit.q) : (unit.q - hex.q);
+    score += forwardStep * 18;
+    if (forwardStep < 0) score += forwardStep * 22;
+
+    const currentBehind = behindFrontlineDistance(unit, side);
+    const nextBehind = behindFrontlineDistanceAt(hex.q, side);
+    score += (currentBehind - nextBehind) * 16;
+    if (nextBehind > 2) score -= (nextBehind - 2) * 14;
+
+    if (nextDist === 0) score -= 26;
+    else if (nextDist <= 2) score += 18;
+    else if (nextDist === 3) score += 4;
+    else score -= (nextDist - 3) * 14;
+
+    const front = frontlineAnchorForSide(side);
+    if (front) {
+      const aheadBy = side === "A" ? (hex.q - front.q) : (front.q - hex.q);
+      if (aheadBy > 2) score -= (aheadBy - 2) * 22;
+      if (aheadBy > 4) score -= (aheadBy - 4) * 30;
+    }
   }
 
   if (wing.currentOrder === "Retreat") score = -score * 1.35;
@@ -1414,9 +1454,9 @@ function scoreMoveTile(unit, hex, nearest, wing, side, isFlankOrder) {
 
 function getFlankBias(side, order) {
   if (order.includes("Left")) {
-    return side === "A" ? 1 : -1;
+    return 1;
   }
-  return side === "A" ? -1 : 1;
+  return -1;
 }
 
 function unitPowerValue(unit) {
