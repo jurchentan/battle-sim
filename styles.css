@@ -287,12 +287,12 @@ select {
   font-size: 52px;
   letter-spacing: 1.5px;
   text-transform: uppercase;
-  display: flex;
-  justify-content: center;
-  align-items: baseline;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
   gap: 16px;
-  white-space: nowrap;
-  height: 62px;
+  white-space: normal;
+  height: 112px;
   overflow: hidden;
   text-shadow: 0 1px 0 rgba(255, 228, 168, 0.45);
 }
@@ -300,12 +300,17 @@ select {
 #reelsBlueTitleName,
 #reelsRedTitleName {
   display: inline-block;
-  max-width: 40%;
+  max-width: 100%;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  text-overflow: clip;
+  white-space: pre-line;
   line-height: 0.95;
+  align-self: center;
+  text-align: center;
 }
+
+#reelsBlueTitleName,
+#reelsRedTitleName { justify-self: center; }
 
 .vs {
   flex: 0 0 auto;

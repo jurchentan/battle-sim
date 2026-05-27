@@ -19,12 +19,14 @@ function render() {
     const redName = (COMMANDERS[state.armies.B.armyCommanderId]?.name || "Red").toUpperCase();
     els.title.innerHTML = `<span class="blue-name">${blueName}</span><span class="vs">vs</span><span class="red-name">${redName}</span>`;
     if (els.reelsBlueTitleName) {
-      els.reelsBlueTitleName.textContent = blueName;
-      fitReelsTitleName(els.reelsBlueTitleName, blueName);
+      const blueDisplay = formatReelsTitleName(blueName);
+      els.reelsBlueTitleName.textContent = blueDisplay;
+      fitReelsTitleName(els.reelsBlueTitleName, blueDisplay);
     }
     if (els.reelsRedTitleName) {
-      els.reelsRedTitleName.textContent = redName;
-      fitReelsTitleName(els.reelsRedTitleName, redName);
+      const redDisplay = formatReelsTitleName(redName);
+      els.reelsRedTitleName.textContent = redDisplay;
+      fitReelsTitleName(els.reelsRedTitleName, redDisplay);
     }
     const nextIn = nextOrderIn === 0 ? "Now" : nextOrderIn;
     if (els.reelsTurnCounter) els.reelsTurnCounter.textContent = `turn #${state.turn}`;
@@ -480,13 +482,26 @@ function fitTextBlock(el, startPx, minPx, lineHeight, checkWidth) {
 
 function fitReelsTitleName(nameEl, text) {
   if (!nameEl) return;
-  const len = (text || "").length;
-  let px = 58;
-  if (len > 24) px = 34;
-  else if (len > 20) px = 38;
-  else if (len > 16) px = 44;
-  else if (len > 12) px = 50;
+  const lines = (text || "").split("\n");
+  const longest = lines.reduce((m, line) => Math.max(m, line.length), 0);
+  let px = 72;
+  if (lines.length > 1) px = 62;
+  if (longest > 16) px = Math.min(px, 58);
+  if (longest > 20) px = Math.min(px, 54);
+  if (longest > 24) px = Math.min(px, 48);
   nameEl.style.fontSize = `${px}px`;
+  nameEl.style.lineHeight = "0.9";
+}
+
+function formatReelsTitleName(fullName) {
+  const full = (fullName || "").trim();
+  if (!full) return "COMMANDER";
+  const parts = full.split(/\s+/);
+  if (parts.length < 2) return full;
+  if (full.length <= 15) return full;
+  const last = parts[parts.length - 1];
+  const firstLine = parts.slice(0, -1).join(" ");
+  return `${firstLine}\n${last}`;
 }
 
 function getShortReelsActionDescription(action, sector) {
