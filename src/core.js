@@ -248,6 +248,7 @@ const els = {
   reelsSideSimBtn: document.getElementById("reelsSideSimBtn"),
   reelsSideStepBtn: document.getElementById("reelsSideStepBtn"),
   reelsSideModeBtn: document.getElementById("reelsSideModeBtn"),
+  reelsTurnCounter: document.getElementById("reelsTurnCounter"),
 };
 
 const SCENARIO_API = "/api/scenarios";

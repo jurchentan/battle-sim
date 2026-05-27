@@ -690,7 +690,7 @@ function targetLabel(target) {
 }
 
 function queueActionHighlights(side, action, sector) {
-  if (action === "advance" || isSignatureAction(action)) return;
+  if (action === "advance") return;
   const label = formatActionName(action);
   const wings = affectedWingsForAction(action, sector);
   const expiresAt = Date.now() + 3200;
@@ -703,11 +703,14 @@ function queueActionHighlights(side, action, sector) {
 function affectedWingsForAction(action, sector) {
   if (action === "concentrate_center") return ["center"];
   if (action === "defensive_stand") return [sector];
-  if (action === "bombard_sector" || action === "artillery_barrage") return [sector];
+  if (action === "bombard_sector") return [sector];
   if (action === "flank_attack") return sector === "center" ? ["left", "right"] : [sector];
   if (action === "cavalry_charge") return sector === "center" ? ["left", "right"] : [sector];
-  if (action === "fighting_withdrawal") return FRONTLINE_DIVISION_IDS;
-  if (action === "foot_cavalry" || action === "feigned_retreat") return FRONTLINE_DIVISION_IDS;
+  if (action === "fighting_withdrawal") return ["__all__"];
+  if (action === "foot_cavalry") return ["left", "right"];
+  if (action === "feigned_retreat") return ["cavalry"];
+  if (action === "artillery_barrage") return ["artillery"];
+  if (action === "perfect_plan") return ["__all__"];
   if (action === "mass_assault") return FRONTLINE_DIVISION_IDS;
   if (action === "line_rotation" || action === "exploit_gap") return [sector];
   if (action === "commit_reserve") return [sector, "reserve"];

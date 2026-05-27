@@ -15,6 +15,8 @@ function render() {
     const blueName = (COMMANDERS[state.armies.A.armyCommanderId]?.name || "Blue").toUpperCase();
     const redName = (COMMANDERS[state.armies.B.armyCommanderId]?.name || "Red").toUpperCase();
     els.title.textContent = `${blueName} vs ${redName}`;
+    const nextIn = nextOrderIn === 0 ? "Now" : nextOrderIn;
+    els.reelsTurnCounter.innerHTML = `Turn ${state.turn}<br>next action in: ${nextIn}`;
   } else {
     els.title.textContent = "AI Commander Hex Battle Simulator";
   }
@@ -97,11 +99,16 @@ function drawActionHighlights() {
   state.actionHighlights.forEach((h) => {
     const army = state.armies[h.side];
     if (!army) return;
-    const wing = army.divisions[h.wing];
-    if (!wing) return;
-    const units = wing.unitIds
-      .map((id) => army.units.find((u) => u.id === id))
-      .filter((u) => u && u.alive);
+    let units;
+    if (h.wing === "__all__") {
+      units = army.units.filter((u) => u.alive);
+    } else {
+      const wing = army.divisions[h.wing];
+      if (!wing) return;
+      units = wing.unitIds
+        .map((id) => army.units.find((u) => u.id === id))
+        .filter((u) => u && u.alive);
+    }
     if (!units.length) return;
 
     let minX = Infinity;

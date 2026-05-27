@@ -403,8 +403,11 @@ body.reels-mode #clearArmiesBtn {
   display: none;
 }
 
+body.reels-mode .reels-turn-counter { display: block; }
 body.reels-mode .top-actions,
 body.reels-mode #subtitle { display: none; }
+
+.reels-turn-counter { display: none; font-size: 0.8rem; color: var(--muted); text-align: right; line-height: 1.4; }
 
 body.reels-mode .order-popup-layer {
   position: absolute;

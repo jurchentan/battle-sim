@@ -211,8 +211,8 @@ function renderToolPanel() {
     t.appendChild(c);
   }
   if (state.mode === "commanders") {
-    t.appendChild(commanderChooser("A"));
     t.appendChild(commanderChooser("B"));
+    t.appendChild(commanderChooser("A"));
   }
   if (state.mode === "armies") {
     const c = document.createElement("div");
@@ -304,15 +304,19 @@ function toolButtons(title, options, selected, onPick) {
 function commanderChooser(side) {
   const box = document.createElement("div");
   box.className = "tool-group";
-  const h = document.createElement("h3");
-  h.textContent = `${side === "A" ? "Blue" : "Red"} Commander`;
-  box.appendChild(h);
+  const label = document.createElement("label");
+  label.textContent = `${side === "A" ? "Blue" : "Red"} Commander `;
+  const select = document.createElement("select");
   Object.keys(COMMANDERS).forEach((id) => {
-    const b = document.createElement("button");
-    b.textContent = COMMANDERS[id].name;
-    b.onclick = () => { state.armies[side].armyCommanderId = id; render(); };
-    box.appendChild(b);
+    const opt = document.createElement("option");
+    opt.value = id;
+    opt.textContent = COMMANDERS[id].name;
+    if (state.armies[side].armyCommanderId === id) opt.selected = true;
+    select.appendChild(opt);
   });
+  select.onchange = () => { state.armies[side].armyCommanderId = select.value; render(); };
+  label.appendChild(select);
+  box.appendChild(label);
   return box;
 }
 
