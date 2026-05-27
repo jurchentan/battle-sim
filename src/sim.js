@@ -170,7 +170,7 @@ function chooseMajorAction(side, rand, events) {
     army.forcedMajorAction = null;
     army.forcedMajorSector = null;
     const major = c.majorOrders[0];
-    events.push(`${c.name}: ${formatActionName(army.currentAction)} (${army.currentSector.toUpperCase()} sector) · Inspired by ${major.inspiredBy}`);
+    events.push(`${c.name}: ${formatActionName(army.currentAction, side)} (${army.currentSector.toUpperCase()} sector) · Inspired by ${major.inspiredBy}`);
     return;
   }
 
@@ -215,7 +215,7 @@ function chooseMajorAction(side, rand, events) {
     army.currentAction = action;
     army.currentSector = sector;
     army.activeSignature = null;
-    events.push(`${c.name}: ${formatActionName(action)} (${sector.toUpperCase()} sector) · CHAOS DECIDES`);
+    events.push(`${c.name}: ${formatActionName(action, side)} (${sector.toUpperCase()} sector) · CHAOS DECIDES`);
     return;
   }
 
@@ -228,7 +228,7 @@ function chooseMajorAction(side, rand, events) {
   army.activeSignature = null;
 
   const major = c.majorOrders[0];
-  const line = `${c.name}: ${formatActionName(action)} (${sector.toUpperCase()} sector) · Inspired by ${major.inspiredBy}`;
+  const line = `${c.name}: ${formatActionName(action, side)} (${sector.toUpperCase()} sector) · Inspired by ${major.inspiredBy}`;
   events.push(line);
 }
 
@@ -455,6 +455,8 @@ function getAvailableActionsForArmy(side) {
   const farBattle = state.turn === 1 || (status.contactRatio < 0.12 && status.nearRatio < 0.25 && status.avgNearestDist > 2.2);
 
   return MAJOR_ACTIONS.filter((action) => {
+    // TODO(release): Re-enable line_rotation and exploit_gap after initial balancing pass.
+    if (action === "line_rotation" || action === "exploit_gap") return false;
     if (action === "cavalry_charge" && cavalryCount < 2) return false;
     if (action === "bombard_sector" && artilleryCount === 0) return false;
     if (action === "exploit_gap") {
@@ -649,7 +651,7 @@ function issueOrdersFromAction(side, events) {
   }
 
   if (isMajorActionTurn(state.turn)) {
-    events.push(`${army.name} action set: ${formatActionName(action)} (${sector.toUpperCase()})`);
+    events.push(`${army.name} action set: ${formatActionName(action, side)} (${sector.toUpperCase()})`);
     queueActionHighlights(side, action, sector);
     showMajorOrderPopup(side, action, sector);
   }
@@ -676,10 +678,10 @@ function showMajorOrderPopup(side, action, sector) {
   const title = document.createElement("div");
   title.className = "order-popup-title";
   const commander = COMMANDERS[state.armies[side].armyCommanderId];
-  title.textContent = `${commander?.name || "Commander"}: ${formatActionName(action)}`;
+  title.textContent = `${commander?.name || "Commander"}: ${formatActionName(action, side)}`;
   const desc = document.createElement("div");
   desc.className = "order-popup-desc";
-  desc.textContent = actionDescription(action, sector);
+  desc.textContent = actionTechnicalDescription(action, sector);
   if (isSignatureAction(action)) {
     const accent = COMMANDER_ACCENT[state.armies[side].armyCommanderId] || "#3d3124";
     title.style.color = accent;
@@ -735,7 +737,7 @@ function isSignatureAction(action) {
     || action === "perfect_plan";
 }
 
-function actionDescription(action, sector) {
+function actionTechnicalDescription(action, sector) {
   const s = targetLabel(sector);
   if (action === "advance") return "All units recover 4 morale per turn while advancing.";
   if (action === "concentrate_center") return "Center wing gets +20% attack damage.";
@@ -758,6 +760,29 @@ function actionDescription(action, sector) {
   return "Major action active.";
 }
 
+function actionReelsDescription(action, sector) {
+  const s = targetLabel(sector);
+  if (action === "advance") return "All wings advance and gain morale.";
+  if (action === "concentrate_center") return "The center gains strength and attacks while wings hold.";
+  if (action === "flank_attack") return `The ${s} pushes hard to turn the enemy flank.`;
+  if (action === "cavalry_charge") return `Cavalry in ${s} surges to shatter morale.`;
+  if (action === "defensive_stand") return `Units in ${s} brace and absorb incoming pressure.`;
+  if (action === "bombard_sector") return `Artillery in ${s} concentrates fire.`;
+  if (action === "defend_flank") return `The ${s} adopts a defensive stance under pressure.`;
+  if (action === "rally") return `The ${s} steadies, holds, and recovers morale.`;
+  if (action === "retreat") return `The ${s} falls back and recovers morale.`;
+  if (action === "mass_assault") return "All sectors press an all-out assault.";
+  if (action === "line_rotation") return `The ${s} rotates out and regains cohesion.`;
+  if (action === "exploit_gap") return `The ${s} drives into a visible weakness.`;
+  if (action === "commit_reserve") return `Reserve reinforces the ${s}.`;
+  if (action === "artillery_barrage") return "All guns unleash sustained, devastating fire.";
+  if (action === "foot_cavalry") return "Infantry moves faster and launches flank attacks.";
+  if (action === "feigned_retreat") return "Cavalry withdraws, then punishes from range.";
+  if (action === "fighting_withdrawal") return "The army yields ground in good order and endures.";
+  if (action === "perfect_plan") return "The army holds discipline, then strikes by design.";
+  return "Major action underway.";
+}
+
 function targetLabel(target) {
   if (target === "all") return "army-wide";
   if (SPECIAL_DIVISION_IDS.includes(target)) return `${target} division`;
@@ -771,7 +796,7 @@ function queueActionHighlights(side, action, sector) {
   if (isSignatureAction(action) && army.activeSignature) {
     label = army.activeSignature.name;
   } else {
-    label = formatActionName(action);
+    label = formatActionName(action, side);
   }
   const wings = affectedWingsForAction(action, sector);
   const untilTurn = state.turn;
@@ -799,7 +824,10 @@ function affectedWingsForAction(action, sector) {
   return FRONTLINE_DIVISION_IDS;
 }
 
-function formatActionName(action) {
+function formatActionName(action, side = null) {
+  if (side && state.armies[side]?.activeSignature?.type === action) {
+    return state.armies[side].activeSignature.name;
+  }
   if (action === "bombard_sector") return "Artillery Bombardment";
   return action.split("_").map((s) => s[0].toUpperCase() + s.slice(1)).join(" ");
 }
@@ -816,7 +844,7 @@ function weightedPick(options, weights, rand) {
 }
 
 function chooseForcedOffensiveAction(side, rand) {
-  const offensivePool = ["advance", "concentrate_center", "flank_attack", "cavalry_charge", "bombard_sector", "mass_assault", "exploit_gap"];
+  const offensivePool = ["advance", "concentrate_center", "flank_attack", "cavalry_charge", "bombard_sector", "mass_assault"];
   const available = getAvailableActionsForArmy(side).filter((a) => offensivePool.includes(a));
   if (!available.length) return "advance";
   const army = state.armies[side];
@@ -847,7 +875,7 @@ function tickActiveAction(side, rand, events) {
       army.majorActionDamageBoost = 1.2;
       army.majorActionDamageBoostTurns = turnsUntilNextActionTurn() + 1;
       army.activeSignature = null;
-      events.push(`${COMMANDERS[army.armyCommanderId].name}: Perfect Plan complete — ${formatActionName(forced)} ordered (+20% damage).`);
+      events.push(`${COMMANDERS[army.armyCommanderId].name}: Perfect Plan complete — ${formatActionName(forced, side)} ordered (+20% damage).`);
     }
     return;
   }

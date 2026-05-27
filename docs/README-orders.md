@@ -121,3 +121,6 @@ Example action id: `pin_and_probe`
 - **Action ids**: snake_case, internal (`exploit_gap`, `line_rotation`)
 - **Order labels**: Title Case, UI-facing (`Stay on Flanks`, `Stay in Rear`)
 - Keep action id and order label distinct.
+## TODO
+
+- Re-enable `line_rotation` and `exploit_gap` major actions after initial release balancing.

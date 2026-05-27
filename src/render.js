@@ -487,7 +487,7 @@ function updateReelsOrder(side) {
   const descEl = isBlue ? els.reelsBlueOrderDesc : els.reelsRedOrderDesc;
   const action = army.currentAction || "advance";
   const sector = army.currentSector || "all";
-  const orderName = formatActionName(action).toUpperCase();
+  const orderName = formatActionName(action, side).toUpperCase();
   if (nameEl) {
     updateAnimatedOrderText(nameEl, orderName);
     fitReelsOrderName(nameEl, orderName);
@@ -567,25 +567,7 @@ function formatReelsTitleName(fullName) {
 }
 
 function getShortReelsActionDescription(action, sector) {
-  if (action === "advance") return "All wings move toward the enemy.";
-  if (action === "flank_attack") return "A wing pushes hard to threaten the enemy flank and create morale pressure.";
-  if (action === "concentrate_center") return "The center attacks while the wings hold.";
-  if (action === "cavalry_charge") return "Cavalry surges forward to break morale.";
-  if (action === "defensive_stand") return "The army braces and absorbs damage.";
-  if (action === "bombard_sector") return "Artillery focuses fire on a key sector.";
-  if (action === "defend_flank") return "A flank refuses and braces against attack.";
-  if (action === "rally") return "A shaken sector holds and recovers morale.";
-  if (action === "retreat") return "A sector falls back to preserve the army.";
-  if (action === "mass_assault") return "All sectors attack with maximum pressure.";
-  if (action === "line_rotation") return "A worn sector rotates out and recovers.";
-  if (action === "exploit_gap") return "The army pushes into a weak point.";
-  if (action === "commit_reserve") return "Reserves move up to reinforce the line.";
-  if (action === "artillery_barrage") return "All artillery deals x2 damage for 5 turns.";
-  if (action === "foot_cavalry") return "All infantry gets +1 move and extra morale pressure for 5 turns.";
-  if (action === "feigned_retreat") return "Cavalry falls back, then attacks at range.";
-  if (action === "fighting_withdrawal") return "The army withdraws in order with boosted morale.";
-  if (action === "perfect_plan") return "The army holds, then launches a prepared offensive.";
-  return actionDescription(action, sector);
+  return actionReelsDescription(action, sector);
 }
 
 function updateReelsCard(side) {
@@ -822,7 +804,7 @@ function renderInfo() {
     const commander = COMMANDERS[army.armyCommanderId];
     const defeatedPct = Math.round((army.defeatedUnitCount / Math.max(1, army.startingUnitCount)) * 100);
     const aliveCount = army.units.filter((u) => u.alive).length;
-    const actionName = army.currentAction ? formatActionName(army.currentAction) : "Pending";
+    const actionName = army.currentAction ? formatActionName(army.currentAction, side) : "Pending";
     const nextOrderIn = turnsUntilNextActionTurn();
     const charge = Math.floor(army.abilityCharge);
     const bar = makeBar(charge, 100, 10);
