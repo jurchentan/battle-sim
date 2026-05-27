@@ -578,11 +578,12 @@ function fitCommanderName(nameEl) {
   if (!nameEl) return;
   const text = nameEl.textContent || "";
   const len = text.length;
-  let px = 40;
-  if (len > 24) px = 24;
-  else if (len > 20) px = 28;
-  else if (len > 16) px = 32;
-  else if (len > 13) px = 36;
+  let px = 38;
+  if (len > 24) px = 22;
+  else if (len > 20) px = 26;
+  else if (len > 16) px = 30;
+  else if (len > 13) px = 34;
+  else if (len > 11) px = 36;
   nameEl.style.fontSize = `${px}px`;
 }
 
@@ -661,11 +662,15 @@ function updateReelsQuoteBubble(side, quoteEl) {
   if (!quoteEl) return;
   const quoteState = state.reelsCommanderQuote?.[side];
   if (state.reelsMode && quoteState && (quoteState.expiresAt || 0) > Date.now()) {
-    quoteEl.textContent = quoteState.text;
+    const text = `${quoteState.text || ""}`.trim();
+    quoteEl.textContent = text;
+    if (text.length <= 34) quoteEl.classList.add("compact");
+    else quoteEl.classList.remove("compact");
     quoteEl.classList.add("show");
     return;
   }
   quoteEl.textContent = "";
+  quoteEl.classList.remove("compact");
   quoteEl.classList.remove("show");
   if (state.reelsCommanderQuote?.[side] && (state.reelsCommanderQuote[side].expiresAt || 0) <= Date.now()) {
     state.reelsCommanderQuote[side] = null;

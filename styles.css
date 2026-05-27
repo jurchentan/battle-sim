@@ -492,7 +492,18 @@ select {
   transform: translateY(4px);
   transition: opacity 0.18s ease, transform 0.18s ease;
   position: relative;
-  min-height: 150px;
+  min-height: 190px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.reels-speech.compact {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 }
 
 .reels-speech::before {
