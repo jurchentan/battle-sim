@@ -327,14 +327,14 @@ select {
   gap: 10px;
   font-family: "Courier New", monospace;
   font-weight: 700;
-  font-size: 28px;
+  font-size: 22px;
   border-top: 1px solid rgba(70, 48, 25, 0.45);
-  margin-top: 44px;
-  padding-top: 12px;
+  margin-top: 6px;
+  padding-top: 8px;
   position: relative;
   z-index: 5;
   text-transform: lowercase;
-  min-height: 52px;
+  min-height: 40px;
 }
 
 .reels-turn-counter,
@@ -411,12 +411,12 @@ select {
 
 .order-name {
   font-family: Impact, "Arial Narrow", sans-serif;
-  font-size: 48px;
+  font-size: 58px;
   letter-spacing: 0.4px;
   text-transform: uppercase;
   line-height: 0.9;
   margin: 0;
-  max-height: 94px;
+  max-height: 112px;
   overflow: hidden;
   text-shadow: 0 2px 5px rgba(0, 0, 0, 0.35);
 }
@@ -478,35 +478,40 @@ select {
 }
 
 .reels-speech {
-  background: rgba(255, 244, 211, 0.95);
-  border: 2px solid #24190f;
-  border-radius: 20px;
-  padding: 14px 16px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 26px 30px 34px;
   font-family: Georgia, serif;
   font-weight: 700;
   font-style: italic;
-  font-size: 29px;
+  font-size: 27px;
   line-height: 1.15;
   color: #21170f;
   opacity: 0;
   transform: translateY(4px);
   transition: opacity 0.18s ease, transform 0.18s ease;
   position: relative;
+  min-height: 150px;
+}
+
+.reels-speech::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("./assets/background/speech_bubble.png");
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  z-index: -1;
+}
+
+.reels-speech-red::before {
+  transform: scaleX(-1);
 }
 
 .reels-speech.show { opacity: 1; transform: translateY(0); }
 
-.reels-speech-blue::after,
-.reels-speech-red::after {
-  content: "";
-  position: absolute;
-  bottom: -10px;
-  border: 10px solid transparent;
-  border-top-color: #24190f;
-}
 
-.reels-speech-blue::after { left: 18px; }
-.reels-speech-red::after { right: 18px; }
 
 .reels-commanders {
   display: grid;
@@ -613,21 +618,38 @@ select {
   border-radius: 99px;
   overflow: hidden;
   width: 100%;
-  margin-top: 2px;
+  margin-top: 8px;
+  position: relative;
 }
 
 .reels-health-bar {
-  height: 40px;
+  height: 60px;
   border-radius: 4px;
   border: 2px solid rgba(42, 29, 17, 0.9);
   background: #1f1812;
 }
 
 .reels-ability-bar {
-  height: 40px;
+  height: 60px;
   border-radius: 4px;
   border: 2px solid rgba(42, 29, 17, 0.9);
   background: #1f1812;
+}
+
+.bar-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding-left: 14px;
+  font-family: Impact, "Arial Narrow", sans-serif;
+  font-size: 26px;
+  letter-spacing: 1px;
+  color: #efe0b6;
+  text-shadow: 0 2px 3px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+  z-index: 2;
 }
 
 .reels-power-bar {
@@ -658,7 +680,7 @@ select {
   background: #9e1f1a;
 }
 
-.bar-fill { height: 100%; width: 0%; }
+.bar-fill { height: 100%; width: 0%; position: relative; z-index: 1; }
 
 .special-name {
   font-family: Impact, "Arial Narrow", sans-serif;
