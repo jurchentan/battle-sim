@@ -664,7 +664,7 @@ select {
 }
 
 .reels-power-bar {
-  height: 22px;
+  height: 44px;
   border-radius: 4px;
   border: 2px solid rgba(42, 29, 17, 0.9);
   background: #1f1812;
@@ -727,7 +727,7 @@ select {
 
 .reels-footer-stats {
   margin-top: auto;
-  padding: 0 56px 10px;
+  padding: 0 56px 36px;
   position: relative;
   z-index: 1;
 }
