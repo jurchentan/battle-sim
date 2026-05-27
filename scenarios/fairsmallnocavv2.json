@@ -1,6 +1,6 @@
 {
-  "id": "fairsmallnocav",
-  "name": "fairsmallnocav",
+  "id": "fairsmallnocavv2",
+  "name": "fairsmallnocavv2",
   "updatedAt": 0,
   "payload": {
     "map": {
@@ -1735,9 +1735,9 @@
             "id": "left",
             "commanderId": "napoleon",
             "unitIds": [
-              "B_INF_10",
-              "B_INF_11",
-              "B_INF_12"
+              "B_INF_04",
+              "B_INF_05",
+              "B_INF_06"
             ],
             "currentOrder": "Hold",
             "lastFrictionEvent": null
@@ -1757,9 +1757,9 @@
             "id": "right",
             "commanderId": "lee",
             "unitIds": [
-              "B_INF_04",
-              "B_INF_05",
-              "B_INF_06"
+              "B_INF_10",
+              "B_INF_11",
+              "B_INF_12"
             ],
             "currentOrder": "Hold",
             "lastFrictionEvent": null
@@ -1995,7 +1995,7 @@
           {
             "id": "B_INF_04",
             "armyId": "B",
-            "divisionId": "right",
+            "divisionId": "left",
             "type": "infantry",
             "q": 4,
             "r": 2,
@@ -2023,7 +2023,7 @@
           {
             "id": "B_INF_05",
             "armyId": "B",
-            "divisionId": "right",
+            "divisionId": "left",
             "type": "infantry",
             "q": 5,
             "r": 2,
@@ -2051,7 +2051,7 @@
           {
             "id": "B_INF_06",
             "armyId": "B",
-            "divisionId": "right",
+            "divisionId": "left",
             "type": "infantry",
             "q": 6,
             "r": 2,
@@ -2163,7 +2163,7 @@
           {
             "id": "B_INF_10",
             "armyId": "B",
-            "divisionId": "left",
+            "divisionId": "right",
             "type": "infantry",
             "q": 10,
             "r": 2,
@@ -2191,7 +2191,7 @@
           {
             "id": "B_INF_11",
             "armyId": "B",
-            "divisionId": "left",
+            "divisionId": "right",
             "type": "infantry",
             "q": 11,
             "r": 2,
@@ -2219,7 +2219,7 @@
           {
             "id": "B_INF_12",
             "armyId": "B",
-            "divisionId": "left",
+            "divisionId": "right",
             "type": "infantry",
             "q": 12,
             "r": 2,
