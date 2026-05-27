@@ -189,7 +189,7 @@ const state = {
   defeatThresholdPercent: 60,
   reelsMode: false,
   reelsUnitScale: 2,
-  simSpeed: "very_slow",
+  simSpeed: "slow",
   running: false,
   turnInProgress: false,
   pendingTurnDamage: null,
@@ -283,11 +283,11 @@ window.setReelsLeaderTrack = setReelsLeaderTrack;
 
 const SCENARIO_API = "/api/scenarios";
 const PORTRAITS = {
-  napoleon: loadPortrait("./assets/commanders/napoleon.jpeg"),
+  napoleon: loadPortrait("./assets/commanders/napoleon.png"),
   lee: loadPortrait("./assets/commanders/lee.jpg"),
   genghis: loadPortrait("./assets/commanders/genghis.jpg"),
   washington: loadPortrait("./assets/commanders/washington.png"),
-  mcclellan: loadPortrait("./assets/commanders/mcclellan.jpg"),
+  mcclellan: loadPortrait("./assets/commanders/mcclellan.png"),
   chaos: loadPortrait("./assets/commanders/general chaos.png"),
 };
 const UNIT_ICONS = {
