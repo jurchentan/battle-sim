@@ -691,7 +691,13 @@ function targetLabel(target) {
 
 function queueActionHighlights(side, action, sector) {
   if (action === "advance") return;
-  const label = formatActionName(action);
+  const army = state.armies[side];
+  let label;
+  if (isSignatureAction(action) && army.activeSignature) {
+    label = army.activeSignature.name;
+  } else {
+    label = formatActionName(action);
+  }
   const wings = affectedWingsForAction(action, sector);
   const expiresAt = Date.now() + 3200;
   wings.forEach((wing) => {
@@ -719,6 +725,7 @@ function affectedWingsForAction(action, sector) {
 }
 
 function formatActionName(action) {
+  if (action === "bombard_sector") return "Artillery Bombardment";
   return action.split("_").map((s) => s[0].toUpperCase() + s.slice(1)).join(" ");
 }
 
