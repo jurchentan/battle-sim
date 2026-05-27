@@ -927,12 +927,14 @@ function moveUnits(side, rand) {
       steps += 1;
     }
     if (wing.currentOrder === "Withdraw") {
-      steps = Math.min(steps, u.type === "cavalry" ? 2 : 1);
+      steps = Math.min(steps, u.type === "cavalry" || u.type === "artillery" ? 2 : 1);
     }
     const visitedThisMove = new Set([`${u.q},${u.r}`]);
     for (let i = 0; i < steps; i += 1) {
       let next = null;
-      if (isReserveHold) {
+      if (u.type === "artillery" && isDisengageOrder) {
+        next = chooseArtilleryWithdrawStep(u, nearest, reserved, visitedThisMove);
+      } else if (isReserveHold) {
         next = chooseReserveStep(u, side, reserved, visitedThisMove);
       } else if (shouldRejoin) {
         next = chooseRejoinLineStep(u, side, reserved, visitedThisMove);
@@ -951,6 +953,42 @@ function moveUnits(side, rand) {
 
 
   });
+}
+
+function chooseArtilleryWithdrawStep(unit, nearest, reserved, visitedThisMove) {
+  const currentDist = hexDist(unit.q, unit.r, nearest.q, nearest.r);
+  const neighbors = getNeighbors(unit.q, unit.r)
+    .filter((h) => h
+      && h.active
+      && h.terrain !== "blocked"
+      && !h.occupantUnitId
+      && !reserved.has(`${h.q},${h.r}`)
+      && !visitedThisMove.has(`${h.q},${h.r}`));
+  if (!neighbors.length) return null;
+
+  let best = null;
+  let bestScore = -Infinity;
+  neighbors.forEach((h) => {
+    const nextDist = hexDist(h.q, h.r, nearest.q, nearest.r);
+    const qAway = Math.sign(unit.q - nearest.q);
+    const rAway = Math.sign(unit.r - nearest.r);
+    const isAway = (h.q - unit.q) === qAway || (h.r - unit.r) === rAway;
+    let score = (nextDist - currentDist) * 40;
+    if (isAway) score += 14;
+    if (nextDist <= 1) score -= 80;
+    else if (nextDist === 2) score -= 22;
+    else if (nextDist >= 4) score += 6;
+
+    const friendlyAdj = countAdjacentFriendly(h.q, h.r, unit.armyId);
+    score += friendlyAdj * 3;
+    if (friendlyAdj === 0) score -= 6;
+
+    if (score > bestScore) {
+      bestScore = score;
+      best = h;
+    }
+  });
+  return best;
 }
 
 function behindFrontlineDistance(unit, side) {
