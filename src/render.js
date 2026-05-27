@@ -18,8 +18,14 @@ function render() {
     const blueName = (COMMANDERS[state.armies.A.armyCommanderId]?.name || "Blue").toUpperCase();
     const redName = (COMMANDERS[state.armies.B.armyCommanderId]?.name || "Red").toUpperCase();
     els.title.innerHTML = `<span class="blue-name">${blueName}</span><span class="vs">vs</span><span class="red-name">${redName}</span>`;
-    if (els.reelsBlueTitleName) els.reelsBlueTitleName.textContent = blueName;
-    if (els.reelsRedTitleName) els.reelsRedTitleName.textContent = redName;
+    if (els.reelsBlueTitleName) {
+      els.reelsBlueTitleName.textContent = blueName;
+      fitReelsTitleName(els.reelsBlueTitleName, blueName);
+    }
+    if (els.reelsRedTitleName) {
+      els.reelsRedTitleName.textContent = redName;
+      fitReelsTitleName(els.reelsRedTitleName, redName);
+    }
     const nextIn = nextOrderIn === 0 ? "Now" : nextOrderIn;
     if (els.reelsTurnCounter) els.reelsTurnCounter.textContent = `turn #${state.turn}`;
     if (els.reelsNextAction) els.reelsNextAction.textContent = `next action in: ${nextIn}`;
@@ -389,11 +395,17 @@ function drawCommanders() {
 }
 
 function updateReelsHud() {
-  if (!state.reelsMode) return;
+  if (!state.reelsMode) {
+    stopLeaderMusic("A");
+    stopLeaderMusic("B");
+    return;
+  }
   updateReelsOrder("A");
   updateReelsOrder("B");
   updateReelsCard("A");
   updateReelsCard("B");
+  updateReelsPowerBar();
+  updateLeaderMusic();
 }
 
 function updateReelsOrder(side) {
@@ -404,8 +416,34 @@ function updateReelsOrder(side) {
   const descEl = isBlue ? els.reelsBlueOrderDesc : els.reelsRedOrderDesc;
   const action = army.currentAction || "advance";
   const sector = army.currentSector || "all";
-  if (nameEl) nameEl.textContent = formatActionName(action).toUpperCase();
+  const orderName = formatActionName(action).toUpperCase();
+  if (nameEl) {
+    nameEl.textContent = orderName;
+    fitReelsOrderName(nameEl, orderName);
+  }
   if (descEl) descEl.textContent = getShortReelsActionDescription(action, sector);
+}
+
+function fitReelsOrderName(nameEl, text) {
+  if (!nameEl) return;
+  const len = (text || "").length;
+  let px = 48;
+  if (len > 26) px = 30;
+  else if (len > 22) px = 34;
+  else if (len > 18) px = 38;
+  else if (len > 14) px = 42;
+  nameEl.style.fontSize = `${px}px`;
+}
+
+function fitReelsTitleName(nameEl, text) {
+  if (!nameEl) return;
+  const len = (text || "").length;
+  let px = 52;
+  if (len > 24) px = 30;
+  else if (len > 20) px = 34;
+  else if (len > 16) px = 40;
+  else if (len > 12) px = 46;
+  nameEl.style.fontSize = `${px}px`;
 }
 
 function getShortReelsActionDescription(action, sector) {
@@ -447,7 +485,8 @@ function updateReelsCard(side) {
   const quoteEl = isBlue ? els.reelsBlueQuote : els.reelsRedQuote;
   const miniTraitsEl = isBlue ? els.reelsBlueMiniTraits : els.reelsRedMiniTraits;
 
-  if (nameEl) nameEl.textContent = commander.name.toUpperCase();
+  if (nameEl) nameEl.textContent = getReelsDisplayName(commander).toUpperCase();
+  fitCommanderName(nameEl);
   if (portraitEl && portrait && portrait.src) portraitEl.src = portrait.src;
 
   const defeatedPct = (army.defeatedUnitCount / Math.max(1, army.startingUnitCount)) * 100;
@@ -468,13 +507,96 @@ function updateReelsCard(side) {
     abilityLabelEl.classList.toggle("ready", !!army.abilityReady);
   }
   if (chargeDescEl) {
-    chargeDescEl.textContent = commander.chargeDescription || "Charges through battlefield momentum.";
+    chargeDescEl.textContent = formatChargeDescription(commander.chargeDescription);
   }
   if (miniTraitsEl) {
     const t = commander.traits || {};
     miniTraitsEl.textContent = `Aggression ${t.aggression ?? 0}   Control ${t.control ?? 0}   Creativity ${t.creativity ?? 0}`;
   }
   updateReelsQuoteBubble(side, quoteEl);
+}
+
+function fitCommanderName(nameEl) {
+  if (!nameEl) return;
+  const text = nameEl.textContent || "";
+  const len = text.length;
+  let px = 40;
+  if (len > 24) px = 24;
+  else if (len > 20) px = 28;
+  else if (len > 16) px = 32;
+  else if (len > 13) px = 36;
+  nameEl.style.fontSize = `${px}px`;
+}
+
+function getReelsDisplayName(commander) {
+  if (!commander) return "Commander";
+  if (commander.reelsShortName) return commander.reelsShortName;
+  const full = commander.name || "Commander";
+  if (full.length <= 14) return full;
+  const parts = full.trim().split(/\s+/);
+  return parts[parts.length - 1] || full;
+}
+
+function formatChargeDescription(text) {
+  const fallback = "Charges through battlefield momentum.";
+  const raw = (text || fallback).trim();
+  if (!raw) return fallback;
+  const lowered = raw.toLowerCase();
+  return lowered.charAt(0).toUpperCase() + lowered.slice(1);
+}
+
+function aliveUnitCount(side) {
+  const army = state.armies[side];
+  if (!army || !Array.isArray(army.units)) return 0;
+  return army.units.filter((u) => u.alive).length;
+}
+
+function updateReelsPowerBar() {
+  const blueAlive = aliveUnitCount("A");
+  const redAlive = aliveUnitCount("B");
+  const total = Math.max(1, blueAlive + redAlive);
+  const bluePct = Math.round((blueAlive / total) * 100);
+  const redPct = 100 - bluePct;
+
+  if (els.reelsPowerLeft) els.reelsPowerLeft.style.width = `${bluePct}%`;
+  if (els.reelsPowerRight) els.reelsPowerRight.style.width = `${redPct}%`;
+}
+
+function updateLeaderMusic() {
+  const blueAlive = aliveUnitCount("A");
+  const redAlive = aliveUnitCount("B");
+  if (blueAlive > redAlive) {
+    playLeaderMusic("A");
+    stopLeaderMusic("B");
+    return;
+  }
+  if (redAlive > blueAlive) {
+    playLeaderMusic("B");
+    stopLeaderMusic("A");
+    return;
+  }
+  stopLeaderMusic("A");
+  stopLeaderMusic("B");
+}
+
+function playLeaderMusic(side) {
+  const track = REELS_MUSIC[side];
+  if (!track || typeof track.play !== "function") return;
+  if (!track.paused) return;
+  track.loop = true;
+  const maybePromise = track.play();
+  if (maybePromise && typeof maybePromise.catch === "function") {
+    maybePromise.catch(() => {});
+  }
+}
+
+function stopLeaderMusic(side) {
+  const track = REELS_MUSIC[side];
+  if (!track || typeof track.pause !== "function") return;
+  track.pause();
+  if (typeof track.currentTime === "number") {
+    track.currentTime = 0;
+  }
 }
 
 function updateReelsQuoteBubble(side, quoteEl) {

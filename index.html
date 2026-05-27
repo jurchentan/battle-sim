@@ -4,6 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AI Commander Hex Battle Simulator v0.1</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
@@ -111,38 +114,58 @@
           <div id="reelsRedQuote" class="reels-speech reels-speech-red"></div>
         </div>
 
+        <div class="reels-power-wrap">
+          <div class="bar-label">BALANCE OF POWER</div>
+          <div id="reelsPowerBar" class="reels-power-bar">
+            <div id="reelsPowerLeft" class="power-fill power-fill-blue"></div>
+            <div id="reelsPowerRight" class="power-fill power-fill-red"></div>
+          </div>
+        </div>
+
         <div class="reels-commanders">
           <article class="reels-commander reels-blue-commander">
             <img id="reelsBluePortrait" class="reels-portrait" alt="Blue commander portrait" />
             <div class="commander-main">
-              <h2 id="reelsBlueName">BLUE COMMANDER</h2>
-              <div class="bar-label">ARMY HEALTH</div>
-              <div class="reels-bar"><div id="reelsBlueHealthFill" class="bar-fill health-fill"></div></div>
-              <div class="bar-label">ABILITY CHARGE</div>
-              <div class="reels-bar"><div id="reelsBlueAbilityFill" class="bar-fill ability-fill"></div></div>
-              <div class="special-label">SPECIAL ABILITY</div>
-              <div id="reelsBlueAbilityLabel" class="special-name">Ability</div>
-              <div id="reelsBlueTraits" class="charge-desc">Charges through battlefield momentum.</div>
-              <div id="reelsBlueMiniTraits" class="mini-traits">Aggression 0 Control 0 Creativity 0</div>
+              <div class="commander-top">
+                <h2 id="reelsBlueName">BLUE COMMANDER</h2>
+                <div class="bar-label">ARMY HEALTH</div>
+                <div class="reels-bar reels-health-bar"><div id="reelsBlueHealthFill" class="bar-fill health-fill"></div></div>
+                <div class="bar-label">ABILITY CHARGE</div>
+                <div class="reels-bar reels-ability-bar"><div id="reelsBlueAbilityFill" class="bar-fill ability-fill"></div></div>
+                <div id="reelsBlueAbilityLabel" class="special-name">Ability</div>
+              </div>
+              <div class="commander-bottom">
+                <div id="reelsBlueTraits" class="charge-desc">Charges through battlefield momentum.</div>
+              </div>
             </div>
           </article>
 
           <article class="reels-commander reels-red-commander">
             <div class="commander-main">
-              <h2 id="reelsRedName">RED COMMANDER</h2>
-              <div class="bar-label">ARMY HEALTH</div>
-              <div class="reels-bar"><div id="reelsRedHealthFill" class="bar-fill health-fill"></div></div>
-              <div class="bar-label">ABILITY CHARGE</div>
-              <div class="reels-bar"><div id="reelsRedAbilityFill" class="bar-fill ability-fill"></div></div>
-              <div class="special-label">SPECIAL ABILITY</div>
-              <div id="reelsRedAbilityLabel" class="special-name">Ability</div>
-              <div id="reelsRedTraits" class="charge-desc">Charges through battlefield momentum.</div>
-              <div id="reelsRedMiniTraits" class="mini-traits">Aggression 0 Control 0 Creativity 0</div>
+              <div class="commander-top">
+                <h2 id="reelsRedName">RED COMMANDER</h2>
+                <div class="bar-label">ARMY HEALTH</div>
+                <div class="reels-bar reels-health-bar"><div id="reelsRedHealthFill" class="bar-fill health-fill"></div></div>
+                <div class="bar-label">ABILITY CHARGE</div>
+                <div class="reels-bar reels-ability-bar"><div id="reelsRedAbilityFill" class="bar-fill ability-fill"></div></div>
+                <div id="reelsRedAbilityLabel" class="special-name">Ability</div>
+              </div>
+              <div class="commander-bottom">
+                <div id="reelsRedTraits" class="charge-desc">Charges through battlefield momentum.</div>
+              </div>
             </div>
             <img id="reelsRedPortrait" class="reels-portrait" alt="Red commander portrait" />
           </article>
         </div>
+
       </section>
+
+      <footer class="reels-footer-stats">
+        <div class="reels-stats-row">
+          <div id="reelsBlueMiniTraits" class="mini-traits">Aggression 0 Control 0 Creativity 0</div>
+          <div id="reelsRedMiniTraits" class="mini-traits">Aggression 0 Control 0 Creativity 0</div>
+        </div>
+      </footer>
     </section>
 
     <section id="scenarioLibrary" class="scenario-library hidden panel">

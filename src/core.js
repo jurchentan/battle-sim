@@ -109,6 +109,7 @@ const COMMANDERS = {
   },
   mcclellan: {
     name: "George B. McClellan",
+    reelsShortName: "McClellan",
     majorOrders: [{ type: "defensive_stand", line: "Prepare every detail, then strike with precision.", inspiredBy: "Peninsula Campaign planning" }],
     preferredActions: ["defensive_stand", "rally"],
     traits: { aggression: 0, control: 9, creativity: 3, panicResistance: 8 },
@@ -242,6 +243,8 @@ const els = {
   reelsRedHealthFill: document.getElementById("reelsRedHealthFill"),
   reelsBlueAbilityFill: document.getElementById("reelsBlueAbilityFill"),
   reelsRedAbilityFill: document.getElementById("reelsRedAbilityFill"),
+  reelsPowerLeft: document.getElementById("reelsPowerLeft"),
+  reelsPowerRight: document.getElementById("reelsPowerRight"),
   reelsBlueAbilityLabel: document.getElementById("reelsBlueAbilityLabel"),
   reelsRedAbilityLabel: document.getElementById("reelsRedAbilityLabel"),
   reelsBlueTitleName: document.getElementById("reelsBlueTitleName"),
@@ -259,6 +262,21 @@ const els = {
   reelsSideModeBtn: document.getElementById("reelsSideModeBtn"),
   reelsTurnCounter: document.getElementById("reelsTurnCounter"),
 };
+
+const REELS_MUSIC = {
+  A: null,
+  B: null,
+};
+
+function setReelsLeaderTrack(side, src) {
+  if (!REELS_MUSIC[side]) {
+    REELS_MUSIC[side] = new Audio();
+    REELS_MUSIC[side].preload = "auto";
+  }
+  REELS_MUSIC[side].src = src;
+}
+
+window.setReelsLeaderTrack = setReelsLeaderTrack;
 
 const SCENARIO_API = "/api/scenarios";
 const PORTRAITS = {
