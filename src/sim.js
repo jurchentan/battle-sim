@@ -164,6 +164,14 @@ function chooseMajorAction(side, rand, events) {
   const army = state.armies[side];
   const c = COMMANDERS[army.armyCommanderId];
 
+  if (hasOnlyArtilleryAlive(side)) {
+    army.currentAction = "bombard_sector";
+    army.currentSector = "artillery";
+    army.activeSignature = null;
+    events.push(`${c.name}: ${formatActionName("bombard_sector", side)} (ARTILLERY sector) · Last guns standing`);
+    return;
+  }
+
   if (army.forcedMajorAction) {
     army.currentAction = army.forcedMajorAction;
     army.currentSector = army.forcedMajorSector || chooseSectorForAction(army.forcedMajorAction, side, rand);
@@ -1974,6 +1982,11 @@ function checkEndCondition() {
   if (aPct >= state.defeatThresholdPercent) return "Red Army";
   if (bPct >= state.defeatThresholdPercent) return "Blue Army";
   return null;
+}
+
+function hasOnlyArtilleryAlive(side) {
+  const alive = state.armies[side].units.filter((u) => u.alive);
+  return alive.length > 0 && alive.every((u) => u.type === "artillery");
 }
 
 function endBattle(text) {

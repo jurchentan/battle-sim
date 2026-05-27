@@ -442,23 +442,6 @@ function drawHealthBar(unit, x, y) {
 }
 
 function drawCommanders() {
-  const scale = reelsVisualScale();
-  ["A", "B"].forEach((side) => {
-    const army = state.armies[side];
-    const alive = army.units.filter((u) => u.alive);
-    if (!alive.length) return;
-    const avg = alive.reduce((acc, u) => ({ q: acc.q + u.q, r: acc.r + u.r }), { q: 0, r: 0 });
-    const center = hexToPixel(avg.q / alive.length, avg.r / alive.length + (side === "A" ? 2 : -2));
-    const commander = COMMANDERS[army.armyCommanderId];
-    ctx.fillStyle = "#fff8";
-    ctx.fillRect(center.x - (36 * scale), center.y - (10 * scale), 72 * scale, 18 * scale);
-    ctx.fillStyle = side === "A" ? "#174b7d" : "#7a2c20";
-    ctx.font = `bold ${Math.round(11 * scale)}px Verdana`;
-    ctx.textAlign = "center";
-    ctx.fillText(commander.name, center.x, center.y + (3 * scale));
-
-  });
-
   if (!state.reelsMode) {
     drawCommanderHud("B");
     drawCommanderHud("A");
@@ -605,7 +588,7 @@ function updateReelsCard(side) {
   }
   const sigName = commander.signature?.name || "Ability";
   if (abilityLabelEl) {
-    abilityLabelEl.textContent = army.abilityReady ? `${sigName} READY` : sigName;
+    abilityLabelEl.textContent = sigName;
     abilityLabelEl.classList.toggle("ready", !!army.abilityReady);
   }
   if (chargeDescEl) {
@@ -763,11 +746,6 @@ function drawCommanderHud(side) {
 
   const sigPct = Math.max(0, Math.min(1, army.abilityCharge / 100));
   drawLabeledBar(x + 72, y + 56, 136, 8, sigPct, "Signature", "#3576c4", "#3576c4");
-  if (army.abilityReady) {
-    ctx.fillStyle = "#c57b1f";
-    ctx.font = "bold 10px Verdana";
-    ctx.fillText("READY", x + 170, y + 76);
-  }
 }
 
 function drawLabeledBar(x, y, w, h, pct, label, fullColor, lowColor) {
@@ -814,7 +792,7 @@ function renderInfo() {
       : "None";
     const txt = `${commander.name} | Brigades ${aliveCount}/${army.startingUnitCount} | Defeated ${defeatedPct}%\n`
       + `Order (5-turn): ${actionName} -> ${army.currentSector.toUpperCase()} | Next in ${nextOrderIn === 0 ? "Now" : nextOrderIn}\n`
-      + `${sigName}: ${army.abilityReady ? "READY" : `${charge}/100`} ${bar}\n`
+      + `${sigName}: ${charge}/100 ${bar}\n`
       + `Active Effect: ${activeSig}`;
     if (side === "A") els.armyAInfo.textContent = txt;
     else els.armyBInfo.textContent = txt;
