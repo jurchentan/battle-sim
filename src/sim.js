@@ -28,22 +28,34 @@ function runSimulation() {
   }
   const loop = () => {
     if (!state.running) return;
-    const result = stepTurn();
-    if (result?.ended) {
-      stopSimulationLoop();
-      render();
-      return;
-    }
-    state.simTimer = setTimeout(loop, getTurnTransitionDelayMs());
+    playTurnPhases((result) => {
+      if (!state.running) return;
+      if (result?.ended) {
+        stopSimulationLoop();
+        render();
+        return;
+      }
+      state.simTimer = setTimeout(loop, getPostTurnDelayMs());
+    });
   };
   loop();
 }
 
-function getTurnTransitionDelayMs() {
+function getPostTurnDelayMs() {
   const baseDelay = getSimStepDelayMs();
-  if (!state.reelsMode) return baseDelay;
+  return Math.max(120, Math.round(baseDelay * 0.3));
+}
+
+function getDamagePhaseDelayMs() {
+  const baseDelay = getSimStepDelayMs();
+  return Math.max(180, Math.round(baseDelay * 0.45));
+}
+
+function getMovementPhaseDelayMs() {
+  const baseDelay = getSimStepDelayMs();
+  if (!state.reelsMode) return Math.max(120, Math.round(baseDelay * 0.4));
   const animationDelay = getRemainingUnitAnimationMs();
-  return Math.max(baseDelay, animationDelay + 24);
+  return Math.max(Math.round(baseDelay * 0.35), animationDelay + 24);
 }
 
 function getRemainingUnitAnimationMs() {
@@ -63,6 +75,38 @@ function getRemainingUnitAnimationMs() {
 }
 
 function stepTurn() {
+  if (state.turnInProgress) return { ended: false };
+  if (state.pendingTurnDamage) return stepTurnDamagePhase();
+  let out = { ended: false };
+  playTurnPhases((result) => { out = result || { ended: false }; });
+  return out;
+}
+
+function playTurnPhases(done) {
+  if (state.turnInProgress) return;
+  const moveResult = stepTurnMovementPhase();
+  if (moveResult?.ended) {
+    if (typeof done === "function") done(moveResult);
+    return;
+  }
+  const movementDelay = getMovementPhaseDelayMs();
+  state.simTimer = setTimeout(() => {
+    if (!state.pendingTurnDamage) {
+      if (typeof done === "function") done({ ended: false });
+      return;
+    }
+    const damageResult = stepTurnDamagePhase();
+    const damageDelay = getDamagePhaseDelayMs();
+    state.simTimer = setTimeout(() => {
+      if (typeof done === "function") done(damageResult || { ended: false });
+    }, damageDelay);
+  }, movementDelay);
+}
+
+function stepTurnMovementPhase() {
+  if (state.turnInProgress) return { ended: false };
+  clearOrderPopups();
+  state.turnInProgress = true;
   const rand = rngFactory(state.seed + state.turn * 997);
   state.turn += 1;
   const turnEvents = [];
@@ -74,6 +118,19 @@ function stepTurn() {
   ["A", "B"].forEach((side) => issueOrdersFromAction(side, turnEvents));
   ["A", "B"].forEach((side) => applyFriction(side, rand, turnEvents));
   ["A", "B"].forEach((side) => moveUnits(side, rand));
+  state.pendingTurnDamage = { rand, turnEvents };
+  render();
+  return { ended: false };
+}
+
+function stepTurnDamagePhase() {
+  if (!state.pendingTurnDamage) {
+    state.turnInProgress = false;
+    return { ended: false };
+  }
+  const { rand, turnEvents } = state.pendingTurnDamage;
+  state.pendingTurnDamage = null;
+
   resolveCombat(rand, turnEvents);
   ["A", "B"].forEach((side) => tickActiveAction(side, rand, turnEvents));
   ["A", "B"].forEach((side) => tickMajorActionBoost(side));
@@ -83,6 +140,7 @@ function stepTurn() {
   const winner = checkEndCondition();
   state.replay.turns.push({ turn: state.turn, events: turnEvents });
   if (winner) {
+    state.turnInProgress = false;
     endBattle(`${winner} wins on turn ${state.turn}.`);
     return { ended: true };
   }
@@ -91,8 +149,15 @@ function stepTurn() {
     els.banner.textContent = turnEvents[turnEvents.length - 1];
     turnEvents.forEach((e) => log(`Turn ${state.turn}: ${e}`));
   }
+  state.turnInProgress = false;
   render();
   return { ended: false };
+}
+
+function clearOrderPopups() {
+  const wrap = els.orderPopupLayer;
+  if (!wrap) return;
+  wrap.querySelectorAll(".order-popup").forEach((el) => el.remove());
 }
 
 function chooseMajorAction(side, rand, events) {
@@ -624,7 +689,7 @@ function showMajorOrderPopup(side, action, sector) {
   div.appendChild(title);
   div.appendChild(desc);
   wrap.appendChild(div);
-  setTimeout(() => div.remove(), 3400);
+  requestAnimationFrame(() => div.classList.add("show"));
 }
 
 function showReelsSignatureQuote(side, action) {
@@ -709,11 +774,11 @@ function queueActionHighlights(side, action, sector) {
     label = formatActionName(action);
   }
   const wings = affectedWingsForAction(action, sector);
-  const expiresAt = Date.now() + 3200;
+  const untilTurn = state.turn;
+  state.actionHighlights = state.actionHighlights.filter((h) => h.side !== side);
   wings.forEach((wing) => {
-    state.actionHighlights.push({ side, wing, label, expiresAt });
+    state.actionHighlights.push({ side, wing, label, untilTurn });
   });
-  setTimeout(() => render(), 3300);
 }
 
 function affectedWingsForAction(action, sector) {

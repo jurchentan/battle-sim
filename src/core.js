@@ -189,10 +189,13 @@ const state = {
   defeatThresholdPercent: 60,
   reelsMode: false,
   reelsUnitScale: 2,
-  simSpeed: "normal",
+  simSpeed: "very_slow",
   running: false,
+  turnInProgress: false,
+  pendingTurnDamage: null,
   simTimer: null,
   actionHighlights: [],
+  actionHighlightVisuals: {},
   battleOverlay: null,
   reelsCommanderQuote: { A: null, B: null },
   unitAnimations: {},
@@ -283,7 +286,7 @@ const PORTRAITS = {
   napoleon: loadPortrait("./assets/commanders/napoleon.jpeg"),
   lee: loadPortrait("./assets/commanders/lee.jpg"),
   genghis: loadPortrait("./assets/commanders/genghis.jpg"),
-  washington: loadPortrait("./assets/commanders/washington.jpeg"),
+  washington: loadPortrait("./assets/commanders/washington.png"),
   mcclellan: loadPortrait("./assets/commanders/mcclellan.jpg"),
   chaos: loadPortrait("./assets/commanders/general chaos.png"),
 };
@@ -328,13 +331,13 @@ function rngFactory(seed) {
 }
 
 function getSimStepDelayMs() {
-  const map = { slow: 800, normal: 450, fast: 150 };
-  return map[state.simSpeed] || 450;
+  const map = { very_slow: 1250, slow: 800, normal: 450, fast: 150 };
+  return map[state.simSpeed] || 800;
 }
 
 function getAnimationDurationMs() {
-  const map = { slow: 500, normal: 260, fast: 100 };
-  return map[state.simSpeed] || 260;
+  const map = { very_slow: 760, slow: 500, normal: 260, fast: 100 };
+  return map[state.simSpeed] || 500;
 }
 
 function loadPortrait(src) {

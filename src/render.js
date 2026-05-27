@@ -140,8 +140,9 @@ function drawBattleOverlay() {
 }
 
 function drawActionHighlights() {
-  const now = Date.now();
-  state.actionHighlights = state.actionHighlights.filter((h) => h.expiresAt > now);
+  state.actionHighlights = state.actionHighlights.filter((h) => (h.untilTurn || 0) >= state.turn);
+  if (!state.actionHighlightVisuals) state.actionHighlightVisuals = {};
+  const activeKeys = new Set();
   state.actionHighlights.forEach((h) => {
     const army = state.armies[h.side];
     if (!army) return;
@@ -169,17 +170,37 @@ function drawActionHighlights() {
       maxY = Math.max(maxY, p.y + 18);
     });
 
+    const key = `${h.side}:${h.wing}`;
+    activeKeys.add(key);
+    const targetRect = {
+      x: minX,
+      y: minY,
+      w: maxX - minX,
+      h: maxY - minY,
+    };
+    const shown = state.actionHighlightVisuals[key] || { ...targetRect };
+    const lerp = 0.24;
+    shown.x += (targetRect.x - shown.x) * lerp;
+    shown.y += (targetRect.y - shown.y) * lerp;
+    shown.w += (targetRect.w - shown.w) * lerp;
+    shown.h += (targetRect.h - shown.h) * lerp;
+    state.actionHighlightVisuals[key] = shown;
+
     const color = h.side === "A" ? "rgba(45,107,168,0.9)" : "rgba(176,72,62,0.9)";
     ctx.strokeStyle = color;
     ctx.lineWidth = 2;
-    ctx.strokeRect(minX, minY, maxX - minX, maxY - minY);
+    ctx.strokeRect(shown.x, shown.y, shown.w, shown.h);
 
     ctx.fillStyle = h.side === "A" ? "#174b7d" : "#7a2c20";
-    ctx.fillRect(minX, minY - 18, Math.max(90, (h.label.length * 7) + 10), 16);
+    ctx.fillRect(shown.x, shown.y - 18, Math.max(90, (h.label.length * 7) + 10), 16);
     ctx.fillStyle = "#fff";
     ctx.font = "bold 11px Verdana";
     ctx.textAlign = "left";
-    ctx.fillText(h.label, minX + 5, minY - 6);
+    ctx.fillText(h.label, shown.x + 5, shown.y - 6);
+  });
+
+  Object.keys(state.actionHighlightVisuals).forEach((key) => {
+    if (!activeKeys.has(key)) delete state.actionHighlightVisuals[key];
   });
 }
 
@@ -468,14 +489,25 @@ function updateReelsOrder(side) {
   const sector = army.currentSector || "all";
   const orderName = formatActionName(action).toUpperCase();
   if (nameEl) {
-    nameEl.textContent = orderName;
+    updateAnimatedOrderText(nameEl, orderName);
     fitReelsOrderName(nameEl, orderName);
   }
   if (descEl) {
     const desc = getShortReelsActionDescription(action, sector);
-    descEl.textContent = desc;
+    updateAnimatedOrderText(descEl, desc);
     fitReelsOrderDesc(descEl, desc);
   }
+}
+
+function updateAnimatedOrderText(el, nextText) {
+  if (!el) return;
+  const prev = el.dataset.lastOrderText || "";
+  if (prev === nextText) return;
+  el.classList.remove("swapping");
+  el.classList.add("swapping");
+  el.textContent = nextText;
+  el.dataset.lastOrderText = nextText;
+  requestAnimationFrame(() => el.classList.remove("swapping"));
 }
 
 function fitReelsOrderName(nameEl, text) {

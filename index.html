@@ -68,8 +68,9 @@
         <button id="randomizeSeedBtn">Random Seed</button>
         <label>Sim Speed
           <select id="simSpeedSelect">
+            <option value="very_slow" selected>Very Slow</option>
             <option value="slow">Slow</option>
-            <option value="normal" selected>Normal</option>
+            <option value="normal">Normal</option>
             <option value="fast">Fast</option>
           </select>
         </label>
@@ -114,7 +115,9 @@
 
         <div class="reels-commanders">
           <article class="reels-commander reels-blue-commander">
-            <img id="reelsBluePortrait" class="reels-portrait" alt="Blue commander portrait" />
+            <div class="reels-portrait-wrap reels-portrait-wrap-blue">
+              <img id="reelsBluePortrait" class="reels-portrait" alt="Blue commander portrait" />
+            </div>
             <div class="commander-main">
               <div class="commander-top">
                 <h2 id="reelsBlueName">BLUE COMMANDER</h2>
@@ -140,7 +143,9 @@
                 <div id="reelsRedTraits" class="charge-desc">Charges through battlefield momentum.</div>
               </div>
             </div>
-            <img id="reelsRedPortrait" class="reels-portrait" alt="Red commander portrait" />
+            <div class="reels-portrait-wrap reels-portrait-wrap-red">
+              <img id="reelsRedPortrait" class="reels-portrait" alt="Red commander portrait" />
+            </div>
           </article>
         </div>
 

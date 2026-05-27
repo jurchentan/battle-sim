@@ -104,11 +104,14 @@ function resetBattleState() {
   const restored = restoreTurnZeroSnapshot();
   state.turn = 0;
   state.running = false;
+  state.turnInProgress = false;
+  state.pendingTurnDamage = null;
   state.replay = { seed: state.seed, turns: [], finalResult: null };
   state.selectedUnitId = null;
   state.moveSourceUnitId = null;
   state.selectedWingUnits.clear();
   state.actionHighlights = [];
+  state.actionHighlightVisuals = {};
   state.battleOverlay = null;
   state.reelsCommanderQuote = { A: null, B: null };
   state.unitAnimations = {};
