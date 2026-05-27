@@ -255,6 +255,12 @@ function drawMap() {
   state.map.hexes.forEach((hex) => {
     if (!hex.active) return;
     const p = hexToPixel(hex.q, hex.r);
+    if (state.reelsMode) {
+      const fill = reelsTerrainFill(hex.terrain);
+      const stroke = reelsTerrainStroke(hex.terrain);
+      drawHex(p.x, p.y, HEX_SIZE - 1, fill, stroke);
+      return;
+    }
     const color = terrainColor(hex.terrain);
     drawHex(p.x, p.y, HEX_SIZE - 1, color, "#c3b08f");
   });
@@ -287,6 +293,30 @@ function terrainColor(t) {
     town: "#c7b399",
     blocked: "#8f8375",
   }[t] || "#ecd8b5";
+}
+
+function reelsTerrainFill(t) {
+  return {
+    plain: "rgba(227, 190, 132, 0.06)",
+    hill: "rgba(181, 132, 82, 0.1)",
+    forest: "rgba(110, 133, 89, 0.12)",
+    river: "rgba(96, 142, 179, 0.13)",
+    road: "rgba(171, 147, 117, 0.08)",
+    town: "rgba(168, 120, 85, 0.12)",
+    blocked: "rgba(93, 75, 56, 0.14)",
+  }[t] || "rgba(227, 190, 132, 0.06)";
+}
+
+function reelsTerrainStroke(t) {
+  return {
+    plain: "rgba(92, 70, 40, 0.44)",
+    hill: "rgba(92, 70, 40, 0.5)",
+    forest: "rgba(76, 90, 62, 0.5)",
+    river: "rgba(67, 101, 126, 0.52)",
+    road: "rgba(103, 87, 65, 0.46)",
+    town: "rgba(109, 77, 53, 0.5)",
+    blocked: "rgba(76, 57, 40, 0.56)",
+  }[t] || "rgba(92, 70, 40, 0.44)";
 }
 
 function drawUnits() {

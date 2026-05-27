@@ -672,11 +672,6 @@ select {
   overflow: hidden;
 }
 
-.reels-power-wrap {
-  margin-top: -70px;
-  padding: 0 56px;
-}
-
 .power-fill {
   height: 100%;
 }
@@ -730,35 +725,9 @@ select {
   hyphens: none;
 }
 
-.mini-traits {
-  margin-top: -68px;   /* up */
-  margin-left: 42px;  /* right */
-  padding: 0;
-  border: 0;
-  background: transparent;
-  font-family: "Oswald", "Arial Narrow", sans-serif;
-  font-weight: 500;
-  font-size: 28px;
-  line-height: 1.12;
-  letter-spacing: 0.15px;
-  color: #2f2418;
-  white-space: normal;
-  overflow: hidden;
-  text-overflow: clip;
-  overflow-wrap: normal;
-  word-break: normal;
-  hyphens: none;
-}
-
-.reels-stats-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-}
-
 .reels-footer-stats {
   margin-top: auto;
-  padding: 0 56px 8px;
+  padding: 0 56px 10px;
   position: relative;
   z-index: 1;
 }
