@@ -506,13 +506,15 @@ select {
   font-family: Impact, "Arial Narrow", sans-serif;
   text-transform: uppercase;
   letter-spacing: 1.3px;
-  font-size: 34px;
+  font-size: 40px;
   line-height: 0.95;
   max-width: 100%;
   overflow: hidden;
   text-overflow: clip;
   white-space: normal;
-  overflow-wrap: anywhere;
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
 }
 
 .reels-blue-commander h2,
@@ -524,7 +526,7 @@ select {
 .bar-label,
 .special-label {
   font-family: Impact, "Arial Narrow", sans-serif;
-  font-size: 16px;
+  font-size: 18px;
   letter-spacing: 1px;
   margin-top: 5px;
 }
@@ -544,33 +546,41 @@ select {
   font-family: Impact, "Arial Narrow", sans-serif;
   text-transform: uppercase;
   letter-spacing: 1px;
-  font-size: 22px;
+  font-size: 28px;
   line-height: 1.02;
   margin-top: 2px;
   max-width: 100%;
   overflow: hidden;
   text-overflow: clip;
   white-space: normal;
-  overflow-wrap: anywhere;
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
 }
 
 .charge-desc {
-  font-size: 14px;
+  font-size: 18px;
   line-height: 1.15;
   margin-top: 2px;
-  max-height: 48px;
+  max-height: 62px;
   overflow: hidden;
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
 }
 
 .mini-traits {
   margin-top: 10px;
   padding-top: 8px;
   border-top: 1px solid rgba(60, 41, 20, 0.45);
-  font-size: 13px;
+  font-size: 16px;
   line-height: 1;
-  white-space: nowrap;
+  white-space: normal;
   overflow: hidden;
-  text-overflow: ellipsis;
+  text-overflow: clip;
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
 }
 
 body.reels-mode .left-panel,
