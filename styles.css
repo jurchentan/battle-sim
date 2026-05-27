@@ -277,7 +277,7 @@ select {
   text-align: center;
   position: relative;
   z-index: 1;
-  height: 190px;
+  height: 230px;
   overflow: hidden;
 }
 
@@ -322,9 +322,9 @@ select {
   gap: 10px;
   font-family: "Courier New", monospace;
   font-weight: 700;
-  font-size: 18px;
+  font-size: 28px;
   border-top: 1px solid rgba(70, 48, 25, 0.45);
-  margin-top: 14px;
+  margin-top: 44px;
   padding-top: 12px;
   position: relative;
   z-index: 5;
@@ -353,6 +353,7 @@ select {
   padding: 10px 56px 12px;
   position: relative;
   z-index: 1;
+  margin-top: -30px;
 }
 
 .reels-order {

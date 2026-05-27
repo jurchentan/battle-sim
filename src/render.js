@@ -421,7 +421,11 @@ function updateReelsOrder(side) {
     nameEl.textContent = orderName;
     fitReelsOrderName(nameEl, orderName);
   }
-  if (descEl) descEl.textContent = getShortReelsActionDescription(action, sector);
+  if (descEl) {
+    const desc = getShortReelsActionDescription(action, sector);
+    descEl.textContent = desc;
+    fitReelsOrderDesc(descEl, desc);
+  }
 }
 
 function fitReelsOrderName(nameEl, text) {
@@ -435,14 +439,26 @@ function fitReelsOrderName(nameEl, text) {
   nameEl.style.fontSize = `${px}px`;
 }
 
+function fitReelsOrderDesc(descEl, text) {
+  if (!descEl) return;
+  const len = (text || "").length;
+  let px = 24;
+  if (len > 90) px = 16;
+  else if (len > 75) px = 18;
+  else if (len > 60) px = 20;
+  else if (len > 45) px = 22;
+  descEl.style.fontSize = `${px}px`;
+  descEl.style.lineHeight = "1.1";
+}
+
 function fitReelsTitleName(nameEl, text) {
   if (!nameEl) return;
   const len = (text || "").length;
-  let px = 52;
-  if (len > 24) px = 30;
-  else if (len > 20) px = 34;
-  else if (len > 16) px = 40;
-  else if (len > 12) px = 46;
+  let px = 58;
+  if (len > 24) px = 34;
+  else if (len > 20) px = 38;
+  else if (len > 16) px = 44;
+  else if (len > 12) px = 50;
   nameEl.style.fontSize = `${px}px`;
 }
 
