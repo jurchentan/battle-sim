@@ -13,7 +13,6 @@
         <h1>AI Commander Hex Battle Simulator</h1>
         <p id="subtitle">Setup Battle · Turn 0</p>
       </div>
-      <span id="reelsTurnCounter" class="reels-turn-counter"></span>
       <div class="top-actions">
         <button id="saveScenarioBtn">Save</button>
         <button id="loadScenarioBtn">Load</button>
@@ -79,34 +78,71 @@
     </footer>
 
     <section id="reelsHud" class="reels-hud hidden">
-      <article class="reels-card" id="reelsBlueCard">
-        <div class="reels-portrait-quote" id="reelsBlueQuote"></div>
-        <img id="reelsBluePortrait" alt="Blue commander portrait" />
-        <div class="reels-mini-traits" id="reelsBlueMiniTraits">AGG 0<br>CON 0<br>CRE 0</div>
-        <div class="reels-card-info">
-          <h3 id="reelsBlueName">Blue Commander</h3>
-          <div class="reels-bar-label">Army Health</div>
-          <div class="reels-bar"><span id="reelsBlueHealthFill"></span></div>
-          <div class="reels-bar-label" id="reelsBlueAbilityLabel">Ability</div>
-          <div class="reels-bar"><span id="reelsBlueAbilityFill"></span></div>
-          <div class="reels-super-name" id="reelsBlueSuperName"></div>
-          <div class="reels-bar-label" id="reelsBlueTraits">Aggression 0<br>Control 0<br>Creativity 0</div>
+      <header class="reels-header">
+        <h1 class="reels-title topbar-title">
+          <span id="reelsBlueTitleName" class="blue-name">BLUE</span>
+          <span class="vs">vs</span>
+          <span id="reelsRedTitleName" class="red-name">RED</span>
+        </h1>
+        <div class="reels-topline">
+          <div id="reelsTurnCounter" class="reels-turn-counter">Turn 0</div>
+          <div id="reelsNextAction" class="reels-next-action">next action in: 1</div>
         </div>
-      </article>
-      <article class="reels-card" id="reelsRedCard">
-        <div class="reels-portrait-quote" id="reelsRedQuote"></div>
-        <img id="reelsRedPortrait" alt="Red commander portrait" />
-        <div class="reels-mini-traits" id="reelsRedMiniTraits">AGG 0<br>CON 0<br>CRE 0</div>
-        <div class="reels-card-info">
-          <h3 id="reelsRedName">Red Commander</h3>
-          <div class="reels-bar-label">Army Health</div>
-          <div class="reels-bar"><span id="reelsRedHealthFill"></span></div>
-          <div class="reels-bar-label" id="reelsRedAbilityLabel">Ability</div>
-          <div class="reels-bar"><span id="reelsRedAbilityFill"></span></div>
-          <div class="reels-super-name" id="reelsRedSuperName"></div>
-          <div class="reels-bar-label" id="reelsRedTraits">Aggression 0<br>Control 0<br>Creativity 0</div>
+      </header>
+
+      <section class="reels-orders">
+        <div id="reelsBlueOrder" class="reels-order reels-order-blue">
+          <div class="order-small">ACTIVE ORDER</div>
+          <div id="reelsBlueOrderName" class="order-name">ADVANCE</div>
+          <div id="reelsBlueOrderDesc" class="order-desc">All wings move toward the enemy.</div>
         </div>
-      </article>
+        <div id="reelsRedOrder" class="reels-order reels-order-red">
+          <div class="order-small">ACTIVE ORDER</div>
+          <div id="reelsRedOrderName" class="order-name">ADVANCE</div>
+          <div id="reelsRedOrderDesc" class="order-desc">All wings move toward the enemy.</div>
+        </div>
+      </section>
+
+      <div id="reelsMapWrap" class="reels-map-wrap"></div>
+
+      <section class="reels-commander-area">
+        <div class="reels-speech-row">
+          <div id="reelsBlueQuote" class="reels-speech reels-speech-blue"></div>
+          <div id="reelsRedQuote" class="reels-speech reels-speech-red"></div>
+        </div>
+
+        <div class="reels-commanders">
+          <article class="reels-commander reels-blue-commander">
+            <img id="reelsBluePortrait" class="reels-portrait" alt="Blue commander portrait" />
+            <div class="commander-main">
+              <h2 id="reelsBlueName">BLUE COMMANDER</h2>
+              <div class="bar-label">ARMY HEALTH</div>
+              <div class="reels-bar"><div id="reelsBlueHealthFill" class="bar-fill health-fill"></div></div>
+              <div class="bar-label">ABILITY CHARGE</div>
+              <div class="reels-bar"><div id="reelsBlueAbilityFill" class="bar-fill ability-fill"></div></div>
+              <div class="special-label">SPECIAL ABILITY</div>
+              <div id="reelsBlueAbilityLabel" class="special-name">Ability</div>
+              <div id="reelsBlueTraits" class="charge-desc">Charges through battlefield momentum.</div>
+              <div id="reelsBlueMiniTraits" class="mini-traits">Aggression 0 Control 0 Creativity 0</div>
+            </div>
+          </article>
+
+          <article class="reels-commander reels-red-commander">
+            <div class="commander-main">
+              <h2 id="reelsRedName">RED COMMANDER</h2>
+              <div class="bar-label">ARMY HEALTH</div>
+              <div class="reels-bar"><div id="reelsRedHealthFill" class="bar-fill health-fill"></div></div>
+              <div class="bar-label">ABILITY CHARGE</div>
+              <div class="reels-bar"><div id="reelsRedAbilityFill" class="bar-fill ability-fill"></div></div>
+              <div class="special-label">SPECIAL ABILITY</div>
+              <div id="reelsRedAbilityLabel" class="special-name">Ability</div>
+              <div id="reelsRedTraits" class="charge-desc">Charges through battlefield momentum.</div>
+              <div id="reelsRedMiniTraits" class="mini-traits">Aggression 0 Control 0 Creativity 0</div>
+            </div>
+            <img id="reelsRedPortrait" class="reels-portrait" alt="Red commander portrait" />
+          </article>
+        </div>
+      </section>
     </section>
 
     <section id="scenarioLibrary" class="scenario-library hidden panel">

@@ -2,6 +2,9 @@ function render() {
   if (!state.running && state.turn === 0) {
     captureTurnZeroSnapshot();
   }
+  if (state.reelsMode) {
+    resizeCanvasForReels();
+  }
   updateMapOrigin();
   drawMap();
   drawUnits();
@@ -14,9 +17,12 @@ function render() {
   if (state.reelsMode) {
     const blueName = (COMMANDERS[state.armies.A.armyCommanderId]?.name || "Blue").toUpperCase();
     const redName = (COMMANDERS[state.armies.B.armyCommanderId]?.name || "Red").toUpperCase();
-    els.title.textContent = `${blueName} vs ${redName}`;
+    els.title.innerHTML = `<span class="blue-name">${blueName}</span><span class="vs">vs</span><span class="red-name">${redName}</span>`;
+    if (els.reelsBlueTitleName) els.reelsBlueTitleName.textContent = blueName;
+    if (els.reelsRedTitleName) els.reelsRedTitleName.textContent = redName;
     const nextIn = nextOrderIn === 0 ? "Now" : nextOrderIn;
-    els.reelsTurnCounter.innerHTML = `Turn ${state.turn}<br>next action in: ${nextIn}`;
+    if (els.reelsTurnCounter) els.reelsTurnCounter.textContent = `turn #${state.turn}`;
+    if (els.reelsNextAction) els.reelsNextAction.textContent = `next action in: ${nextIn}`;
   } else {
     els.title.textContent = "AI Commander Hex Battle Simulator";
   }
@@ -26,9 +32,23 @@ function render() {
   requestAnimationRenderIfNeeded();
 }
 
+function resizeCanvasForReels() {
+  if (!state.reelsMode || !els.canvas) return;
+  const wrap = els.reelsMapWrap;
+  if (!wrap) return;
+  const width = Math.max(1, Math.floor(wrap.clientWidth));
+  const height = Math.max(1, Math.floor(wrap.clientHeight));
+  if (els.canvas.width === width && els.canvas.height === height) return;
+  els.canvas.width = width;
+  els.canvas.height = height;
+  els.canvas.style.width = `${width}px`;
+  els.canvas.style.height = `${height}px`;
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+}
+
 function reelsVisualScale() {
   if (!state.reelsMode) return 1;
-  return state.currentBattleSideLength <= 7 ? 1.3 : 1.15;
+  return state.currentBattleSideLength <= 7 ? 1.12 : 1.06;
 }
 
 function requestAnimationRenderIfNeeded() {
@@ -157,12 +177,12 @@ function updateMapOrigin() {
   });
   const unitW = unitMin.maxX - unitMin.minX;
   const unitH = unitMin.maxY - unitMin.minY;
-  const edgePadding = state.reelsMode ? 4 : 18;
+  const edgePadding = state.reelsMode ? 18 : 18;
   const targetW = Math.max(40, els.canvas.width - (edgePadding * 2));
   const targetH = Math.max(40, els.canvas.height - (edgePadding * 2));
   const fitScale = Math.min(targetW / unitW, targetH / unitH);
-  const reelsBoost = state.reelsMode && state.currentBattleSideLength <= 7 ? 1.12 : 1;
-  HEX_SIZE = Math.max(16, Math.min(38, fitScale * reelsBoost));
+  const reelsBoost = state.reelsMode && state.currentBattleSideLength <= 7 ? 1.1 : 1;
+  HEX_SIZE = Math.max(16, Math.min(44, fitScale * reelsBoost));
 
   let minX = Infinity;
   let maxX = -Infinity;
@@ -180,6 +200,17 @@ function updateMapOrigin() {
   const mapH = maxY - minY;
   MAP_ORIGIN_X = (els.canvas.width - mapW) / 2 - minX;
   MAP_ORIGIN_Y = (els.canvas.height - mapH) / 2 - minY;
+  if (state.reelsMode) {
+    MAP_ORIGIN_X -= 57;
+    MAP_ORIGIN_Y -= 0;
+
+    const bottomPadding = 8;
+    const bottomEdge = maxY + MAP_ORIGIN_Y;
+    const allowedBottom = els.canvas.height - bottomPadding;
+    if (bottomEdge > allowedBottom) {
+      MAP_ORIGIN_Y -= (bottomEdge - allowedBottom);
+    }
+  }
 }
 
 function isMajorActionTurn(turn) {
@@ -235,8 +266,9 @@ function terrainColor(t) {
 function drawUnits() {
   const now = performance.now();
   const reelsUnitBoost = reelsVisualScale();
-  const iconSize = Math.round(24 * reelsUnitBoost);
-  const artillerySize = Math.round(30 * reelsUnitBoost);
+  const unitScale = state.reelsMode ? (state.reelsUnitScale || 1) : 1;
+  const iconSize = Math.round(24 * reelsUnitBoost * unitScale);
+  const artillerySize = Math.round(30 * reelsUnitBoost * unitScale);
   ["A", "B"].forEach((side) => {
     state.armies[side].units.filter((u) => u.alive).forEach((u) => {
       const p = animatedPixelForUnit(u, now);
@@ -279,7 +311,8 @@ function drawUnits() {
 }
 
 function drawMoraleIndicator(unit, side, x, y, unitSize) {
-  const scale = reelsVisualScale();
+  const unitScale = state.reelsMode ? (state.reelsUnitScale || 1) : 1;
+  const scale = reelsVisualScale() * unitScale;
   const circleRadius = Math.round(7 * scale);
   const iconSize = Math.round((state.reelsMode ? 12 : 10) * scale);
   const cx = x + (unitSize / 2) + 1;
@@ -317,7 +350,8 @@ function animatedPixelForUnit(unit, now) {
 }
 
 function drawHealthBar(unit, x, y) {
-  const scale = reelsVisualScale();
+  const unitScale = state.reelsMode ? (state.reelsUnitScale || 1) : 1;
+  const scale = reelsVisualScale() * unitScale;
   const max = UNIT_BASE[unit.type].strength;
   const pct = Math.max(0, Math.min(1, unit.strength / max));
   const width = Math.round(22 * scale);
@@ -356,13 +390,51 @@ function drawCommanders() {
 
 function updateReelsHud() {
   if (!state.reelsMode) return;
+  updateReelsOrder("A");
+  updateReelsOrder("B");
   updateReelsCard("A");
   updateReelsCard("B");
 }
 
+function updateReelsOrder(side) {
+  const army = state.armies[side];
+  if (!army) return;
+  const isBlue = side === "A";
+  const nameEl = isBlue ? els.reelsBlueOrderName : els.reelsRedOrderName;
+  const descEl = isBlue ? els.reelsBlueOrderDesc : els.reelsRedOrderDesc;
+  const action = army.currentAction || "advance";
+  const sector = army.currentSector || "all";
+  if (nameEl) nameEl.textContent = formatActionName(action).toUpperCase();
+  if (descEl) descEl.textContent = getShortReelsActionDescription(action, sector);
+}
+
+function getShortReelsActionDescription(action, sector) {
+  if (action === "advance") return "All wings move toward the enemy.";
+  if (action === "flank_attack") return "A wing pushes hard to threaten the enemy flank and create morale pressure.";
+  if (action === "concentrate_center") return "The center attacks while the wings hold.";
+  if (action === "cavalry_charge") return "Cavalry surges forward to break morale.";
+  if (action === "defensive_stand") return "The army braces and absorbs damage.";
+  if (action === "bombard_sector") return "Artillery focuses fire on a key sector.";
+  if (action === "defend_flank") return "A flank refuses and braces against attack.";
+  if (action === "rally") return "A shaken sector holds and recovers morale.";
+  if (action === "retreat") return "A sector falls back to preserve the army.";
+  if (action === "mass_assault") return "All sectors attack with maximum pressure.";
+  if (action === "line_rotation") return "A worn sector rotates out and recovers.";
+  if (action === "exploit_gap") return "The army pushes into a weak point.";
+  if (action === "commit_reserve") return "Reserves move up to reinforce the line.";
+  if (action === "artillery_barrage") return "All artillery deals x2 damage for 5 turns.";
+  if (action === "foot_cavalry") return "All infantry gets +1 move and extra morale pressure for 5 turns.";
+  if (action === "feigned_retreat") return "Cavalry falls back, then attacks at range.";
+  if (action === "fighting_withdrawal") return "The army withdraws in order with boosted morale.";
+  if (action === "perfect_plan") return "The army holds, then launches a prepared offensive.";
+  return actionDescription(action, sector);
+}
+
 function updateReelsCard(side) {
   const army = state.armies[side];
+  if (!army) return;
   const commander = COMMANDERS[army.armyCommanderId];
+  if (!commander) return;
   const portrait = PORTRAITS[army.armyCommanderId];
   const isBlue = side === "A";
 
@@ -371,53 +443,52 @@ function updateReelsCard(side) {
   const healthEl = isBlue ? els.reelsBlueHealthFill : els.reelsRedHealthFill;
   const abilityEl = isBlue ? els.reelsBlueAbilityFill : els.reelsRedAbilityFill;
   const abilityLabelEl = isBlue ? els.reelsBlueAbilityLabel : els.reelsRedAbilityLabel;
-  const traitsEl = isBlue ? els.reelsBlueTraits : els.reelsRedTraits;
+  const chargeDescEl = isBlue ? els.reelsBlueTraits : els.reelsRedTraits;
   const quoteEl = isBlue ? els.reelsBlueQuote : els.reelsRedQuote;
   const miniTraitsEl = isBlue ? els.reelsBlueMiniTraits : els.reelsRedMiniTraits;
 
-  nameEl.textContent = commander?.name || (isBlue ? "Blue Commander" : "Red Commander");
-  if (traitsEl && commander?.traits) {
-    const aggr = commander.traits.aggression ?? 0;
-    const control = commander.traits.control ?? 0;
-    const creativity = commander.traits.creativity ?? 0;
-    traitsEl.textContent = commander.chargeDescription || "Super charge follows battlefield momentum.";
-    if (miniTraitsEl) {
-      miniTraitsEl.innerHTML = `AGG ${aggr}<br>CON ${control}<br>CRE ${creativity}`;
-    }
-  }
-  if (quoteEl) {
-    const quoteState = state.reelsCommanderQuote?.[side];
-    if (state.reelsMode && quoteState && (quoteState.expiresAt || 0) > Date.now()) {
-      quoteEl.textContent = `"${quoteState.text}"`;
-      quoteEl.classList.add("show");
-    } else {
-      quoteEl.textContent = "";
-      quoteEl.classList.remove("show");
-      if (state.reelsCommanderQuote?.[side] && (state.reelsCommanderQuote[side].expiresAt || 0) <= Date.now()) {
-        state.reelsCommanderQuote[side] = null;
-      }
-    }
-  }
-  if (portrait && portrait.src) portraitEl.src = portrait.src;
+  if (nameEl) nameEl.textContent = commander.name.toUpperCase();
+  if (portraitEl && portrait && portrait.src) portraitEl.src = portrait.src;
 
   const defeatedPct = (army.defeatedUnitCount / Math.max(1, army.startingUnitCount)) * 100;
   const healthPct = Math.max(0, 1 - (defeatedPct / Math.max(1, state.defeatThresholdPercent)));
   const chargePct = Math.max(0, Math.min(1, army.abilityCharge / 100));
 
-  healthEl.style.width = `${Math.round(healthPct * 100)}%`;
-  healthEl.style.background = healthPct > 0.5 ? "#41a85f" : healthPct > 0.25 ? "#d8a135" : "#d64d42";
-  abilityEl.style.width = `${Math.round(chargePct * 100)}%`;
-  abilityEl.style.background = isBlue ? "#3576c4" : "#b0483e";
-  const sigName = commander?.signature?.name || "Ability";
-  if (army.abilityReady) {
-    const accent = COMMANDER_ACCENT[army.armyCommanderId] || "#c57b1f";
-    abilityLabelEl.textContent = `${sigName} READY`;
-    abilityLabelEl.style.color = accent;
-    abilityLabelEl.style.fontWeight = "700";
-  } else {
-    abilityLabelEl.textContent = sigName;
-    abilityLabelEl.style.color = "";
-    abilityLabelEl.style.fontWeight = "";
+  if (healthEl) {
+    healthEl.style.width = `${Math.round(healthPct * 100)}%`;
+    healthEl.style.background = healthPct > 0.5 ? "#41a85f" : healthPct > 0.25 ? "#d8a135" : "#d64d42";
+  }
+  if (abilityEl) {
+    abilityEl.style.width = `${Math.round(chargePct * 100)}%`;
+    abilityEl.style.background = isBlue ? "#1e5fb8" : "#9e1f1a";
+  }
+  const sigName = commander.signature?.name || "Ability";
+  if (abilityLabelEl) {
+    abilityLabelEl.textContent = army.abilityReady ? `${sigName} READY` : sigName;
+    abilityLabelEl.classList.toggle("ready", !!army.abilityReady);
+  }
+  if (chargeDescEl) {
+    chargeDescEl.textContent = commander.chargeDescription || "Charges through battlefield momentum.";
+  }
+  if (miniTraitsEl) {
+    const t = commander.traits || {};
+    miniTraitsEl.textContent = `Aggression ${t.aggression ?? 0}   Control ${t.control ?? 0}   Creativity ${t.creativity ?? 0}`;
+  }
+  updateReelsQuoteBubble(side, quoteEl);
+}
+
+function updateReelsQuoteBubble(side, quoteEl) {
+  if (!quoteEl) return;
+  const quoteState = state.reelsCommanderQuote?.[side];
+  if (state.reelsMode && quoteState && (quoteState.expiresAt || 0) > Date.now()) {
+    quoteEl.textContent = quoteState.text;
+    quoteEl.classList.add("show");
+    return;
+  }
+  quoteEl.textContent = "";
+  quoteEl.classList.remove("show");
+  if (state.reelsCommanderQuote?.[side] && (state.reelsCommanderQuote[side].expiresAt || 0) <= Date.now()) {
+    state.reelsCommanderQuote[side] = null;
   }
 }
 

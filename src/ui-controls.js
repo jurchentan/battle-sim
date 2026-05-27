@@ -30,6 +30,7 @@ function wireUi() {
   els.canvas.addEventListener("mousedown", onCanvasPointerDown);
   els.canvas.addEventListener("mousemove", onCanvasPointerMove);
   window.addEventListener("mouseup", onCanvasPointerUp);
+  window.addEventListener("resize", updateReelsStageScale);
   updateSimButton();
 }
 
@@ -37,6 +38,8 @@ function toggleReelsMode() {
   const prevSize = getActiveBattleSideLength();
   state.reelsMode = !state.reelsMode;
   document.body.classList.toggle("reels-mode", state.reelsMode);
+  updateReelsStageScale();
+  mountCanvasForMode();
   els.reelsHud.classList.toggle("hidden", !state.reelsMode);
   els.reelsSideControls.classList.toggle("hidden", !state.reelsMode);
   els.reelsModeBtn.textContent = `Reels Mode: ${state.reelsMode ? "On" : "Off"}`;
@@ -47,6 +50,33 @@ function toggleReelsMode() {
     return;
   }
   render();
+}
+
+function updateReelsStageScale() {
+  const app = document.querySelector(".app");
+  if (!app) return;
+  if (!state.reelsMode) {
+    app.style.removeProperty("--reels-stage-scale");
+    return;
+  }
+  const baseW = 1080;
+  const baseH = 1920;
+  const scale = Math.min(window.innerWidth / baseW, window.innerHeight / baseH);
+  app.style.setProperty("--reels-stage-scale", String(Math.max(0.1, scale)));
+}
+
+function mountCanvasForMode() {
+  if (!els.canvas) return;
+  const centerPanel = document.querySelector(".center");
+  if (state.reelsMode) {
+    if (els.reelsMapWrap && els.canvas.parentElement !== els.reelsMapWrap) {
+      els.reelsMapWrap.appendChild(els.canvas);
+    }
+    return;
+  }
+  if (centerPanel && els.canvas.parentElement !== centerPanel) {
+    centerPanel.appendChild(els.canvas);
+  }
 }
 
 function updateSimButton() {

@@ -1,0 +1,70 @@
+Reels Layout Tuning Guide (1080 x 1920 stage)
+
+General rule:
+- CSS controls section placement and box sizes.
+- render.js updateMapOrigin() controls fine map centering inside the canvas.
+
+1) Top block positions
+- Selector: .reels-header
+  - Change padding to move title + turn row together.
+- Selector: .reels-orders
+  - Change padding and gap to move active-order blocks.
+
+2) Battlefield section
+- Selector: .reels-map-wrap
+  - height/min-height/max-height: map zone size.
+  - margin-top: move map section up/down.
+  - padding left/right: horizontal inset.
+
+- File: src/render.js, function updateMapOrigin()
+  - MAP_ORIGIN_X +/- value: fine left/right nudge.
+  - MAP_ORIGIN_Y +/- value: fine up/down nudge.
+
+3) Speech bubbles (overlay, no layout space)
+- Selector: .reels-speech-row
+  - top: bubble vertical position.
+  - left/right: bubble lane inset.
+  - gap: spacing between blue/red bubbles.
+
+4) Bottom commander panel position
+- Selector: .reels-commander-area
+  - height: bottom zone height.
+- Selector: .reels-commanders
+  - margin-top: move content within bottom zone.
+  - padding: edge spacing.
+
+5) Portrait size and text spacing
+- Selector: .reels-portrait
+  - width/height: portrait scale.
+- Selector: .reels-commander
+  - grid-template-columns + gap: portrait/text spacing.
+
+6) Text fitting inside fixed boxes
+- Top names: .reels-title, #reelsBlueTitleName, #reelsRedTitleName
+- Orders: .order-small, .order-name, .order-desc
+- Bottom: .commander-main h2, .special-name, .charge-desc, .mini-traits
+
+How to decrease commander panel WIDTH
+- Main width control is horizontal padding on the container:
+  - Selector: .reels-commanders
+  - Current: padding: 8px 56px 18px;
+  - Increase left/right padding (2nd value) to reduce panel width.
+    Example:
+    - 56px -> 72px (narrower)
+    - 56px -> 88px (much narrower)
+
+- Also reduce per-column width by increasing portrait column pressure:
+  - Selector: .reels-commander
+  - grid-template-columns: 132px 1fr;
+  - If you increase first value, text column shrinks.
+
+- If you need both commander blocks narrower at once, do this first:
+  1) Increase .reels-commanders horizontal padding.
+  2) Keep .reels-commanders grid-template-columns: 1fr 1fr.
+
+Recommended tuning order
+1) Lock map-wrap size/position.
+2) Fine-nudge MAP_ORIGIN_X/Y in render.js.
+3) Lock bottom zone height and commander margin-top.
+4) Place speech bubbles with .reels-speech-row top.
+5) Final text-size pass for overflow safety.

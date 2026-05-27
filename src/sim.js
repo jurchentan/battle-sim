@@ -639,16 +639,26 @@ function showReelsSignatureQuote(side, action) {
 }
 
 function getSignatureQuote(commander, action, side) {
+  const id = state.armies[side]?.armyCommanderId;
+
+  if (id === "napoleon" && action === "artillery_barrage") {
+    return "Grand Battery! Mass the guns—break their line!";
+  }
+
+  if (id === "lee" && action === "foot_cavalry") {
+    return "Foot Cavalry—turn their flank and shake their morale!";
+  }
+
   const quotes = commander.signatureQuotes?.[action];
   if (Array.isArray(quotes) && quotes.length) {
     const seed = (state.turn || 0) + (side === "B" ? 1 : 0);
     return quotes[seed % quotes.length];
   }
-  if (action === "artillery_barrage") return "Guns, open and break them.";
-  if (action === "foot_cavalry") return "Press the march and strike hard.";
-  if (action === "feigned_retreat") return "Fall back, then close the trap.";
+  if (action === "artillery_barrage") return "Mass the guns—break their line!";
+  if (action === "foot_cavalry") return "Turn their flank and shake their morale!";
+  if (action === "feigned_retreat") return "Fall back—then close the trap!";
   if (action === "fighting_withdrawal") return "Yield ground, not the army.";
-  if (action === "perfect_plan") return "Hold the line; then strike by plan.";
+  if (action === "perfect_plan") return "Hold the line. The plan is set.";
   return "Forward by command.";
 }
 
