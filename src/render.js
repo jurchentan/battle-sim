@@ -592,7 +592,7 @@ function updateReelsCard(side) {
     abilityLabelEl.classList.toggle("ready", !!army.abilityReady);
   }
   if (chargeDescEl) {
-    chargeDescEl.textContent = formatChargeDescription(commander.chargeDescription);
+    chargeDescEl.textContent = formatChargeDescription(commander.signature?.description);
   }
   if (miniTraitsEl) {
     const t = commander.traits || {};
@@ -624,11 +624,10 @@ function getReelsDisplayName(commander) {
 }
 
 function formatChargeDescription(text) {
-  const fallback = "Charges through battlefield momentum.";
+  const fallback = "Signature charges by 2.5% each turn, plus charge from losses.";
   const raw = (text || fallback).trim();
   if (!raw) return fallback;
-  const lowered = raw.toLowerCase();
-  return lowered.charAt(0).toUpperCase() + lowered.slice(1);
+  return raw;
 }
 
 function aliveUnitCount(side) {

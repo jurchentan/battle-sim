@@ -129,6 +129,10 @@ function stepTurnDamagePhase() {
     return { ended: false };
   }
   const { rand, turnEvents } = state.pendingTurnDamage;
+  const defeatedBefore = {
+    A: state.armies.A.defeatedUnitCount || 0,
+    B: state.armies.B.defeatedUnitCount || 0,
+  };
   state.pendingTurnDamage = null;
 
   resolveCombat(rand, turnEvents);
@@ -136,6 +140,10 @@ function stepTurnDamagePhase() {
   ["A", "B"].forEach((side) => tickMajorActionBoost(side));
   routeAndCleanup(turnEvents);
   refreshArmyCounts();
+  ["A", "B"].forEach((side) => {
+    const lossesThisTurn = Math.max(0, (state.armies[side].defeatedUnitCount || 0) - defeatedBefore[side]);
+    applyAbilityChargeGain(side, lossesThisTurn);
+  });
 
   const winner = checkEndCondition();
   state.replay.turns.push({ turn: state.turn, events: turnEvents });
@@ -152,6 +160,18 @@ function stepTurnDamagePhase() {
   state.turnInProgress = false;
   render();
   return { ended: false };
+}
+
+function applyAbilityChargeGain(side, lossesThisTurn) {
+  const army = state.armies[side];
+  if (!army || army.activeSignature) return;
+  const naturalGain = 2.5;
+  const startingUnits = Math.max(1, army.startingUnitCount || 1);
+  const lossGainPerUnit = 200 / startingUnits;
+  const lossGain = Math.max(0, lossesThisTurn) * lossGainPerUnit;
+  const totalGain = naturalGain + lossGain;
+  army.abilityCharge = Math.min(100, army.abilityCharge + totalGain);
+  if (army.abilityCharge >= 100) army.abilityReady = true;
 }
 
 function clearOrderPopups() {
@@ -1697,12 +1717,6 @@ function hexDist(q1, r1, q2, r2) {
 }
 
 function resolveCombat(rand, events) {
-  const damageDealt = { A: 0, B: 0 };
-  const damageTaken = { A: 0, B: 0 };
-  const artilleryDamage = { A: 0, B: 0 };
-  const cavalryMoraleInflicted = { A: 0, B: 0 };
-  const flankExec = { A: 0, B: 0 };
-  const holdUsage = { A: 0, B: 0 };
   const turnShockTracker = {};
   const aliveAtStart = new Set(
     [...state.armies.A.units, ...state.armies.B.units].filter((u) => u.alive).map((u) => u.id),
@@ -1737,9 +1751,6 @@ function resolveCombat(rand, events) {
       const dmg = base * moraleMod * (0.6 + rand() * 0.8);
 
       intents.push({ attacker: u, target, side, dmg, targetSupport });
-
-      const wing = state.armies[side].divisions[u.divisionId] || state.armies[side].divisions.center;
-      if (wing.currentOrder === "Hold") holdUsage[side] += 1;
     });
   });
 
@@ -1747,14 +1758,6 @@ function resolveCombat(rand, events) {
     const { attacker, target, side, dmg, targetSupport } = intent;
     if (!target.alive) return;
     target.strength -= dmg;
-    damageDealt[side] += Math.max(0, dmg);
-    damageTaken[target.armyId] += Math.max(0, dmg);
-    if (attacker.type === "artillery") artilleryDamage[side] += Math.max(0, dmg);
-
-    const attackerWing = state.armies[side].divisions[attacker.divisionId] || state.armies[side].divisions.center;
-    if ((attackerWing.currentOrder === "Flank Left" || attackerWing.currentOrder === "Flank Right") && hexDist(attacker.q, attacker.r, target.q, target.r) <= 1) {
-      flankExec[side] += 1;
-    }
 
     let moraleShock = 0;
     const shockTags = [];
@@ -1784,51 +1787,12 @@ function resolveCombat(rand, events) {
     }
     const moraleShockMult = moraleShock < 0 ? getActionMoraleShockMultiplier(state.armies[target.armyId], target) : 1;
     target.morale += moraleShock * moraleShockMult;
-    if (attacker.type === "cavalry" && moraleShock < 0) {
-      cavalryMoraleInflicted[side] += Math.abs(moraleShock * moraleShockMult);
-    }
-
     if (moraleShock < 0) {
       const label = shockTags.length ? shockTags.join(" + ") : `MORALE SHOCK ${Math.round(moraleShock)}%`;
       events.push(`${displayUnitId(target.id)} ${label}`);
     }
   });
 
-  ["A", "B"].forEach((side) => {
-    const army = state.armies[side];
-    if (army.activeSignature) return;
-    const enemySide = side === "A" ? "B" : "A";
-    const commanderId = army.armyCommanderId;
-    let gain = 3;
-
-    if (commanderId === "napoleon") {
-      gain += Math.min(24, artilleryDamage[side] / 10);
-      gain += Math.min(8, damageDealt[side] / 40);
-    } else if (commanderId === "genghis") {
-      gain += Math.min(26, cavalryMoraleInflicted[side] / 4.5);
-      gain += Math.min(6, flankExec[side] * 1.2);
-    } else if (commanderId === "washington") {
-      if (damageTaken[side] < damageTaken[enemySide]) {
-        gain += 12 + Math.min(12, (damageTaken[enemySide] - damageTaken[side]) / 18);
-      } else {
-        gain += Math.min(5, damageDealt[side] / 55);
-      }
-    } else if (commanderId === "lee") {
-      gain += flankExec[side] * 6;
-      gain += Math.min(8, damageDealt[side] / 42);
-    } else if (commanderId === "mcclellan") {
-      gain += Math.min(22, holdUsage[side] * 0.9);
-      if ((army.currentAction || "") === "defensive_stand") gain += 5;
-    } else if (commanderId === "chaos") {
-      gain = 15;
-    } else {
-      gain += Math.min(20, damageDealt[side] / 20);
-    }
-
-    gain = Math.max(1, Math.min(30, gain));
-    army.abilityCharge = Math.min(100, army.abilityCharge + gain);
-    if (army.abilityCharge >= 100) army.abilityReady = true;
-  });
 }
 
 function pickTargetFromSet(unit, enemySide, aliveSet) {
