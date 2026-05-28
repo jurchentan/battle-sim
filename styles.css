@@ -234,11 +234,15 @@ select {
 .order-popup.reels {
   top: -2px;
   bottom: auto;
-  max-width: calc(50% - 12px);
+  max-width: 280px;
+  padding: 6px 8px;
+  border-radius: 6px;
 }
 .order-popup.reels.left { left: 8px; right: auto; }
 .order-popup.reels.right { right: 8px; left: auto; }
-.order-popup.reels.stack-1 { top: 62px; }
+.order-popup.reels.stack-1 { top: 44px; }
+.order-popup.reels .order-popup-title { font-size: 1.02rem; margin-bottom: 2px; line-height: 1.05; }
+.order-popup.reels .order-popup-desc { font-size: 0.8rem; line-height: 1.2; }
 .order-popup-title { font-size: 1.5rem; font-weight: 900; margin-bottom: 4px; letter-spacing: 0.2px; line-height: 1.03; }
 .order-popup-desc { font-size: 1.05rem; color: var(--muted); line-height: 1.3; }
 
@@ -648,6 +652,22 @@ select {
   mask-image: radial-gradient(circle at center, rgba(0, 0, 0, 1) 44%, rgba(0, 0, 0, 0.74) 66%, rgba(0, 0, 0, 0.28) 82%, rgba(0, 0, 0, 0) 100%);
 }
 
+.reels-portrait.ult-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  pointer-events: none;
+}
+
+.reels-portrait.ult-active {
+  border-radius: 0;
+  object-fit: contain;
+  -webkit-mask-image: none;
+  mask-image: none;
+  filter: saturate(0.98) contrast(1.06);
+  will-change: transform;
+}
+
 .reels-blue-commander .reels-portrait {
   transform: scaleX(-1);
   -webkit-mask-image:
@@ -749,6 +769,16 @@ select {
   text-shadow: 0 2px 3px rgba(0, 0, 0, 0.6);
   pointer-events: none;
   z-index: 2;
+}
+
+.bar-text.ready {
+  color: #fff0c6;
+  text-shadow: 0 0 10px rgba(255, 209, 123, 0.75), 0 2px 3px rgba(0, 0, 0, 0.6);
+}
+
+.bar-text.active {
+  color: #fff5da;
+  text-shadow: 0 0 14px rgba(255, 181, 92, 0.95), 0 2px 3px rgba(0, 0, 0, 0.6);
 }
 
 .reels-power-bar {

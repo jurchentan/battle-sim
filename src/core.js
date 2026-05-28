@@ -193,11 +193,14 @@ const state = {
   running: false,
   turnInProgress: false,
   pendingTurnDamage: null,
+  pendingTurnPrelude: null,
   simTimer: null,
   actionHighlights: [],
   actionHighlightVisuals: {},
   battleOverlay: null,
   reelsCommanderQuote: { A: null, B: null },
+  signatureCinematics: { A: null, B: null },
+  ultPortraitTuning: { enabled: false, side: "A", step: 4, scaleStep: 0.02, zStep: 1, showOverlay: true },
   unitAnimations: {},
   animationFramePending: false,
   replay: { seed: 0, turns: [], finalResult: null },
@@ -271,6 +274,11 @@ const REELS_MUSIC = {
   B: null,
 };
 
+const REELS_SIGNATURE_SFX = {
+  artillery_barrage: null,
+  fighting_withdrawal: null,
+};
+
 function setReelsLeaderTrack(side, src) {
   if (!REELS_MUSIC[side]) {
     REELS_MUSIC[side] = new Audio();
@@ -281,6 +289,16 @@ function setReelsLeaderTrack(side, src) {
 
 window.setReelsLeaderTrack = setReelsLeaderTrack;
 
+function setReelsSignatureSfx(signatureType, src) {
+  if (!REELS_SIGNATURE_SFX[signatureType]) {
+    REELS_SIGNATURE_SFX[signatureType] = new Audio();
+    REELS_SIGNATURE_SFX[signatureType].preload = "auto";
+  }
+  REELS_SIGNATURE_SFX[signatureType].src = src;
+}
+
+window.setReelsSignatureSfx = setReelsSignatureSfx;
+
 const SCENARIO_API = "/api/scenarios";
 const PORTRAITS = {
   napoleon: loadPortrait("./assets/commanders/napoleon.png"),
@@ -290,6 +308,30 @@ const PORTRAITS = {
   mcclellan: loadPortrait("./assets/commanders/mcclellan.png"),
   chaos: loadPortrait("./assets/commanders/general chaos.png"),
 };
+const PORTRAITS_ULT = {
+  napoleon: loadPortrait("./assets/commanders/napoleon-ult.png"),
+  washington: loadPortrait("./assets/commanders/washington-ult.png"),
+};
+const ULT_PORTRAIT_LAYOUT = {
+  "napoleon:artillery_barrage": {
+    A: { offsetX: -56, offsetY: -24, scale: 1.34, z: 8 },
+    B: { offsetX: 56, offsetY: -24, scale: 1.34, z: 8 },
+  },
+  "washington:fighting_withdrawal": {
+    A: { offsetX: -34, offsetY: -16, scale: 1.24, z: 8 },
+    B: { offsetX: 34, offsetY: -16, scale: 1.24, z: 8 },
+  },
+};
+
+function setUltPortraitLayout(signatureKey, side, patch) {
+  if (!signatureKey || (side !== "A" && side !== "B")) return;
+  if (!ULT_PORTRAIT_LAYOUT[signatureKey]) ULT_PORTRAIT_LAYOUT[signatureKey] = {};
+  const current = ULT_PORTRAIT_LAYOUT[signatureKey][side] || { offsetX: 0, offsetY: 0, scale: 1, z: 8 };
+  ULT_PORTRAIT_LAYOUT[signatureKey][side] = { ...current, ...(patch || {}) };
+}
+
+window.setUltPortraitLayout = setUltPortraitLayout;
+window.getUltPortraitLayout = () => JSON.parse(JSON.stringify(ULT_PORTRAIT_LAYOUT));
 const UNIT_ICONS = {
   A: {
     infantry: loadIcon("./assets/icons/infantry-blue.png"),
@@ -305,6 +347,10 @@ const UNIT_ICONS = {
 const MORALE_ICONS = {
   low: loadIcon("./assets/icons/lossmorale.png"),
   critical: loadIcon("./assets/icons/lossalotofmorale.png"),
+};
+const SIGNATURE_ICONS = {
+  explosion: loadIcon("./assets/icons/explosion.png"),
+  usFlag: loadIcon("./assets/icons/us-flag.png"),
 };
 const COMMANDER_ACCENT = {
   napoleon: "#123d8d",

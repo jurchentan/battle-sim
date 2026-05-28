@@ -322,12 +322,14 @@ function shouldUseSignatureNow(side, rand) {
     const coverage = enemyAlive > 0 ? (inRange / enemyAlive) : 0;
     if (coverage >= 0.45) useChance = 0.95;
     else if (coverage >= 0.3) useChance = 0.85;
+    else if (coverage == 0.0) useChance = 0.0;
+
     else useChance = 0.56;
   } else if (commanderId === "washington") {
     const lossPct = (army.defeatedUnitCount || 0) / Math.max(1, army.startingUnitCount || 1);
-    if (lossPct >= 0.22) useChance = 0.95;
-    else if (lossPct >= 0.12) useChance = 0.84;
-    else useChance = 0.62;
+    if (lossPct >= 0.5) useChance = 0.95;
+    else if (lossPct >= 0.25) useChance = 0.75;
+    else useChance = 0.4;
   }
 
   return rand() < useChance;

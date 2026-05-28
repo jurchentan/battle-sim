@@ -9,6 +9,7 @@ function wireUi() {
   els.reelsSideModeBtn.onclick = toggleReelsMode;
   els.reelsSideSimBtn.onclick = toggleSimulation;
   els.reelsSideStepBtn.onclick = stepTurn;
+  ensureUltTuningPreviewButton();
   document.getElementById("saveScenarioBtn").onclick = openScenarioLibrary;
   document.getElementById("loadScenarioBtn").onclick = openScenarioLibrary;
   els.saveNamedScenarioBtn.onclick = saveScenario;
@@ -30,8 +31,115 @@ function wireUi() {
   els.canvas.addEventListener("mousedown", onCanvasPointerDown);
   els.canvas.addEventListener("mousemove", onCanvasPointerMove);
   window.addEventListener("mouseup", onCanvasPointerUp);
+  window.addEventListener("keydown", onUltPortraitTuningKeydown);
   window.addEventListener("resize", updateReelsStageScale);
   updateSimButton();
+}
+
+function onUltPortraitTuningKeydown(e) {
+  if (!state.reelsMode) return;
+  if (e.altKey && e.key.toLowerCase() === "u") {
+    state.ultPortraitTuning.enabled = !state.ultPortraitTuning.enabled;
+    const mode = state.ultPortraitTuning.enabled ? "ON" : "OFF";
+    log(`Ult portrait tuning ${mode}. Side ${state.ultPortraitTuning.side}.`);
+    if (state.ultPortraitTuning.enabled) {
+      log("Keys: Arrows move, [ ] scale, , . z-index, Tab side, C copy config.");
+    }
+    updateUltTuningPreviewButtonLabel();
+    render();
+    return;
+  }
+  if (!state.ultPortraitTuning.enabled) return;
+
+  const t = state.ultPortraitTuning;
+  const side = t.side;
+  const sigKey = getTunableUltSignatureKey(side);
+  if (!sigKey) return;
+  const patch = {};
+  let changed = false;
+
+  if (e.key === "ArrowLeft") { patch.offsetX = getUltLayoutValue(sigKey, side, "offsetX") - t.step; changed = true; }
+  if (e.key === "ArrowRight") { patch.offsetX = getUltLayoutValue(sigKey, side, "offsetX") + t.step; changed = true; }
+  if (e.key === "ArrowUp") { patch.offsetY = getUltLayoutValue(sigKey, side, "offsetY") - t.step; changed = true; }
+  if (e.key === "ArrowDown") { patch.offsetY = getUltLayoutValue(sigKey, side, "offsetY") + t.step; changed = true; }
+  if (e.key === "[") { patch.scale = Number((getUltLayoutValue(sigKey, side, "scale") - t.scaleStep).toFixed(3)); changed = true; }
+  if (e.key === "]") { patch.scale = Number((getUltLayoutValue(sigKey, side, "scale") + t.scaleStep).toFixed(3)); changed = true; }
+  if (e.key === ",") { patch.z = getUltLayoutValue(sigKey, side, "z") - t.zStep; changed = true; }
+  if (e.key === ".") { patch.z = getUltLayoutValue(sigKey, side, "z") + t.zStep; changed = true; }
+
+  if (e.key === "Tab") {
+    e.preventDefault();
+    t.side = t.side === "A" ? "B" : "A";
+    log(`Ult portrait tuning side -> ${t.side}`);
+    render();
+    return;
+  }
+
+  if (e.key.toLowerCase() === "c") {
+    e.preventDefault();
+    const v = getUltLayoutValues(sigKey, side);
+    const snippet = `\"${sigKey}\": { ${side}: { offsetX: ${v.offsetX}, offsetY: ${v.offsetY}, scale: ${v.scale}, z: ${v.z} } }`;
+    log(`Ult layout ${side} copied snippet: ${snippet}`);
+    return;
+  }
+
+  if (!changed) return;
+  e.preventDefault();
+  setUltPortraitLayout(sigKey, side, patch);
+  const v = getUltLayoutValues(sigKey, side);
+  els.banner.textContent = `ULT TUNE ${side} ${sigKey} · x ${v.offsetX} y ${v.offsetY} s ${v.scale} z ${v.z}`;
+  render();
+}
+
+function ensureUltTuningPreviewButton() {
+  if (!els.reelsSideControls) return;
+  let btn = document.getElementById("ultTunePreviewBtn");
+  if (!btn) {
+    btn = document.createElement("button");
+    btn.id = "ultTunePreviewBtn";
+    btn.className = "ghost";
+    btn.onclick = () => {
+      state.ultPortraitTuning.showOverlay = !state.ultPortraitTuning.showOverlay;
+      const mode = state.ultPortraitTuning.showOverlay ? "ON" : "OFF";
+      log(`Ult overlay reference: ${mode}`);
+      updateUltTuningPreviewButtonLabel();
+      render();
+    };
+    els.reelsSideControls.appendChild(btn);
+  }
+  updateUltTuningPreviewButtonLabel();
+}
+
+function updateUltTuningPreviewButtonLabel() {
+  const btn = document.getElementById("ultTunePreviewBtn");
+  if (!btn) return;
+  const imgMode = state.ultPortraitTuning.showOverlay ? "ON" : "OFF";
+  const tuneMode = state.ultPortraitTuning.enabled ? "ON" : "OFF";
+  btn.textContent = `ULT Overlay: ${imgMode} · Tune ${tuneMode}`;
+}
+
+function getTunableUltSignatureKey(side) {
+  const army = state.armies[side];
+  if (!army) return null;
+  if (army.activeSignature) return `${army.armyCommanderId}:${army.activeSignature.type}`;
+  const fallbackType = COMMANDERS[army.armyCommanderId]?.signature?.type;
+  if (!fallbackType) return null;
+  return `${army.armyCommanderId}:${fallbackType}`;
+}
+
+function getUltLayoutValue(sigKey, side, field) {
+  return getUltLayoutValues(sigKey, side)[field];
+}
+
+function getUltLayoutValues(sigKey, side) {
+  const map = getUltPortraitLayout();
+  const v = map?.[sigKey]?.[side] || {};
+  return {
+    offsetX: Number(v.offsetX) || 0,
+    offsetY: Number(v.offsetY) || 0,
+    scale: Number(v.scale) || 1,
+    z: Number(v.z) || 8,
+  };
 }
 
 function toggleReelsMode() {
@@ -106,6 +214,7 @@ function resetBattleState() {
   state.running = false;
   state.turnInProgress = false;
   state.pendingTurnDamage = null;
+  state.pendingTurnPrelude = null;
   state.replay = { seed: state.seed, turns: [], finalResult: null };
   state.selectedUnitId = null;
   state.moveSourceUnitId = null;
@@ -114,6 +223,7 @@ function resetBattleState() {
   state.actionHighlightVisuals = {};
   state.battleOverlay = null;
   state.reelsCommanderQuote = { A: null, B: null };
+  state.signatureCinematics = { A: null, B: null };
   state.unitAnimations = {};
 
   if (!restored) {

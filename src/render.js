@@ -8,6 +8,7 @@ function render() {
   updateMapOrigin();
   drawMap();
   drawUnits();
+  drawSignatureCinematics();
   drawActionHighlights();
   drawCommanders();
   drawBattleOverlay();
@@ -67,7 +68,11 @@ function requestAnimationRenderIfNeeded() {
     const segDuration = a.segmentDuration || getAnimationDurationMs();
     return segCount > 0 && (now - a.start) < (segCount * segDuration);
   });
-  if (!hasActive || state.animationFramePending) return;
+  const hasSignatureFx = !!(["A", "B"].find((side) => {
+    const fx = state.signatureCinematics?.[side];
+    return fx && (now - fx.startAt) < fx.durationMs;
+  }));
+  if ((!hasActive && !hasSignatureFx) || state.animationFramePending) return;
   state.animationFramePending = true;
   requestAnimationFrame(() => {
     state.animationFramePending = false;
@@ -558,7 +563,7 @@ function updateReelsCard(side) {
   if (!army) return;
   const commander = COMMANDERS[army.armyCommanderId];
   if (!commander) return;
-  const portrait = PORTRAITS[army.armyCommanderId];
+  const portrait = getCommanderPortraitForState(army);
   const isBlue = side === "A";
 
   const nameEl = isBlue ? els.reelsBlueName : els.reelsRedName;
@@ -573,6 +578,7 @@ function updateReelsCard(side) {
   if (nameEl) nameEl.textContent = getReelsDisplayName(commander).toUpperCase();
   fitCommanderName(nameEl);
   if (portraitEl && portrait && portrait.src) portraitEl.src = portrait.src;
+  syncUltPortraitOverlay(side, army, portraitEl);
 
   const defeatedPct = (army.defeatedUnitCount / Math.max(1, army.startingUnitCount)) * 100;
   const healthPct = Math.max(0, 1 - (defeatedPct / Math.max(1, state.defeatThresholdPercent)));
@@ -589,7 +595,14 @@ function updateReelsCard(side) {
   const sigName = commander.signature?.name || "Ability";
   if (abilityLabelEl) {
     abilityLabelEl.textContent = sigName;
-    abilityLabelEl.classList.toggle("ready", !!army.abilityReady);
+    abilityLabelEl.classList.toggle("ready", !!army.abilityReady && !army.activeSignature);
+    abilityLabelEl.classList.toggle("active", !!army.activeSignature);
+  }
+  const abilityBarTextEl = abilityEl?.parentElement?.querySelector(".bar-text");
+  if (abilityBarTextEl) {
+    abilityBarTextEl.textContent = army.activeSignature
+      ? "ABILITY ACTIVE"
+      : (army.abilityReady ? "ABILITY CHARGED" : "ABILITY CHARGE");
   }
   if (chargeDescEl) {
     chargeDescEl.textContent = formatChargeDescription(commander.signature?.description);
@@ -599,6 +612,259 @@ function updateReelsCard(side) {
     miniTraitsEl.textContent = `Aggression ${t.aggression ?? 0}   Control ${t.control ?? 0}   Creativity ${t.creativity ?? 0}`;
   }
   updateReelsQuoteBubble(side, quoteEl);
+}
+
+function getCommanderPortraitForState(army) {
+  if (!army) return null;
+  return PORTRAITS[army.armyCommanderId];
+}
+
+function syncUltPortraitOverlay(side, army, portraitEl) {
+  if (!portraitEl || !army) return;
+  const wrap = portraitEl.closest(".reels-portrait-wrap");
+  const overlayEl = ensureUltPortraitOverlay(side, wrap);
+  if (!overlayEl) return;
+
+  const ultImage = PORTRAITS_ULT[army.armyCommanderId];
+  const hasUltImage = !!(ultImage && ultImage.src && !(ultImage.complete && ultImage.naturalWidth === 0));
+  const activeSigType = army.activeSignature?.type;
+  const previewEnabled = !!state.ultPortraitTuning?.enabled;
+  const overlayEnabled = !!state.ultPortraitTuning?.showOverlay;
+  const previewSigType = COMMANDERS[army.armyCommanderId]?.signature?.type;
+  const sigType = activeSigType || (previewEnabled ? previewSigType : null);
+  const shouldShowOverlay = hasUltImage && !!sigType && overlayEnabled;
+  if (!shouldShowOverlay) {
+    overlayEl.classList.remove("ult-active");
+    overlayEl.style.display = "none";
+    overlayEl.style.transform = "";
+    overlayEl.style.zIndex = "";
+    if (wrap) wrap.style.overflow = "";
+    return;
+  }
+
+  if (overlayEl.src !== ultImage.src) overlayEl.src = ultImage.src;
+  const sigKey = `${army.armyCommanderId}:${sigType}`;
+  const sideLayout = ULT_PORTRAIT_LAYOUT[sigKey]?.[side] || { offsetX: 0, offsetY: 0, scale: 1, z: 8 };
+  const offsetX = Number(sideLayout.offsetX) || 0;
+  const offsetY = Number(sideLayout.offsetY) || 0;
+  const scale = Number(sideLayout.scale) || 1;
+  const z = Number(sideLayout.z) || 8;
+  const flip = side === "A" ? -1 : 1;
+  overlayEl.classList.add("ult-active");
+  overlayEl.style.display = "block";
+  overlayEl.style.transform = `translate(${offsetX}px, ${offsetY}px) scaleX(${flip}) scale(${scale})`;
+  overlayEl.style.zIndex = String(z);
+  if (wrap) wrap.style.overflow = "visible";
+}
+
+function ensureUltPortraitOverlay(side, wrap) {
+  if (!wrap) return null;
+  const id = side === "A" ? "reelsBlueUltPortraitOverlay" : "reelsRedUltPortraitOverlay";
+  let overlay = document.getElementById(id);
+  if (overlay) return overlay;
+  overlay = document.createElement("img");
+  overlay.id = id;
+  overlay.className = "reels-portrait ult-overlay";
+  overlay.alt = "Ultimate portrait overlay";
+  overlay.draggable = false;
+  overlay.style.display = "none";
+  wrap.appendChild(overlay);
+  return overlay;
+}
+
+function queueSignatureCinematic(side, sigType, payload = {}) {
+  if (!state.signatureCinematics) state.signatureCinematics = { A: null, B: null };
+  const now = performance.now();
+  const otherSide = side === "A" ? "B" : "A";
+  const otherFx = state.signatureCinematics[otherSide];
+  let startAt = now;
+
+  if (otherFx) {
+    const overlapsNow = Math.abs((otherFx.startAt || now) - now) <= 90;
+    if (overlapsNow) {
+      const otherEndsAt = (otherFx.startAt || now) + (otherFx.durationMs || 0);
+      startAt = Math.max(startAt, otherEndsAt + 260);
+    }
+  }
+
+  state.signatureCinematics[side] = {
+    side,
+    type: sigType,
+    payload,
+    startAt,
+    durationMs: sigType === "artillery_barrage" ? 2350 : 1450,
+    audioPlayed: false,
+  };
+}
+
+function drawSignatureCinematics() {
+  if (!state.signatureCinematics) return;
+  ["A", "B"].forEach((side) => {
+    const fx = state.signatureCinematics[side];
+    if (!fx) return;
+    const t = performance.now() - fx.startAt;
+    if (t < 0) return;
+    if (t >= fx.durationMs) {
+      state.signatureCinematics[side] = null;
+      return;
+    }
+    playSignatureSfxIfNeeded(fx);
+    if (fx.type === "artillery_barrage") {
+      drawGrandBatteryCinematic(fx, t);
+      return;
+    }
+    if (fx.type === "fighting_withdrawal") {
+      drawFightingWithdrawalCinematic(fx, t);
+    }
+  });
+}
+
+function playSignatureSfxIfNeeded(fx) {
+  if (fx.audioPlayed) return;
+  fx.audioPlayed = true;
+  const sfx = REELS_SIGNATURE_SFX[fx.type];
+  if (!sfx || typeof sfx.play !== "function") return;
+  try {
+    sfx.currentTime = 0;
+  } catch (_) {}
+  const maybePromise = sfx.play();
+  if (maybePromise && typeof maybePromise.catch === "function") {
+    maybePromise.catch(() => {});
+  }
+}
+
+function drawGrandBatteryCinematic(fx, elapsedMs) {
+  const fade = Math.max(0, 1 - (elapsedMs / fx.durationMs));
+  const ringStageMs = 420;
+  const lineStageStartMs = 620;
+  const explosionStageStartMs = 1040;
+  ctx.save();
+  const ringStroke = fx.side === "A"
+    ? `rgba(126, 205, 255, ${0.92 * fade})`
+    : `rgba(239, 112, 104, ${0.92 * fade})`;
+  const ringOuter = fx.side === "A"
+    ? `rgba(186, 231, 255, ${0.42 * fade})`
+    : `rgba(255, 168, 156, ${0.42 * fade})`;
+  const tracerColor = `rgba(118, 124, 136, ${0.78 * fade})`;
+
+  const artillery = fx.payload?.artillery || [];
+  const targets = fx.payload?.targets || [];
+  if (elapsedMs <= ringStageMs) {
+    artillery.forEach((gun, i) => {
+      const p = hexToPixel(gun.q, gun.r);
+      const phase = (elapsedMs - (i * 90)) / 250;
+      const pulse = Math.max(0, Math.sin(phase * Math.PI));
+      if (pulse <= 0) return;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 12 + (20 * pulse), 0, Math.PI * 2);
+      ctx.strokeStyle = ringStroke;
+      ctx.lineWidth = 5;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 17 + (24 * pulse), 0, Math.PI * 2);
+      ctx.strokeStyle = ringOuter;
+      ctx.lineWidth = 3;
+      ctx.stroke();
+    });
+  }
+
+  if (elapsedMs >= lineStageStartMs) {
+    const leadGuns = artillery.length ? artillery : [];
+    targets.forEach((target) => {
+      const tp = hexToPixel(target.q, target.r);
+      leadGuns.forEach((gun) => {
+        const gp = hexToPixel(gun.q, gun.r);
+        ctx.beginPath();
+        ctx.moveTo(gp.x, gp.y);
+        const midX = (gp.x + tp.x) / 2;
+        const midY = ((gp.y + tp.y) / 2) - 26;
+        ctx.quadraticCurveTo(midX, midY, tp.x, tp.y);
+        ctx.strokeStyle = tracerColor;
+        ctx.lineWidth = 5;
+        ctx.stroke();
+      });
+
+      const impactT = elapsedMs - (explosionStageStartMs + (target.impactDelayMs || 0));
+      if (impactT < 0) return;
+      const impactPhase = Math.min(1, impactT / 520);
+      const alpha = Math.max(0, 1 - impactPhase);
+      const explosion = SIGNATURE_ICONS?.explosion;
+      if (explosion && explosion.complete && explosion.naturalWidth > 0) {
+        const size = 36 + (impactPhase * 74);
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.drawImage(explosion, tp.x - (size / 2), tp.y - (size / 2), size, size);
+        ctx.restore();
+      } else {
+        const ring = 8 + (impactPhase * 30);
+        ctx.beginPath();
+        ctx.arc(tp.x, tp.y, ring, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(201, 201, 201, ${alpha})`;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+    });
+  }
+  ctx.restore();
+}
+
+function drawFightingWithdrawalCinematic(fx, elapsedMs) {
+  const side = fx.side;
+  ctx.save();
+  state.armies[side].units.filter((u) => u.alive).forEach((u) => {
+    const wing = state.armies[side].divisions[u.divisionId] || {};
+    const p = hexToPixel(u.q, u.r);
+    const dir = side === "A" ? -1 : 1;
+
+    if (wing.currentOrder === "Withdraw" || wing.currentOrder === "Retreat") {
+      if (u.type === "infantry") {
+        const flicker = Math.sin((elapsedMs / 70) + (u.q * 0.8) + (u.r * 0.6));
+        if (flicker > 0.45) {
+          const muzzleX = p.x + (dir * 12);
+          ctx.beginPath();
+          ctx.arc(muzzleX, p.y - 2, 5 + (flicker * 2), 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(255, 218, 140, 0.75)";
+          ctx.fill();
+        }
+      }
+    }
+  });
+  drawWithdrawalFlag(side, elapsedMs);
+  ctx.restore();
+}
+
+function drawWithdrawalFlag(side, elapsedMs) {
+  const flag = SIGNATURE_ICONS?.usFlag;
+  if (!flag || !flag.complete || flag.naturalWidth <= 0) return;
+  const army = state.armies[side];
+  if (!army?.units?.length) return;
+  const frontline = army.units
+    .filter((u) => u.alive && FRONTLINE_DIVISION_IDS.includes(u.divisionId))
+    .filter((u) => {
+      const wing = army.divisions[u.divisionId] || {};
+      return wing.currentOrder === "Withdraw" || wing.currentOrder === "Retreat";
+    });
+  if (!frontline.length) return;
+  const candidate = frontline
+    .map((u) => ({ u, p: hexToPixel(u.q, u.r) }))
+    .sort((a, b) => (side === "A" ? b.p.x - a.p.x : a.p.x - b.p.x))[0];
+  if (!candidate) return;
+
+  const wave = Math.sin(elapsedMs / 130);
+  const p = candidate.p;
+  const px = p.x;
+  const py = p.y - 22 + (wave * 2);
+  const w = 82;
+  const h = 82;
+
+  ctx.save();
+  ctx.translate(px, py);
+  ctx.rotate(wave * 0.05 * (side === "A" ? -1 : 1));
+  if (side === "A") {
+    ctx.scale(-1, 1);
+  }
+  ctx.drawImage(flag, -w / 2, -h / 2, w, h);
+  ctx.restore();
 }
 
 function fitCommanderName(nameEl) {
@@ -687,7 +953,10 @@ function stopLeaderMusic(side) {
 function updateReelsQuoteBubble(side, quoteEl) {
   if (!quoteEl) return;
   const quoteState = state.reelsCommanderQuote?.[side];
-  if (state.reelsMode && quoteState && (quoteState.expiresAt || 0) > Date.now()) {
+  const now = Date.now();
+  const isVisibleWindow = quoteState && (quoteState.expiresAt || 0) > now;
+  const hasStarted = quoteState && (quoteState.showAt || 0) <= now;
+  if (state.reelsMode && isVisibleWindow && hasStarted) {
     const text = `${quoteState.text || ""}`.trim();
     quoteEl.textContent = text;
     if (text.length <= 34) quoteEl.classList.add("compact");

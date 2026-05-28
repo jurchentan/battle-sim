@@ -40,8 +40,10 @@ function rebuildBattlefieldForCurrentModeSize() {
   state.selectedWingUnits.clear();
   state.actionHighlights = [];
   state.battleOverlay = null;
+  state.signatureCinematics = { A: null, B: null };
   state.unitAnimations = {};
   state.turn = 0;
+  state.pendingTurnPrelude = null;
   state.replay = { seed: state.seed, turns: [], finalResult: null };
   buildMap();
   placeDefaultUnits();
