@@ -21,25 +21,43 @@ function runSimulation() {
   state.unitAnimations = {};
   state.pendingTurnPrelude = null;
   state.running = true;
+  updateSimButton();
+  render();
+  let startDelayMs = 0;
   if (!state.replay.turns.length) {
     state.replay = { seed: state.seed, turns: [], finalResult: null };
+    try {
+      if (false && typeof playBattleStartBellSfx === "function") {
+        startDelayMs = Number(playBattleStartBellSfx()) || 0;
+      }
+    } catch (_) {}
     log(`Simulation starts. Seed ${state.seed}.`);
   } else {
     log("Simulation resumed.");
   }
   const loop = () => {
     if (!state.running) return;
-    playTurnPhases((result) => {
-      if (!state.running) return;
-      if (result?.ended) {
-        stopSimulationLoop();
-        render();
-        return;
-      }
-      state.simTimer = setTimeout(loop, getPostTurnDelayMs());
-    });
+    try {
+      playTurnPhases((result) => {
+        if (!state.running) return;
+        if (result?.ended) {
+          stopSimulationLoop();
+          render();
+          return;
+        }
+        state.simTimer = setTimeout(loop, getPostTurnDelayMs());
+      });
+    } catch (err) {
+      stopSimulationLoop();
+      log(`Simulation error: ${err?.message || err}`);
+      render();
+    }
   };
-  loop();
+  if (startDelayMs > 0) {
+    state.simTimer = setTimeout(loop, startDelayMs);
+  } else {
+    loop();
+  }
 }
 
 function getPostTurnDelayMs() {
@@ -226,6 +244,7 @@ function chooseMajorAction(side, rand, events) {
     army.currentAction = "bombard_sector";
     army.currentSector = "artillery";
     army.activeSignature = null;
+    enqueueMajorActionIssuedSfx(side, army.currentAction);
     events.push(`${c.name}: ${formatActionName("bombard_sector", side)} (ARTILLERY sector) · Last guns standing`);
     return;
   }
@@ -235,6 +254,7 @@ function chooseMajorAction(side, rand, events) {
     army.currentSector = army.forcedMajorSector || chooseSectorForAction(army.forcedMajorAction, side, rand);
     army.forcedMajorAction = null;
     army.forcedMajorSector = null;
+    enqueueMajorActionIssuedSfx(side, army.currentAction);
     const major = c.majorOrders[0];
     events.push(`${c.name}: ${formatActionName(army.currentAction, side)} (${army.currentSector.toUpperCase()} sector) · Inspired by ${major.inspiredBy}`);
     return;
@@ -264,6 +284,7 @@ function chooseMajorAction(side, rand, events) {
       sector,
       turnsLeft: sigDuration,
     };
+    enqueueMajorActionIssuedSfx(side, army.currentAction);
     triggerSignatureCinematic(side, sigType);
     events.push(`${c.name}: ${sigName} ORDER (ARMY-WIDE)`);
     return;
@@ -277,6 +298,7 @@ function chooseMajorAction(side, rand, events) {
     army.currentAction = action;
     army.currentSector = sector;
     army.activeSignature = null;
+    enqueueMajorActionIssuedSfx(side, army.currentAction);
     events.push(`${c.name}: ${formatActionName(action, side)} (${sector.toUpperCase()} sector) · CHAOS DECIDES`);
     return;
   }
@@ -288,10 +310,17 @@ function chooseMajorAction(side, rand, events) {
   army.currentAction = action;
   army.currentSector = sector;
   army.activeSignature = null;
+  enqueueMajorActionIssuedSfx(side, army.currentAction);
 
   const major = c.majorOrders[0];
   const line = `${c.name}: ${formatActionName(action, side)} (${sector.toUpperCase()} sector) · Inspired by ${major.inspiredBy}`;
   events.push(line);
+}
+
+function enqueueMajorActionIssuedSfx(side, action) {
+  if (isSignatureAction(action)) return;
+  if (!Array.isArray(state.pendingMajorActionSfx)) state.pendingMajorActionSfx = [];
+  state.pendingMajorActionSfx.push({ side, action });
 }
 
 function triggerSignatureCinematic(side, sigType) {
@@ -936,8 +965,16 @@ function formatActionName(action, side = null) {
   if (side && state.armies[side]?.activeSignature?.type === action) {
     return state.armies[side].activeSignature.name;
   }
+  const signatureName = getSignatureNameByType(action);
+  if (signatureName) return signatureName;
   if (action === "bombard_sector") return "Artillery Bombardment";
   return action.split("_").map((s) => s[0].toUpperCase() + s.slice(1)).join(" ");
+}
+
+function getSignatureNameByType(actionType) {
+  if (!actionType) return null;
+  const commander = Object.values(COMMANDERS).find((c) => c?.signature?.type === actionType);
+  return commander?.signature?.name || null;
 }
 
 function weightedPick(options, weights, rand) {
@@ -2002,6 +2039,8 @@ function routeAndCleanup(events) {
         const h = getHex(u.q, u.r);
         if (h && h.occupantUnitId === u.id) h.occupantUnitId = null;
         events.push(`${displayUnitId(u.id)} ROUTED`);
+        if (!Array.isArray(state.pendingKillSfx)) state.pendingKillSfx = [];
+        state.pendingKillSfx.push(u.type || "infantry");
         routedThisTurn.push({ q: u.q, r: u.r, id: u.id });
       }
       if (u.morale < 40 && u.morale > 0) u.state = "broken";
@@ -2070,6 +2109,7 @@ function endBattle(text) {
   els.banner.textContent = text;
   log(text);
   state.replay.finalResult = text;
+  state.pendingVictorySfx = true;
   state.battleOverlay = buildBattleOverlay();
   const report = postBattleReport();
   log(report.winner);
@@ -2124,14 +2164,14 @@ function buildBattleOverlay() {
   const redPct = (red.defeatedUnitCount / Math.max(1, red.startingUnitCount)) * 100;
   const winnerSide = redPct >= state.defeatThresholdPercent ? "A" : "B";
   const loserSide = winnerSide === "A" ? "B" : "A";
-  const winnerName = COMMANDERS[state.armies[winnerSide].armyCommanderId]?.name || (winnerSide === "A" ? "Blue" : "Red");
-  const loserName = COMMANDERS[state.armies[loserSide].armyCommanderId]?.name || (loserSide === "A" ? "Blue" : "Red");
+  const winnerName = getCommanderShortName(winnerSide);
+  const loserName = getCommanderShortName(loserSide);
   const blueCas = casualtyByType(blue);
   const redCas = casualtyByType(red);
   const blueStart = startingByType(blue);
   const redStart = startingByType(red);
-  const blueCmd = (COMMANDERS[blue.armyCommanderId]?.name || "Blue").toUpperCase();
-  const redCmd = (COMMANDERS[red.armyCommanderId]?.name || "Red").toUpperCase();
+  const blueCmd = getCommanderShortName("A").toUpperCase();
+  const redCmd = getCommanderShortName("B").toUpperCase();
   return {
     title: `${winnerName} defeats ${loserName}!`,
     leftName: blueCmd,
@@ -2147,6 +2187,17 @@ function buildBattleOverlay() {
       artillery: `${redCas.artillery}/${redStart.artillery}`,
     },
   };
+}
+
+function getCommanderShortName(side) {
+  const fallback = side === "A" ? "Blue" : "Red";
+  const commander = COMMANDERS[state.armies[side]?.armyCommanderId];
+  if (!commander) return fallback;
+  if (commander.reelsShortName) return commander.reelsShortName;
+  const full = (commander.name || fallback).trim();
+  const parts = full.split(/\s+/);
+  if (parts.length <= 1) return full;
+  return parts[parts.length - 1];
 }
 
 function casualtyByType(army) {

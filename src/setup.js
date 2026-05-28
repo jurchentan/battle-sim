@@ -41,6 +41,9 @@ function rebuildBattlefieldForCurrentModeSize() {
   state.actionHighlights = [];
   state.battleOverlay = null;
   state.signatureCinematics = { A: null, B: null };
+  state.pendingKillSfx = [];
+  state.pendingMajorActionSfx = [];
+  state.pendingVictorySfx = false;
   state.unitAnimations = {};
   state.turn = 0;
   state.pendingTurnPrelude = null;

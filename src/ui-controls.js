@@ -26,6 +26,16 @@ function wireUi() {
   els.defeatInput.onchange = () => { state.defeatThresholdPercent = Number(els.defeatInput.value) || 60; };
   els.simSpeedSelect.value = state.simSpeed;
   els.simSpeedSelect.onchange = () => { state.simSpeed = els.simSpeedSelect.value; };
+  if (els.audioToggleBtn) {
+    els.audioToggleBtn.onclick = () => {
+      state.audioEnabled = !state.audioEnabled;
+      updateAudioToggleButton();
+      if (!state.audioEnabled) {
+        const ac = COMBAT_AUDIO?.context;
+        if (ac && typeof ac.suspend === "function") ac.suspend().catch(() => {});
+      }
+    };
+  }
 
   els.canvas.addEventListener("click", onCanvasClick);
   els.canvas.addEventListener("mousedown", onCanvasPointerDown);
@@ -34,6 +44,12 @@ function wireUi() {
   window.addEventListener("keydown", onUltPortraitTuningKeydown);
   window.addEventListener("resize", updateReelsStageScale);
   updateSimButton();
+  updateAudioToggleButton();
+}
+
+function updateAudioToggleButton() {
+  if (!els.audioToggleBtn) return;
+  els.audioToggleBtn.textContent = `Audio: ${state.audioEnabled ? "On" : "Off"}`;
 }
 
 function onUltPortraitTuningKeydown(e) {
@@ -224,6 +240,9 @@ function resetBattleState() {
   state.battleOverlay = null;
   state.reelsCommanderQuote = { A: null, B: null };
   state.signatureCinematics = { A: null, B: null };
+  state.pendingKillSfx = [];
+  state.pendingMajorActionSfx = [];
+  state.pendingVictorySfx = false;
   state.unitAnimations = {};
 
   if (!restored) {

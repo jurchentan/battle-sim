@@ -9,11 +9,15 @@ function render() {
   drawMap();
   drawUnits();
   drawSignatureCinematics();
+  playPendingKillSfx();
+  playPendingMajorActionSfx();
+  playPendingVictorySfx();
   drawActionHighlights();
   drawCommanders();
   drawBattleOverlay();
   renderInfo();
   const phase = state.running ? "Simulation" : "Setup Battle";
+  const displayTurn = Math.max(0, state.turn - 1);
   const nextOrderIn = turnsUntilNextActionTurn();
   if (state.reelsMode) {
     const blueName = (COMMANDERS[state.armies.A.armyCommanderId]?.name || "Blue").toUpperCase();
@@ -30,12 +34,12 @@ function render() {
       fitReelsTitleName(els.reelsRedTitleName, redDisplay);
     }
     const nextIn = nextOrderIn === 0 ? "Now" : nextOrderIn;
-    if (els.reelsTurnCounter) els.reelsTurnCounter.textContent = `turn #${state.turn}`;
+    if (els.reelsTurnCounter) els.reelsTurnCounter.textContent = `turn #${displayTurn}`;
     if (els.reelsNextAction) els.reelsNextAction.textContent = `next action in: ${nextIn}`;
   } else {
     els.title.textContent = "AI Commander Hex Battle Simulator";
   }
-  els.subtitle.textContent = `${phase} · Turn ${state.turn} · Next Major Order: ${nextOrderIn === 0 ? "Now" : `${nextOrderIn} turns`}`;
+  els.subtitle.textContent = `${phase} · Turn ${displayTurn} · Next Major Order: ${nextOrderIn === 0 ? "Now" : `${nextOrderIn} turns`}`;
   updateReelsHud();
   updateSimButton();
   requestAnimationRenderIfNeeded();
@@ -583,14 +587,18 @@ function updateReelsCard(side) {
   const defeatedPct = (army.defeatedUnitCount / Math.max(1, army.startingUnitCount)) * 100;
   const healthPct = Math.max(0, 1 - (defeatedPct / Math.max(1, state.defeatThresholdPercent)));
   const chargePct = Math.max(0, Math.min(1, army.abilityCharge / 100));
+  const isAbilityActive = !!army.activeSignature;
+  const shownAbilityPct = isAbilityActive ? 1 : chargePct;
 
   if (healthEl) {
     healthEl.style.width = `${Math.round(healthPct * 100)}%`;
     healthEl.style.background = healthPct > 0.5 ? "#41a85f" : healthPct > 0.25 ? "#d8a135" : "#d64d42";
   }
   if (abilityEl) {
-    abilityEl.style.width = `${Math.round(chargePct * 100)}%`;
+    abilityEl.style.width = `${Math.round(shownAbilityPct * 100)}%`;
     abilityEl.style.background = isBlue ? "#1e5fb8" : "#9e1f1a";
+    abilityEl.classList.toggle("active-blue", isAbilityActive && isBlue);
+    abilityEl.classList.toggle("active-red", isAbilityActive && !isBlue);
   }
   const sigName = commander.signature?.name || "Ability";
   if (abilityLabelEl) {
@@ -600,9 +608,12 @@ function updateReelsCard(side) {
   }
   const abilityBarTextEl = abilityEl?.parentElement?.querySelector(".bar-text");
   if (abilityBarTextEl) {
-    abilityBarTextEl.textContent = army.activeSignature
+    abilityBarTextEl.textContent = isAbilityActive
       ? "ABILITY ACTIVE"
       : (army.abilityReady ? "ABILITY CHARGED" : "ABILITY CHARGE");
+    abilityBarTextEl.classList.toggle("active", isAbilityActive);
+    abilityBarTextEl.classList.toggle("active-blue", isAbilityActive && isBlue);
+    abilityBarTextEl.classList.toggle("active-red", isAbilityActive && !isBlue);
   }
   if (chargeDescEl) {
     chargeDescEl.textContent = formatChargeDescription(commander.signature?.description);
@@ -694,6 +705,7 @@ function queueSignatureCinematic(side, sigType, payload = {}) {
     startAt,
     durationMs: sigType === "artillery_barrage" ? 2350 : 1450,
     audioPlayed: false,
+    impactAudioPlayed: {},
   };
 }
 
@@ -722,6 +734,9 @@ function drawSignatureCinematics() {
 function playSignatureSfxIfNeeded(fx) {
   if (fx.audioPlayed) return;
   fx.audioPlayed = true;
+  if (typeof playSignatureUltSfx === "function") {
+    playSignatureUltSfx(fx.type);
+  }
   const sfx = REELS_SIGNATURE_SFX[fx.type];
   if (!sfx || typeof sfx.play !== "function") return;
   try {
@@ -786,6 +801,14 @@ function drawGrandBatteryCinematic(fx, elapsedMs) {
 
       const impactT = elapsedMs - (explosionStageStartMs + (target.impactDelayMs || 0));
       if (impactT < 0) return;
+      const impactKey = `${target.q},${target.r},${target.impactDelayMs || 0}`;
+      if (!fx.impactAudioPlayed) fx.impactAudioPlayed = {};
+      if (!fx.impactAudioPlayed[impactKey]) {
+        fx.impactAudioPlayed[impactKey] = true;
+        if (typeof playArtilleryImpactBoomSfx === "function") {
+          playArtilleryImpactBoomSfx(0, 1);
+        }
+      }
       const impactPhase = Math.min(1, impactT / 520);
       const alpha = Math.max(0, 1 - impactPhase);
       const explosion = SIGNATURE_ICONS?.explosion;
@@ -810,27 +833,81 @@ function drawGrandBatteryCinematic(fx, elapsedMs) {
 
 function drawFightingWithdrawalCinematic(fx, elapsedMs) {
   const side = fx.side;
+  const smokeIcon = SIGNATURE_ICONS?.gunsmoke;
+  const units = state.armies[side].units
+    .filter((u) => u.alive && u.type === "infantry")
+    .map((u) => ({ u, p: hexToPixel(u.q, u.r) }))
+    .filter(({ u }) => {
+      const wing = state.armies[side].divisions[u.divisionId] || {};
+      return wing.currentOrder === "Withdraw" || wing.currentOrder === "Retreat";
+    })
+    .sort((a, b) => a.p.x - b.p.x);
+  const unitSpacingMs = 95;
+  const puffSpacingMs = 120;
+  const puffWindowMs = 290;
   ctx.save();
-  state.armies[side].units.filter((u) => u.alive).forEach((u) => {
-    const wing = state.armies[side].divisions[u.divisionId] || {};
-    const p = hexToPixel(u.q, u.r);
+  units.forEach(({ u, p }, unitIdx) => {
     const dir = side === "A" ? -1 : 1;
+    const muzzleX = p.x + (dir * 12);
+    const muzzleY = p.y - 2;
+    for (let puffIdx = 0; puffIdx < 3; puffIdx += 1) {
+      const burstStart = (unitIdx * unitSpacingMs) + (puffIdx * puffSpacingMs);
+      const localT = elapsedMs - burstStart;
+      if (localT < 0) continue;
+      const loopT = localT % (units.length * unitSpacingMs + (3 * puffSpacingMs) + 360);
+      if (loopT > puffWindowMs) continue;
+      const phase = Math.max(0, Math.min(1, loopT / puffWindowMs));
+      const flash = 1 - phase;
 
-    if (wing.currentOrder === "Withdraw" || wing.currentOrder === "Retreat") {
-      if (u.type === "infantry") {
-        const flicker = Math.sin((elapsedMs / 70) + (u.q * 0.8) + (u.r * 0.6));
-        if (flicker > 0.45) {
-          const muzzleX = p.x + (dir * 12);
-          ctx.beginPath();
-          ctx.arc(muzzleX, p.y - 2, 5 + (flicker * 2), 0, Math.PI * 2);
-          ctx.fillStyle = "rgba(255, 218, 140, 0.75)";
-          ctx.fill();
-        }
+      ctx.beginPath();
+      ctx.arc(muzzleX, muzzleY, 5 + (flash * 3), 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255, 226, 150, ${0.7 * flash})`;
+      ctx.fill();
+
+      const smokeAlpha = 0.5 * (1 - phase);
+      const smokeSize = 40 + (phase * 42);
+      if (smokeIcon && smokeIcon.complete && smokeIcon.naturalWidth > 0) {
+        ctx.save();
+        ctx.globalAlpha = smokeAlpha;
+        ctx.drawImage(smokeIcon, muzzleX - (smokeSize * 0.54), muzzleY - (smokeSize * 0.58), smokeSize, smokeSize);
+        ctx.restore();
+      } else {
+        ctx.beginPath();
+        ctx.arc(muzzleX, muzzleY, 12 + (phase * 16), 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(226, 224, 215, ${smokeAlpha})`;
+        ctx.fill();
       }
     }
   });
   drawWithdrawalFlag(side, elapsedMs);
   ctx.restore();
+}
+
+function playPendingKillSfx() {
+  if (!Array.isArray(state.pendingKillSfx) || !state.pendingKillSfx.length) return;
+  const queue = state.pendingKillSfx.splice(0, 10);
+  queue.forEach((unitType, idx) => {
+    if (typeof playUnitKillSfx !== "function") return;
+    playUnitKillSfx(unitType, idx * 0.03);
+  });
+}
+
+function playPendingMajorActionSfx() {
+  if (!Array.isArray(state.pendingMajorActionSfx) || !state.pendingMajorActionSfx.length) return;
+  const queue = state.pendingMajorActionSfx.splice(0, 6);
+  queue.forEach((entry, idx) => {
+    if (typeof playMajorActionIssuedSfx !== "function") return;
+    const side = entry?.side || "A";
+    const action = entry?.action || "advance";
+    playMajorActionIssuedSfx(side, action, idx * 0.05);
+  });
+}
+
+function playPendingVictorySfx() {
+  if (!state.pendingVictorySfx) return;
+  state.pendingVictorySfx = false;
+  if (typeof playVictoryDingSfx !== "function") return;
+  playVictoryDingSfx();
 }
 
 function drawWithdrawalFlag(side, elapsedMs) {

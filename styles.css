@@ -487,7 +487,7 @@ select {
   position: absolute;
   left: 64px;
   right: 64px;
-  top: -120px;
+  top: -180px;
   z-index: 4;
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -779,6 +779,24 @@ select {
 .bar-text.active {
   color: #fff5da;
   text-shadow: 0 0 14px rgba(255, 181, 92, 0.95), 0 2px 3px rgba(0, 0, 0, 0.6);
+}
+
+.bar-fill.active-blue {
+  box-shadow: 0 0 18px rgba(66, 145, 255, 0.75), 0 0 30px rgba(66, 145, 255, 0.45);
+}
+
+.bar-fill.active-red {
+  box-shadow: 0 0 18px rgba(255, 86, 72, 0.75), 0 0 30px rgba(255, 86, 72, 0.45);
+}
+
+.bar-text.active-blue {
+  color: #dfeeff;
+  text-shadow: 0 0 14px rgba(66, 145, 255, 0.95), 0 2px 3px rgba(0, 0, 0, 0.6);
+}
+
+.bar-text.active-red {
+  color: #ffe3df;
+  text-shadow: 0 0 14px rgba(255, 86, 72, 0.95), 0 2px 3px rgba(0, 0, 0, 0.6);
 }
 
 .reels-power-bar {

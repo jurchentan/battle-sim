@@ -190,6 +190,7 @@ const state = {
   reelsMode: false,
   reelsUnitScale: 2,
   simSpeed: "slow",
+  audioEnabled: true,
   running: false,
   turnInProgress: false,
   pendingTurnDamage: null,
@@ -200,6 +201,9 @@ const state = {
   battleOverlay: null,
   reelsCommanderQuote: { A: null, B: null },
   signatureCinematics: { A: null, B: null },
+  pendingKillSfx: [],
+  pendingMajorActionSfx: [],
+  pendingVictorySfx: false,
   ultPortraitTuning: { enabled: false, side: "A", step: 4, scaleStep: 0.02, zStep: 1, showOverlay: true },
   unitAnimations: {},
   animationFramePending: false,
@@ -231,6 +235,7 @@ const els = {
   closeLibraryBtn: document.getElementById("closeLibraryBtn"),
   scenarioList: document.getElementById("scenarioList"),
   simSpeedSelect: document.getElementById("simSpeedSelect"),
+  audioToggleBtn: document.getElementById("audioToggleBtn"),
   importScenarioBtn: document.getElementById("importScenarioBtn"),
   importScenarioInput: document.getElementById("importScenarioInput"),
   reelsModeBtn: document.getElementById("reelsModeBtn"),
@@ -351,7 +356,320 @@ const MORALE_ICONS = {
 const SIGNATURE_ICONS = {
   explosion: loadIcon("./assets/icons/explosion.png"),
   usFlag: loadIcon("./assets/icons/us-flag.png"),
+  gunsmoke: loadIcon("./assets/icons/gunsmoke.png"),
 };
+
+const COMBAT_AUDIO = {
+  context: null,
+};
+
+const AUDIO_TUNING = {
+  killSfxGain: 0.52,
+  ultWashingtonGain: 1.4,
+  ultNapoleonGain: 0.9,
+  victoryDingGain: 1.4,
+  actionBellGain: 0.6,
+  startBellGain: 1,
+  startBellStrikeGapSec: 0.15,
+  startBellWaitMs: 600,
+  artilleryImpactBoomGain: 0.95,
+};
+
+function getCombatAudioContext() {
+  if (!state.audioEnabled) return null;
+  const Ctx = window.AudioContext || window.webkitAudioContext;
+  if (!Ctx) return null;
+  if (!COMBAT_AUDIO.context) COMBAT_AUDIO.context = new Ctx();
+  if (COMBAT_AUDIO.context.state === "suspended") {
+    COMBAT_AUDIO.context.resume().catch(() => {});
+  }
+  return COMBAT_AUDIO.context;
+}
+
+function playUnitKillSfx(unitType, delaySec = 0) {
+  const ac = getCombatAudioContext();
+  if (!ac) return;
+  const now = ac.currentTime + Math.max(0, delaySec);
+  const out = ac.createGain();
+  out.connect(ac.destination);
+  out.gain.setValueAtTime(0.0001, now);
+  out.gain.exponentialRampToValueAtTime(AUDIO_TUNING.killSfxGain, now + 0.008);
+  out.gain.exponentialRampToValueAtTime(0.0001, now + 0.42);
+
+  if (unitType === "infantry") {
+    const osc = ac.createOscillator();
+    const noise = ac.createBufferSource();
+    const filter = ac.createBiquadFilter();
+    filter.type = "bandpass";
+    filter.frequency.setValueAtTime(2100, now);
+    const len = Math.floor(ac.sampleRate * 0.22);
+    const buffer = ac.createBuffer(1, len, ac.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < len; i += 1) data[i] = (Math.random() * 2) - 1;
+    noise.buffer = buffer;
+
+    osc.type = "square";
+    osc.frequency.setValueAtTime(300, now);
+    osc.frequency.exponentialRampToValueAtTime(110, now + 0.14);
+
+    osc.connect(out);
+    noise.connect(filter);
+    filter.connect(out);
+    osc.start(now);
+    noise.start(now);
+    osc.stop(now + 0.16);
+    noise.stop(now + 0.19);
+    return;
+  }
+
+  if (unitType === "cavalry") {
+    const hit1 = ac.createOscillator();
+    const hit2 = ac.createOscillator();
+    const ring = ac.createGain();
+    ring.gain.setValueAtTime(0.001, now);
+    ring.gain.exponentialRampToValueAtTime(0.22, now + 0.01);
+    ring.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+    hit1.type = "triangle";
+    hit2.type = "triangle";
+    hit1.frequency.setValueAtTime(820, now);
+    hit2.frequency.setValueAtTime(1160, now);
+    hit1.frequency.exponentialRampToValueAtTime(380, now + 0.22);
+    hit2.frequency.exponentialRampToValueAtTime(520, now + 0.2);
+    hit1.connect(ring);
+    hit2.connect(ring);
+    ring.connect(out);
+    hit1.start(now);
+    hit2.start(now + 0.008);
+    hit1.stop(now + 0.24);
+    hit2.stop(now + 0.22);
+    return;
+  }
+
+  const low = ac.createOscillator();
+  const boomNoise = ac.createBufferSource();
+  const lowpass = ac.createBiquadFilter();
+  lowpass.type = "lowpass";
+  lowpass.frequency.setValueAtTime(260, now);
+  const len = Math.floor(ac.sampleRate * 0.5);
+  const buffer = ac.createBuffer(1, len, ac.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < len; i += 1) data[i] = (Math.random() * 2) - 1;
+  boomNoise.buffer = buffer;
+
+  low.type = "sine";
+  low.frequency.setValueAtTime(95, now);
+  low.frequency.exponentialRampToValueAtTime(48, now + 0.32);
+  low.connect(out);
+  boomNoise.connect(lowpass);
+  lowpass.connect(out);
+  low.start(now);
+  boomNoise.start(now);
+  low.stop(now + 0.34);
+  boomNoise.stop(now + 0.46);
+}
+
+function playSignatureUltSfx(sigType) {
+  const ac = getCombatAudioContext();
+  if (!ac) return;
+  const now = ac.currentTime;
+
+  if (sigType === "fighting_withdrawal") {
+    const notes = [523.25, 523.25, 587.33, 659.25, 523.25, 659.25, 587.33, 440.0];
+    notes.forEach((hz, i) => {
+      const t = now + (i * 0.17);
+      const osc = ac.createOscillator();
+      const gain = ac.createGain();
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(hz, t);
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(AUDIO_TUNING.ultWashingtonGain, t + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.16);
+      osc.connect(gain);
+      gain.connect(ac.destination);
+      osc.start(t);
+      osc.stop(t + 0.17);
+    });
+    return;
+  }
+
+  if (sigType === "artillery_barrage") {
+    const bangs = 6;
+    for (let i = 0; i < bangs; i += 1) {
+      const t = now + (i * 0.09);
+      const noise = ac.createBufferSource();
+      const crack = ac.createOscillator();
+      const snap = ac.createOscillator();
+      const bandpass = ac.createBiquadFilter();
+      const highpass = ac.createBiquadFilter();
+      const gain = ac.createGain();
+
+      crack.type = "square";
+      crack.frequency.setValueAtTime(230 - (i * 6), t);
+      crack.frequency.exponentialRampToValueAtTime(110, t + 0.1);
+      snap.type = "triangle";
+      snap.frequency.setValueAtTime(900, t);
+      snap.frequency.exponentialRampToValueAtTime(280, t + 0.07);
+
+      bandpass.type = "bandpass";
+      bandpass.frequency.setValueAtTime(1650, t);
+      highpass.type = "highpass";
+      highpass.frequency.setValueAtTime(220, t);
+
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, AUDIO_TUNING.ultNapoleonGain * 0.7), t + 0.004);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+
+      const len = Math.floor(ac.sampleRate * 0.2);
+      const buffer = ac.createBuffer(1, len, ac.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let s = 0; s < len; s += 1) data[s] = (Math.random() * 2) - 1;
+      noise.buffer = buffer;
+
+      crack.connect(gain);
+      snap.connect(gain);
+      noise.connect(bandpass);
+      bandpass.connect(highpass);
+      highpass.connect(gain);
+      gain.connect(ac.destination);
+
+      crack.start(t);
+      snap.start(t + 0.003);
+      noise.start(t);
+      crack.stop(t + 0.12);
+      snap.stop(t + 0.09);
+      noise.stop(t + 0.2);
+    }
+    return;
+  }
+}
+
+function playArtilleryImpactBoomSfx(delaySec = 0, gainMult = 1) {
+  const ac = getCombatAudioContext();
+  if (!ac) return;
+  const t = ac.currentTime + Math.max(0, delaySec);
+  const noise = ac.createBufferSource();
+  const low = ac.createOscillator();
+  const snap = ac.createOscillator();
+  const lowpass = ac.createBiquadFilter();
+  const band = ac.createBiquadFilter();
+  const out = ac.createGain();
+  const g = Math.max(0.0001, AUDIO_TUNING.artilleryImpactBoomGain * AUDIO_TUNING.ultNapoleonGain * gainMult);
+
+  low.type = "sine";
+  low.frequency.setValueAtTime(118, t);
+  low.frequency.exponentialRampToValueAtTime(42, t + 0.42);
+  snap.type = "triangle";
+  snap.frequency.setValueAtTime(920, t);
+  snap.frequency.exponentialRampToValueAtTime(210, t + 0.09);
+
+  lowpass.type = "lowpass";
+  lowpass.frequency.setValueAtTime(220, t);
+  band.type = "bandpass";
+  band.frequency.setValueAtTime(1200, t);
+
+  const len = Math.floor(ac.sampleRate * 0.5);
+  const buffer = ac.createBuffer(1, len, ac.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < len; i += 1) data[i] = (Math.random() * 2) - 1;
+  noise.buffer = buffer;
+
+  out.gain.setValueAtTime(0.0001, t);
+  out.gain.exponentialRampToValueAtTime(g, t + 0.006);
+  out.gain.exponentialRampToValueAtTime(0.0001, t + 0.5);
+
+  low.connect(lowpass);
+  lowpass.connect(out);
+  snap.connect(out);
+  noise.connect(band);
+  band.connect(out);
+  out.connect(ac.destination);
+
+  low.start(t);
+  snap.start(t);
+  noise.start(t);
+  low.stop(t + 0.44);
+  snap.stop(t + 0.11);
+  noise.stop(t + 0.5);
+}
+
+function playMajorActionIssuedSfx(side, action, delaySec = 0) {
+  const ac = getCombatAudioContext();
+  if (!ac) return;
+  const now = ac.currentTime + Math.max(0, delaySec);
+  const base = side === "A" ? 1046.5 : 987.77;
+  const osc = ac.createOscillator();
+  const gain = ac.createGain();
+  osc.type = "triangle";
+  osc.frequency.setValueAtTime(base, now);
+  gain.gain.setValueAtTime(0.0001, now);
+  gain.gain.exponentialRampToValueAtTime(AUDIO_TUNING.actionBellGain, now + 0.006);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.28);
+  osc.connect(gain);
+  gain.connect(ac.destination);
+  osc.start(now);
+  osc.stop(now + 0.3);
+}
+
+function playVictoryDingSfx(delaySec = 0) {
+  const ac = getCombatAudioContext();
+  if (!ac) return;
+  const now = ac.currentTime + Math.max(0, delaySec);
+  const notes = [784, 988, 1175];
+  notes.forEach((hz, i) => {
+    const t = now + (i * 0.09);
+    const osc = ac.createOscillator();
+    const gain = ac.createGain();
+    osc.type = "triangle";
+    osc.frequency.setValueAtTime(hz, t);
+    gain.gain.setValueAtTime(0.0001, t);
+    gain.gain.exponentialRampToValueAtTime(AUDIO_TUNING.victoryDingGain, t + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.2);
+    osc.connect(gain);
+    gain.connect(ac.destination);
+    osc.start(t);
+    osc.stop(t + 0.21);
+  });
+}
+
+function playBattleStartBellSfx(delaySec = 0) {
+  const ac = getCombatAudioContext();
+  if (!ac) return 0;
+  const start = ac.currentTime + Math.max(0, delaySec);
+  const strikes = [0, Math.max(0.2, Number(AUDIO_TUNING.startBellStrikeGapSec) || 1.25)];
+  strikes.forEach((offset) => {
+    const t = start + offset;
+    const partials = [1568, 2093, 2637, 3136];
+    const bellGain = Math.max(0.0001, Number(AUDIO_TUNING.startBellGain) || 1);
+    const levels = [0.7 * bellGain, 0.45 * bellGain, 0.28 * bellGain, 0.15 * bellGain];
+    partials.forEach((hz, i) => {
+      const osc = ac.createOscillator();
+      const gain = ac.createGain();
+      osc.type = i % 2 === 0 ? "triangle" : "sine";
+      osc.frequency.setValueAtTime(hz, t);
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(levels[i], t + 0.004);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.42 + (i * 0.06));
+      osc.connect(gain);
+      gain.connect(ac.destination);
+      osc.start(t);
+      osc.stop(t + 0.48 + (i * 0.08));
+    });
+
+    const hit = ac.createOscillator();
+    const hitGain = ac.createGain();
+    hit.type = "triangle";
+    hit.frequency.setValueAtTime(3300, t);
+    hit.frequency.exponentialRampToValueAtTime(1700, t + 0.026);
+    hitGain.gain.setValueAtTime(0.0001, t);
+    hitGain.gain.exponentialRampToValueAtTime(0.58, t + 0.0015);
+    hitGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.04);
+    hit.connect(hitGain);
+    hitGain.connect(ac.destination);
+    hit.start(t);
+    hit.stop(t + 0.045);
+  });
+  return Math.max(300, Number(AUDIO_TUNING.startBellWaitMs) || 2600);
+}
 const COMMANDER_ACCENT = {
   napoleon: "#123d8d",
   genghis: "#5db9ff",
