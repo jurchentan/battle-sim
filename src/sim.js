@@ -714,27 +714,10 @@ function showReelsSignatureQuote(side, action) {
 }
 
 function getSignatureQuote(commander, action, side) {
-  const id = state.armies[side]?.armyCommanderId;
-
-  if (id === "napoleon" && action === "artillery_barrage") {
-    return "Grand Battery! Mass the guns—break their line!";
-  }
-
-  if (id === "lee" && action === "foot_cavalry") {
-    return "Foot Cavalry—turn their flank and shake their morale!";
-  }
-
-  const quotes = commander.signatureQuotes?.[action];
-  if (Array.isArray(quotes) && quotes.length) {
-    const seed = (state.turn || 0) + (side === "B" ? 1 : 0);
-    return quotes[seed % quotes.length];
-  }
-  if (action === "artillery_barrage") return "Mass the guns—break their line!";
-  if (action === "foot_cavalry") return "Turn their flank and shake their morale!";
-  if (action === "feigned_retreat") return "Fall back—then close the trap!";
-  if (action === "fighting_withdrawal") return "Yield ground, not the army.";
-  if (action === "perfect_plan") return "Hold the line. The plan is set.";
-  return "Forward by command.";
+  const quotes = commander?.signatureQuotes?.[action];
+  if (!Array.isArray(quotes) || !quotes.length) return null;
+  const seed = (state.turn || 0) + (side === "B" ? 1 : 0);
+  return quotes[seed % quotes.length];
 }
 
 function isSignatureAction(action) {
@@ -783,11 +766,11 @@ function actionReelsDescription(action, sector) {
   if (action === "line_rotation") return `The ${s} rotates out and regains cohesion.`;
   if (action === "exploit_gap") return `The ${s} drives into a visible weakness.`;
   if (action === "commit_reserve") return `Reserve reinforces the ${s}.`;
-  if (action === "artillery_barrage") return "All guns unleash sustained, devastating fire.";
+  if (action === "artillery_barrage") return "All guns are unleashed, dealing double damage.";
   if (action === "foot_cavalry") return "Infantry moves faster and launches flank attacks.";
   if (action === "feigned_retreat") return "Cavalry withdraws, then punishes from range.";
-  if (action === "fighting_withdrawal") return "The army yields ground in good order and endures.";
-  if (action === "perfect_plan") return "The army holds discipline, then strikes by design.";
+  if (action === "fighting_withdrawal") return "The army yields ground in good order, taking half damage.";
+  if (action === "perfect_plan") return "McClellan holds his army, then launches an attack the next phase.";
   return "Major action underway.";
 }
 
@@ -1413,7 +1396,7 @@ function getActionDefenseMultiplier(army, unit) {
   if (action === "mass_assault") return 1.2;
   if (action === "line_rotation" && unitSector === sector) return 0.9;
   const sig = army.activeSignature;
-  if (sig?.type === "fighting_withdrawal") return 0.8;
+  if (sig?.type === "fighting_withdrawal") return 0.5;
   return 1;
 }
 
