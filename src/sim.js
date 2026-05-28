@@ -298,6 +298,12 @@ function chooseMajorAction(side, rand, events) {
       sector,
       turnsLeft: sigDuration,
     };
+    if (sigType === "cross_rubicon") {
+      army.units.forEach((u) => {
+        if (!u.alive) return;
+        u.morale = MAX_MORALE;
+      });
+    }
     enqueueMajorActionIssuedSfx(side, army.currentAction);
     triggerSignatureCinematic(side, sigType);
     events.push(`${c.name}: ${sigName} ORDER (ARMY-WIDE)`);
@@ -797,6 +803,7 @@ function issueOrdersFromAction(side, events) {
     foot_cavalry: { left: "Flank Left", center: "Hold", right: "Flank Right" },
     feigned_retreat: { left: "Withdraw", center: "Withdraw", right: "Withdraw", reserve: "Withdraw", cavalry: "Withdraw", artillery: "Withdraw" },
     fighting_withdrawal: { left: "Withdraw", center: "Withdraw", right: "Withdraw", reserve: "Withdraw", cavalry: "Withdraw", artillery: "Withdraw" },
+    cross_rubicon: { left: "Charge", center: "Charge", right: "Charge" },
   };
   const orders = mapByAction[action] || mapByAction.concentrate_center;
   Object.entries(orders).forEach(([wing, order]) => {
@@ -885,7 +892,8 @@ function isSignatureAction(action) {
     || action === "foot_cavalry"
     || action === "feigned_retreat"
     || action === "fighting_withdrawal"
-    || action === "perfect_plan";
+    || action === "perfect_plan"
+    || action === "cross_rubicon";
 }
 
 function actionTechnicalDescription(action, sector) {
@@ -908,6 +916,7 @@ function actionTechnicalDescription(action, sector) {
   if (action === "feigned_retreat") return "All cavalry retreats and attacks at range 2 for 5 turns.";
   if (action === "fighting_withdrawal") return "Army-wide retreat and morale recovery; infantry fires at range 2 while withdrawing for 5 turns.";
   if (action === "perfect_plan") return "All units hold for 5 turns. Then force an offensive action with +20% damage until the next major action turn.";
+  if (action === "cross_rubicon") return "For 5 turns, all units are pinned to 120% morale and launch a mass assault.";
   return "Major action active.";
 }
 
@@ -931,6 +940,7 @@ function actionReelsDescription(action, sector) {
   if (action === "feigned_retreat") return "Cavalry withdraws, then punishes from range.";
   if (action === "fighting_withdrawal") return "The army withdraws in order, regains morale, and infantry fires to range 2.";
   if (action === "perfect_plan") return "McClellan holds his army, then launches an attack the next phase.";
+  if (action === "cross_rubicon") return "Caesar's legions pin morale to 120% while launching an all-out assault.";
   return "Major action underway.";
 }
 
@@ -968,6 +978,7 @@ function affectedWingsForAction(action, sector) {
   if (action === "feigned_retreat") return ["cavalry"];
   if (action === "artillery_barrage") return ["artillery"];
   if (action === "perfect_plan") return ["__all__"];
+  if (action === "cross_rubicon") return ["__all__"];
   if (action === "mass_assault") return FRONTLINE_DIVISION_IDS;
   if (action === "line_rotation" || action === "exploit_gap") return [sector];
   if (action === "commit_reserve") return [sector, "reserve"];
@@ -1748,11 +1759,21 @@ function getFlankBias(side, order) {
   return -1;
 }
 
+function moraleCapForArmy(army) {
+  if (army?.activeSignature?.type === "cross_rubicon") return MAX_MORALE;
+  return 100;
+}
+
+function moraleCapForSide(side) {
+  return moraleCapForArmy(state.armies[side]);
+}
+
 function unitPowerValue(unit) {
   const typeWeight = { infantry: 1, cavalry: 0.95, artillery: 1.25 }[unit.type] || 1;
   const baseStrength = UNIT_BASE[unit.type]?.strength || Math.max(1, unit.strength || 1);
   const strengthPct = Math.max(0.15, Math.min(1.25, (unit.strength || baseStrength) / baseStrength));
-  const moraleFactor = 0.6 + (Math.max(0, Math.min(100, unit.morale || 0)) / 250);
+  const moraleCap = moraleCapForSide(unit.armyId);
+  const moraleFactor = 0.6 + (Math.max(0, Math.min(moraleCap, unit.morale || 0)) / 250);
   return typeWeight * strengthPct * moraleFactor;
 }
 
@@ -1897,7 +1918,7 @@ function resolveCombat(rand, events) {
           base *= 3;
           base *= getActionAttackMultiplier(state.armies[side], u);
           base *= getActionDefenseMultiplier(state.armies[vt.armyId], vt);
-          const moraleMod = Math.max(0.4, u.morale / 100);
+          const moraleMod = Math.max(0.2, u.morale / 100);
           const dmg = base * moraleMod * (0.6 + rand() * 0.8);
           intents.push({ attacker: u, target: vt, side, dmg, targetSupport });
         });
@@ -1920,7 +1941,7 @@ function resolveCombat(rand, events) {
       }
       base *= getActionAttackMultiplier(state.armies[side], u);
       base *= getActionDefenseMultiplier(state.armies[target.armyId], target);
-      const moraleMod = Math.max(0.4, u.morale / 100);
+      const moraleMod = Math.max(0.2, u.morale / 100);
       const dmg = base * moraleMod * (0.6 + rand() * 0.8);
 
       intents.push({ attacker: u, target, side, dmg, targetSupport });
@@ -2029,6 +2050,7 @@ function applyPersistentStateShock(unit, stateKey, condition, amount, label, app
 function routeAndCleanup(events) {
   ["A", "B"].forEach((side) => {
     const army = state.armies[side];
+    const moraleCap = moraleCapForArmy(army);
     const moraleRecoverySector = (army.currentAction === "rally" || army.currentAction === "retreat" || army.currentAction === "line_rotation") ? (army.currentSector || "center") : null;
     const routedThisTurn = [];
     state.armies[side].units.forEach((u) => {
@@ -2037,17 +2059,20 @@ function routeAndCleanup(events) {
       if ((u.statuses.cavalryShockTurns || 0) > 0) u.statuses.cavalryShockTurns -= 1;
       if ((u.statuses.disengageTurns || 0) > 0) u.statuses.disengageTurns -= 1;
       if ((u.moveBonus || 0) > 0) u.moveBonus -= 1;
+      if (army.activeSignature?.type === "cross_rubicon") {
+        u.morale = MAX_MORALE;
+      }
       if (army.currentAction === "advance") {
-        u.morale = Math.min(100, u.morale + 4);
+        u.morale = Math.min(moraleCap, u.morale + 4);
       }
       if (army.activeSignature?.type === "fighting_withdrawal") {
-        u.morale = Math.min(100, u.morale + 8);
+        u.morale = Math.min(moraleCap, u.morale + 8);
       }
       if (moraleRecoverySector && getSectorForUnit(u) === moraleRecoverySector) {
         const gain = army.currentAction === "line_rotation" ? 5 : 8;
-        u.morale = Math.min(100, u.morale + gain);
+        u.morale = Math.min(moraleCap, u.morale + gain);
       }
-      u.morale = Math.max(0, Math.min(100, u.morale));
+      u.morale = Math.max(0, Math.min(moraleCap, u.morale));
       if (u.morale === 0 || u.strength <= 0) {
         u.alive = false;
         const h = getHex(u.q, u.r);
@@ -2081,6 +2106,7 @@ function routeAndCleanup(events) {
       if (shocked > 0) events.push(`${army.name} morale cascade: ${shocked} nearby units shaken.`);
 
       const enemySide = side === "A" ? "B" : "A";
+      const enemyMoraleCap = moraleCapForSide(enemySide);
       let inspired = 0;
       state.armies[enemySide].units.forEach((u) => {
         if (!u.alive) return;
@@ -2093,7 +2119,7 @@ function routeAndCleanup(events) {
         });
         gain = Math.min(12, gain);
         if (gain > 0) {
-          u.morale = Math.min(100, u.morale + gain);
+          u.morale = Math.min(enemyMoraleCap, u.morale + gain);
           inspired += 1;
         }
       });

@@ -5,6 +5,7 @@ const UNIT_BASE = {
   cavalry: { strength: 180, morale: 100, move: 2, range: 1, attack: 10 },
   artillery: { strength: 120, morale: 100, move: 1, range: 2, attack: 8 },
 };
+const MAX_MORALE = 120;
 
 const COMMANDERS = {
   napoleon: {
@@ -12,7 +13,7 @@ const COMMANDERS = {
     majorOrders: [{ type: "artillery_concentration", line: "Concentrate the guns and break their center.", inspiredBy: "Austerlitz" }],
     preferredActions: ["concentrate_center", "bombard_sector"],
     traits: { aggression: 8, control: 8, creativity: 9, panicResistance: 9 },
-    signature: { name: "Grand Battery", type: "artillery_barrage", duration: 1, description: "One-time volley: artillery fires at all available targets for x3 damage." },
+    signature: { name: "Grand Battery", type: "artillery_barrage", duration: 1, description: "Napoleon's artillery fires at all available targets for x3 damage." },
     signatureQuotes: {
       artillery_barrage: [
         "Artillery is the god of war.",
@@ -61,7 +62,7 @@ const COMMANDERS = {
     name: "Genghis Khan",
     majorOrders: [{ type: "feigned_retreat", line: "Draw them forward, then strike from range.", inspiredBy: "Steppe feigned retreat" }],
     preferredActions: ["flank_attack", "cavalry_charge"],
-    traits: { aggression: 9, control: 3, creativity: 9, panicResistance: 8 },
+    traits: { aggression: 9, control: 7, creativity: 6, panicResistance: 8 },
     signature: { name: "Feigned Retreat", type: "feigned_retreat", duration: 5, description: "Cavalry retreats and attacks at range 2 for 5 turns." },
     signatureQuotes: {
       feigned_retreat: [
@@ -86,8 +87,8 @@ const COMMANDERS = {
     name: "George Washington",
     majorOrders: [{ type: "defensive_stand", line: "Stand firm and withdraw in good order.", inspiredBy: "Battle of Long Island" }],
     preferredActions: ["defensive_stand", "defend_flank"],
-    traits: { aggression: 3, control: 9, creativity: 6, panicResistance: 9 },
-    signature: { name: "Fighting Withdrawal", type: "fighting_withdrawal", duration: 5, description: "Army retreats and recovers morale. Infantry fires at range 2 while withdrawing for 5 turns." },
+    traits: { aggression: 3, control: 7, creativity: 5, panicResistance: 9 },
+    signature: { name: "Fighting Withdrawal", type: "fighting_withdrawal", duration: 5, description: "The army retreats and recovers morale, firing at double range and recovering morale while active." },
     signatureQuotes: {
       fighting_withdrawal: [
         "Discipline is the soul of an army.",
@@ -112,7 +113,7 @@ const COMMANDERS = {
     reelsShortName: "McClellan",
     majorOrders: [{ type: "defensive_stand", line: "Prepare every detail, then strike with precision.", inspiredBy: "Peninsula Campaign planning" }],
     preferredActions: ["defensive_stand", "rally"],
-    traits: { aggression: 0, control: 9, creativity: 3, panicResistance: 8 },
+    traits: { aggression: 0, control: 7, creativity: 3, panicResistance: 8 },
     signature: { name: "The Perfect Plan", type: "perfect_plan", duration: 5, description: "All units hold for 5 turns, then force an offensive action with +20% damage until the next major action turn." },
     signatureQuotes: {
       perfect_plan: [
@@ -133,6 +134,31 @@ const COMMANDERS = {
       "A careful plan still needs a decisive hour.",
     ],
   },
+  caesar: {
+    name: "Julius Caesar",
+    majorOrders: [{ type: "mass_assault", line: "Cross the Rubicon and crush their line.", inspiredBy: "The crossing of the Rubicon" }],
+    preferredActions: ["mass_assault", "exploit_gap"],
+    traits: { aggression: 8, control: 8, creativity: 8, panicResistance: 8 },
+    signature: { name: "Cross the Rubicon", type: "cross_rubicon", duration: 5, description: "All units are pinned to 120% morale while launching a mass assault." },
+    signatureQuotes: {
+      cross_rubicon: [
+        "The die is cast.",
+        "Cross now. No step backward.",
+        "Press all divisions. Break them utterly.",
+      ],
+    },
+    chargeDescription: "Charges with relentless frontline losses and tempo.",
+    victoryQuotes: [
+      "I came, I saw, I conquered.",
+      "Fortune favors the bold.",
+      "Their line broke before Roman resolve.",
+    ],
+    defeatQuotes: [
+      "Even Rome must regroup to win tomorrow.",
+      "The Rubicon is crossed only once; we will return stronger.",
+      "Experience is the teacher of all things.",
+    ],
+  },
   chaos: {
     name: "General Chaos",
     majorOrders: [{ type: "defensive_stand", line: "Let chaos reign!", inspiredBy: "Chaos theory" }],
@@ -144,6 +170,7 @@ const COMMANDERS = {
       feigned_retreat: ["Are we retreating? Attacking? Both!", "Confuse them by confusing ourselves!", "Retreat forward!"],
       fighting_withdrawal: ["Fighting or fleeing? Who can tell!", "Orderly chaos - the best kind!", "Fall back chaotically!"],
       perfect_plan: ["The plan is that there is no plan!", "Chaos is the plan!", "Perfectly unpredictable!"],
+      cross_rubicon: ["Cross something dramatic and charge!", "No going back now, chaos legion!", "Rubicon crossed. Consequences optional!"],
     },
     chargeDescription: "Randomly unleashes another general's ability!",
     victoryQuotes: [
@@ -374,6 +401,7 @@ const PORTRAITS = {
   genghis: loadPortrait("./assets/commanders/genghis.jpg"),
   washington: loadPortrait("./assets/commanders/washington.png"),
   mcclellan: loadPortrait("./assets/commanders/mcclellan.png"),
+  caesar: loadPortrait("./assets/commanders/caesar.png"),
   chaos: loadPortrait("./assets/commanders/general chaos.png"),
 };
 const PORTRAITS_ULT = {
@@ -413,6 +441,7 @@ const UNIT_ICONS = {
   },
 };
 const MORALE_ICONS = {
+  high: loadIcon("./assets/icons/gainmorale.png"),
   low: loadIcon("./assets/icons/lossmorale.png"),
   critical: loadIcon("./assets/icons/lossalotofmorale.png"),
 };
@@ -768,6 +797,7 @@ const COMMANDER_ACCENT = {
   lee: "#b22222",
   washington: "#2e8b57",
   mcclellan: "#44586f",
+  caesar: "#7a1f1f",
   chaos: "#8B008B",
 };
 

@@ -387,7 +387,7 @@ function drawUnits() {
         ctx.stroke();
       }
 
-      if (u.morale < 60) {
+      if (u.morale < 60 || u.morale > 100) {
         drawMoraleIndicator(u, side, p.x, p.y, size);
       }
 
@@ -406,12 +406,25 @@ function drawMoraleIndicator(unit, side, x, y, unitSize) {
 
   ctx.beginPath();
   ctx.arc(cx, cy, circleRadius, 0, Math.PI * 2);
+  const boosted = unit.morale > 100;
   ctx.fillStyle = side === "A" ? "rgba(126,205,255,0.72)" : "rgba(208,98,88,0.68)";
   ctx.fill();
 
-  const icon = unit.morale <= 30 ? MORALE_ICONS.critical : MORALE_ICONS.low;
+  const icon = boosted ? MORALE_ICONS.high : (unit.morale <= 30 ? MORALE_ICONS.critical : MORALE_ICONS.low);
   if (icon && icon.complete && icon.naturalWidth > 0) {
     ctx.drawImage(icon, cx - (iconSize / 2), cy - (iconSize / 2), iconSize, iconSize);
+  } else if (boosted) {
+    ctx.save();
+    ctx.strokeStyle = "#f2df00";
+    ctx.lineWidth = Math.max(2, Math.round(2.2 * scale));
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.beginPath();
+    ctx.moveTo(cx - (iconSize * 0.36), cy + (iconSize * 0.16));
+    ctx.lineTo(cx, cy - (iconSize * 0.22));
+    ctx.lineTo(cx + (iconSize * 0.36), cy + (iconSize * 0.16));
+    ctx.stroke();
+    ctx.restore();
   }
 }
 
@@ -952,8 +965,8 @@ function fitCommanderName(nameEl) {
   if (len > 24) px = 22;
   else if (len > 20) px = 26;
   else if (len > 16) px = 30;
-  else if (len > 13) px = 34;
-  else if (len > 11) px = 36;
+  else if (len > 13) px = 33;
+  else if (len > 11) px = 34;
   nameEl.style.fontSize = `${px}px`;
 }
 
