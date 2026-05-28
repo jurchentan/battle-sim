@@ -191,6 +191,8 @@ const state = {
   reelsUnitScale: 2,
   simSpeed: "slow",
   audioEnabled: true,
+  audioVolume: 1,
+  selectedReelsIntroAudio: "none",
   running: false,
   turnInProgress: false,
   pendingTurnDamage: null,
@@ -271,6 +273,8 @@ const els = {
   reelsSideSimBtn: document.getElementById("reelsSideSimBtn"),
   reelsSideStepBtn: document.getElementById("reelsSideStepBtn"),
   reelsSideModeBtn: document.getElementById("reelsSideModeBtn"),
+  reelsIntroAudioSelect: document.getElementById("reelsIntroAudioSelect"),
+  audioVolumeRange: document.getElementById("audioVolumeRange"),
   reelsTurnCounter: document.getElementById("reelsTurnCounter"),
 };
 
@@ -284,12 +288,70 @@ const REELS_SIGNATURE_SFX = {
   fighting_withdrawal: null,
 };
 
+const REELS_PREBATTLE_AUDIO = {
+  napoleon_vs_gw: "./assets/reels-battle-audio/napoleon-vs-gw.mp3",
+};
+
+let reelsPrebattleAudioEl = null;
+
+function ensureReelsPrebattleAudioEl() {
+  if (!reelsPrebattleAudioEl) {
+    reelsPrebattleAudioEl = new Audio();
+    reelsPrebattleAudioEl.preload = "auto";
+    reelsPrebattleAudioEl.crossOrigin = "anonymous";
+    const ac = getCombatAudioContext();
+    if (ac) {
+      try {
+        COMBAT_AUDIO.prebattleSource = ac.createMediaElementSource(reelsPrebattleAudioEl);
+        COMBAT_AUDIO.prebattleSource.connect(getCombatOutputNode(ac));
+      } catch (_) {
+        COMBAT_AUDIO.prebattleSource = null;
+      }
+    }
+    applyAudioVolumeToMedia();
+  }
+  return reelsPrebattleAudioEl;
+}
+
+function stopReelsPrebattleAudio() {
+  if (!reelsPrebattleAudioEl) return;
+  reelsPrebattleAudioEl.pause();
+  try {
+    reelsPrebattleAudioEl.currentTime = 0;
+  } catch (_) {}
+}
+
+function playSelectedReelsPrebattleAudio(onDone) {
+  if (!state.audioEnabled) return false;
+  const key = state.selectedReelsIntroAudio;
+  const src = REELS_PREBATTLE_AUDIO[key];
+  if (!src) return false;
+  const audio = ensureReelsPrebattleAudioEl();
+  audio.src = src;
+  let finished = false;
+  const done = () => {
+    if (finished) return;
+    finished = true;
+    audio.onended = null;
+    audio.onerror = null;
+    if (typeof onDone === "function") onDone();
+  };
+  audio.onended = done;
+  audio.onerror = done;
+  const maybePromise = audio.play();
+  if (maybePromise && typeof maybePromise.catch === "function") {
+    maybePromise.catch(() => done());
+  }
+  return true;
+}
+
 function setReelsLeaderTrack(side, src) {
   if (!REELS_MUSIC[side]) {
     REELS_MUSIC[side] = new Audio();
     REELS_MUSIC[side].preload = "auto";
   }
   REELS_MUSIC[side].src = src;
+  applyAudioVolumeToMedia();
 }
 
 window.setReelsLeaderTrack = setReelsLeaderTrack;
@@ -300,6 +362,7 @@ function setReelsSignatureSfx(signatureType, src) {
     REELS_SIGNATURE_SFX[signatureType].preload = "auto";
   }
   REELS_SIGNATURE_SFX[signatureType].src = src;
+  applyAudioVolumeToMedia();
 }
 
 window.setReelsSignatureSfx = setReelsSignatureSfx;
@@ -361,6 +424,8 @@ const SIGNATURE_ICONS = {
 
 const COMBAT_AUDIO = {
   context: null,
+  masterGain: null,
+  prebattleSource: null,
 };
 
 const AUDIO_TUNING = {
@@ -386,12 +451,34 @@ function getCombatAudioContext() {
   return COMBAT_AUDIO.context;
 }
 
+function getCombatOutputNode(ac) {
+  if (!COMBAT_AUDIO.masterGain) {
+    COMBAT_AUDIO.masterGain = ac.createGain();
+    COMBAT_AUDIO.masterGain.connect(ac.destination);
+  }
+  COMBAT_AUDIO.masterGain.gain.value = state.audioEnabled ? Math.max(0, Math.min(3, state.audioVolume || 0)) : 0;
+  return COMBAT_AUDIO.masterGain;
+}
+
+function applyAudioVolumeToMedia() {
+  const vol = state.audioEnabled ? Math.max(0, Math.min(3, state.audioVolume || 0)) : 0;
+  [REELS_MUSIC.A, REELS_MUSIC.B, REELS_SIGNATURE_SFX.artillery_barrage, REELS_SIGNATURE_SFX.fighting_withdrawal, reelsPrebattleAudioEl]
+    .forEach((a) => {
+      if (!a) return;
+      a.volume = a === reelsPrebattleAudioEl ? 1 : Math.min(1, vol);
+    });
+  if (COMBAT_AUDIO.masterGain) {
+    COMBAT_AUDIO.masterGain.gain.value = vol;
+  }
+}
+
 function playUnitKillSfx(unitType, delaySec = 0) {
   const ac = getCombatAudioContext();
   if (!ac) return;
+  const outNode = getCombatOutputNode(ac);
   const now = ac.currentTime + Math.max(0, delaySec);
   const out = ac.createGain();
-  out.connect(ac.destination);
+  out.connect(outNode);
   out.gain.setValueAtTime(0.0001, now);
   out.gain.exponentialRampToValueAtTime(AUDIO_TUNING.killSfxGain, now + 0.008);
   out.gain.exponentialRampToValueAtTime(0.0001, now + 0.42);
@@ -471,6 +558,7 @@ function playUnitKillSfx(unitType, delaySec = 0) {
 function playSignatureUltSfx(sigType) {
   const ac = getCombatAudioContext();
   if (!ac) return;
+  const outNode = getCombatOutputNode(ac);
   const now = ac.currentTime;
 
   if (sigType === "fighting_withdrawal") {
@@ -485,7 +573,7 @@ function playSignatureUltSfx(sigType) {
       gain.gain.exponentialRampToValueAtTime(AUDIO_TUNING.ultWashingtonGain, t + 0.01);
       gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.16);
       osc.connect(gain);
-      gain.connect(ac.destination);
+      gain.connect(outNode);
       osc.start(t);
       osc.stop(t + 0.17);
     });
@@ -530,7 +618,7 @@ function playSignatureUltSfx(sigType) {
       noise.connect(bandpass);
       bandpass.connect(highpass);
       highpass.connect(gain);
-      gain.connect(ac.destination);
+      gain.connect(outNode);
 
       crack.start(t);
       snap.start(t + 0.003);
@@ -546,6 +634,7 @@ function playSignatureUltSfx(sigType) {
 function playArtilleryImpactBoomSfx(delaySec = 0, gainMult = 1) {
   const ac = getCombatAudioContext();
   if (!ac) return;
+  const outNode = getCombatOutputNode(ac);
   const t = ac.currentTime + Math.max(0, delaySec);
   const noise = ac.createBufferSource();
   const low = ac.createOscillator();
@@ -582,7 +671,7 @@ function playArtilleryImpactBoomSfx(delaySec = 0, gainMult = 1) {
   snap.connect(out);
   noise.connect(band);
   band.connect(out);
-  out.connect(ac.destination);
+  out.connect(outNode);
 
   low.start(t);
   snap.start(t);
@@ -595,6 +684,7 @@ function playArtilleryImpactBoomSfx(delaySec = 0, gainMult = 1) {
 function playMajorActionIssuedSfx(side, action, delaySec = 0) {
   const ac = getCombatAudioContext();
   if (!ac) return;
+  const outNode = getCombatOutputNode(ac);
   const now = ac.currentTime + Math.max(0, delaySec);
   const base = side === "A" ? 1046.5 : 987.77;
   const osc = ac.createOscillator();
@@ -605,7 +695,7 @@ function playMajorActionIssuedSfx(side, action, delaySec = 0) {
   gain.gain.exponentialRampToValueAtTime(AUDIO_TUNING.actionBellGain, now + 0.006);
   gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.28);
   osc.connect(gain);
-  gain.connect(ac.destination);
+  gain.connect(outNode);
   osc.start(now);
   osc.stop(now + 0.3);
 }
@@ -613,6 +703,7 @@ function playMajorActionIssuedSfx(side, action, delaySec = 0) {
 function playVictoryDingSfx(delaySec = 0) {
   const ac = getCombatAudioContext();
   if (!ac) return;
+  const outNode = getCombatOutputNode(ac);
   const now = ac.currentTime + Math.max(0, delaySec);
   const notes = [784, 988, 1175];
   notes.forEach((hz, i) => {
@@ -625,7 +716,7 @@ function playVictoryDingSfx(delaySec = 0) {
     gain.gain.exponentialRampToValueAtTime(AUDIO_TUNING.victoryDingGain, t + 0.01);
     gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.2);
     osc.connect(gain);
-    gain.connect(ac.destination);
+    gain.connect(outNode);
     osc.start(t);
     osc.stop(t + 0.21);
   });
@@ -634,6 +725,7 @@ function playVictoryDingSfx(delaySec = 0) {
 function playBattleStartBellSfx(delaySec = 0) {
   const ac = getCombatAudioContext();
   if (!ac) return 0;
+  const outNode = getCombatOutputNode(ac);
   const start = ac.currentTime + Math.max(0, delaySec);
   const strikes = [0, Math.max(0.2, Number(AUDIO_TUNING.startBellStrikeGapSec) || 1.25)];
   strikes.forEach((offset) => {
@@ -650,7 +742,7 @@ function playBattleStartBellSfx(delaySec = 0) {
       gain.gain.exponentialRampToValueAtTime(levels[i], t + 0.004);
       gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.42 + (i * 0.06));
       osc.connect(gain);
-      gain.connect(ac.destination);
+      gain.connect(outNode);
       osc.start(t);
       osc.stop(t + 0.48 + (i * 0.08));
     });
@@ -664,7 +756,7 @@ function playBattleStartBellSfx(delaySec = 0) {
     hitGain.gain.exponentialRampToValueAtTime(0.58, t + 0.0015);
     hitGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.04);
     hit.connect(hitGain);
-    hitGain.connect(ac.destination);
+    hitGain.connect(outNode);
     hit.start(t);
     hit.stop(t + 0.045);
   });

@@ -26,14 +26,29 @@ function wireUi() {
   els.defeatInput.onchange = () => { state.defeatThresholdPercent = Number(els.defeatInput.value) || 60; };
   els.simSpeedSelect.value = state.simSpeed;
   els.simSpeedSelect.onchange = () => { state.simSpeed = els.simSpeedSelect.value; };
+  if (els.reelsIntroAudioSelect) {
+    populateReelsIntroAudioOptions();
+    els.reelsIntroAudioSelect.value = state.selectedReelsIntroAudio || "none";
+    els.reelsIntroAudioSelect.onchange = () => {
+      state.selectedReelsIntroAudio = els.reelsIntroAudioSelect.value || "none";
+    };
+  }
   if (els.audioToggleBtn) {
     els.audioToggleBtn.onclick = () => {
       state.audioEnabled = !state.audioEnabled;
       updateAudioToggleButton();
+      if (typeof applyAudioVolumeToMedia === "function") applyAudioVolumeToMedia();
       if (!state.audioEnabled) {
         const ac = COMBAT_AUDIO?.context;
         if (ac && typeof ac.suspend === "function") ac.suspend().catch(() => {});
       }
+    };
+  }
+  if (els.audioVolumeRange) {
+    els.audioVolumeRange.value = String(Math.round((state.audioVolume || 1) * 100));
+    els.audioVolumeRange.oninput = () => {
+      state.audioVolume = Math.max(0, Math.min(3, (Number(els.audioVolumeRange.value) || 0) / 100));
+      if (typeof applyAudioVolumeToMedia === "function") applyAudioVolumeToMedia();
     };
   }
 
@@ -45,6 +60,24 @@ function wireUi() {
   window.addEventListener("resize", updateReelsStageScale);
   updateSimButton();
   updateAudioToggleButton();
+}
+
+function populateReelsIntroAudioOptions() {
+  if (!els.reelsIntroAudioSelect) return;
+  const select = els.reelsIntroAudioSelect;
+  select.innerHTML = "";
+
+  const noneOpt = document.createElement("option");
+  noneOpt.value = "none";
+  noneOpt.textContent = "Intro Audio: None";
+  select.appendChild(noneOpt);
+
+  Object.keys(REELS_PREBATTLE_AUDIO || {}).forEach((key) => {
+    const opt = document.createElement("option");
+    opt.value = key;
+    opt.textContent = `Intro Audio: ${key.replace(/[_-]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}`;
+    select.appendChild(opt);
+  });
 }
 
 function updateAudioToggleButton() {

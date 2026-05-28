@@ -14,6 +14,7 @@ function stopSimulationLoop() {
     clearTimeout(state.simTimer);
     state.simTimer = null;
   }
+  if (typeof stopReelsPrebattleAudio === "function") stopReelsPrebattleAudio();
 }
 
 function runSimulation() {
@@ -53,11 +54,24 @@ function runSimulation() {
       render();
     }
   };
+  if (!state.replay.turns.length && typeof playSelectedReelsPrebattleAudio === "function") {
+    let started = false;
+    const startLoopOnce = () => {
+      if (started || !state.running) return;
+      started = true;
+      loop();
+    };
+    const hasIntro = playSelectedReelsPrebattleAudio(startLoopOnce);
+    if (hasIntro) {
+      state.simTimer = setTimeout(startLoopOnce, 12000);
+      return;
+    }
+  }
   if (startDelayMs > 0) {
     state.simTimer = setTimeout(loop, startDelayMs);
-  } else {
-    loop();
+    return;
   }
+  loop();
 }
 
 function getPostTurnDelayMs() {
