@@ -313,10 +313,12 @@ const REELS_MUSIC = {
 const REELS_SIGNATURE_SFX = {
   artillery_barrage: null,
   fighting_withdrawal: null,
+  cross_rubicon: null,
 };
 
 const REELS_PREBATTLE_AUDIO = {
   napoleon_vs_gw: "./assets/reels-battle-audio/napoleon-vs-gw.mp3",
+  napoleon_vs_caesar: "./assets/reels-battle-audio/napoleon-vs-caesar.mp3",
 };
 
 let reelsPrebattleAudioEl = null;
@@ -449,6 +451,7 @@ const SIGNATURE_ICONS = {
   explosion: loadIcon("./assets/icons/explosion.png"),
   usFlag: loadIcon("./assets/icons/us-flag.png"),
   gunsmoke: loadIcon("./assets/icons/gunsmoke.png"),
+  romanEagle: loadIcon("./assets/icons/roman-eagle.png"),
 };
 
 const COMBAT_AUDIO = {
@@ -467,6 +470,14 @@ const AUDIO_TUNING = {
   startBellStrikeGapSec: 0.15,
   startBellWaitMs: 600,
   artilleryImpactBoomGain: 0.95,
+  rubiconDrumGain: 0.7,
+  rubiconHornGain: 0.9,
+};
+
+window.getAudioTuning = () => ({ ...AUDIO_TUNING });
+window.setRubiconUltMix = ({ drumGain, hornGain } = {}) => {
+  if (Number.isFinite(drumGain)) AUDIO_TUNING.rubiconDrumGain = Math.max(0, Math.min(3, Number(drumGain)));
+  if (Number.isFinite(hornGain)) AUDIO_TUNING.rubiconHornGain = Math.max(0, Math.min(3, Number(hornGain)));
 };
 
 function getCombatAudioContext() {
@@ -491,7 +502,7 @@ function getCombatOutputNode(ac) {
 
 function applyAudioVolumeToMedia() {
   const vol = state.audioEnabled ? Math.max(0, Math.min(3, state.audioVolume || 0)) : 0;
-  [REELS_MUSIC.A, REELS_MUSIC.B, REELS_SIGNATURE_SFX.artillery_barrage, REELS_SIGNATURE_SFX.fighting_withdrawal, reelsPrebattleAudioEl]
+  [REELS_MUSIC.A, REELS_MUSIC.B, REELS_SIGNATURE_SFX.artillery_barrage, REELS_SIGNATURE_SFX.fighting_withdrawal, REELS_SIGNATURE_SFX.cross_rubicon, reelsPrebattleAudioEl]
     .forEach((a) => {
       if (!a) return;
       a.volume = a === reelsPrebattleAudioEl ? 1 : Math.min(1, vol);
@@ -657,6 +668,78 @@ function playSignatureUltSfx(sigType) {
       noise.stop(t + 0.2);
     }
     return;
+  }
+
+  if (sigType === "cross_rubicon") {
+    const drumTimes = [0, 0.22, 0.44];
+    drumTimes.forEach((dt, idx) => {
+      const t = now + dt;
+      const low = ac.createOscillator();
+      const snap = ac.createOscillator();
+      const noise = ac.createBufferSource();
+      const lowpass = ac.createBiquadFilter();
+      const out = ac.createGain();
+
+      low.type = "sine";
+      low.frequency.setValueAtTime(120 - (idx * 6), t);
+      low.frequency.exponentialRampToValueAtTime(54, t + 0.24);
+      snap.type = "triangle";
+      snap.frequency.setValueAtTime(620, t);
+      snap.frequency.exponentialRampToValueAtTime(210, t + 0.07);
+
+      lowpass.type = "lowpass";
+      lowpass.frequency.setValueAtTime(260, t);
+
+      const len = Math.floor(ac.sampleRate * 0.2);
+      const buffer = ac.createBuffer(1, len, ac.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < len; i += 1) data[i] = (Math.random() * 2) - 1;
+      noise.buffer = buffer;
+
+      out.gain.setValueAtTime(0.0001, t);
+      out.gain.exponentialRampToValueAtTime(Math.max(0.0001, Number(AUDIO_TUNING.rubiconDrumGain) || 0.7), t + 0.006);
+      out.gain.exponentialRampToValueAtTime(0.0001, t + 0.28);
+
+      low.connect(out);
+      snap.connect(out);
+      noise.connect(lowpass);
+      lowpass.connect(out);
+      out.connect(outNode);
+
+      low.start(t);
+      snap.start(t + 0.004);
+      noise.start(t);
+      low.stop(t + 0.26);
+      snap.stop(t + 0.1);
+      noise.stop(t + 0.2);
+    });
+
+    const hornStart = now + 0.72;
+    const hornNotes = [196.0, 246.94, 293.66, 329.63];
+    hornNotes.forEach((hz, i) => {
+      const t = hornStart + (i * 0.18);
+      const osc = ac.createOscillator();
+      const overtone = ac.createOscillator();
+      const gain = ac.createGain();
+      const filter = ac.createBiquadFilter();
+      osc.type = "sawtooth";
+      overtone.type = "triangle";
+      osc.frequency.setValueAtTime(hz, t);
+      overtone.frequency.setValueAtTime(hz * 2, t);
+      filter.type = "lowpass";
+      filter.frequency.setValueAtTime(1200, t);
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, Number(AUDIO_TUNING.rubiconHornGain) || 0.45), t + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.25);
+      osc.connect(filter);
+      overtone.connect(filter);
+      filter.connect(gain);
+      gain.connect(outNode);
+      osc.start(t);
+      overtone.start(t);
+      osc.stop(t + 0.26);
+      overtone.stop(t + 0.24);
+    });
   }
 }
 

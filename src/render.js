@@ -716,7 +716,7 @@ function queueSignatureCinematic(side, sigType, payload = {}) {
     type: sigType,
     payload,
     startAt,
-    durationMs: sigType === "artillery_barrage" ? 2350 : 1450,
+    durationMs: sigType === "artillery_barrage" ? 2350 : sigType === "cross_rubicon" ? 2700 : 1450,
     audioPlayed: false,
     impactAudioPlayed: {},
   };
@@ -740,8 +740,158 @@ function drawSignatureCinematics() {
     }
     if (fx.type === "fighting_withdrawal") {
       drawFightingWithdrawalCinematic(fx, t);
+      return;
+    }
+    if (fx.type === "cross_rubicon") {
+      drawCrossRubiconCinematic(fx, t);
     }
   });
+}
+
+function drawCrossRubiconCinematic(fx, elapsedMs) {
+  const side = fx.side;
+  const enemySide = side === "A" ? "B" : "A";
+  const myUnits = state.armies[side].units.filter((u) => u.alive);
+  const enemyUnits = state.armies[enemySide].units.filter((u) => u.alive);
+  if (!myUnits.length || !enemyUnits.length) return;
+
+  const myPts = myUnits.map((u) => hexToPixel(u.q, u.r));
+  const enemyPts = enemyUnits.map((u) => hexToPixel(u.q, u.r));
+  const myAvgX = myPts.reduce((sum, p) => sum + p.x, 0) / myPts.length;
+  const enemyAvgX = enemyPts.reduce((sum, p) => sum + p.x, 0) / enemyPts.length;
+  const myAvgY = myPts.reduce((sum, p) => sum + p.y, 0) / myPts.length;
+  const enemyAvgY = enemyPts.reduce((sum, p) => sum + p.y, 0) / enemyPts.length;
+  const centerX = els.canvas.width / 2;
+  const centerY = (myAvgY + enemyAvgY) / 2;
+  const towardEnemy = side === "A" ? 1 : -1;
+  const caesarIsTop = myAvgY < enemyAvgY;
+
+  const riverStage = Math.min(1, elapsedMs / 900);
+  const auraStage = Math.max(0, Math.min(1, (elapsedMs - 420) / 680));
+  const eagleStage = Math.max(0, Math.min(1, (elapsedMs - 960) / 1180));
+  const surgeStage = Math.max(0, Math.min(1, (elapsedMs - 1560) / 980));
+  const fade = Math.max(0, 1 - (elapsedMs / fx.durationMs));
+
+  ctx.save();
+
+  drawRubiconRiver(centerY, riverStage, fade);
+
+  const auraAlpha = (0.12 + (0.3 * auraStage)) * fade;
+  myPts.forEach((p, i) => {
+    const pulse = 0.85 + (0.15 * Math.sin((elapsedMs / 115) + i));
+    const r = 15 + (7 * auraStage * pulse);
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(241, 191, 67, ${auraAlpha * pulse})`;
+    ctx.fill();
+  });
+
+  const eagleImpactY = caesarIsTop ? Math.min(els.canvas.height - 68, enemyAvgY + 18) : Math.max(68, enemyAvgY - 18);
+  drawRomanEagleSlam(centerX, eagleImpactY, elapsedMs, eagleStage, fade);
+
+  if (surgeStage > 0) {
+    const maxShift = 24;
+    myPts.forEach((p, i) => {
+      const jitter = (Math.sin((elapsedMs / 100) + i) * 2);
+      const sx = p.x + ((maxShift * surgeStage + jitter) * towardEnemy);
+      const tail = 9 + (10 * surgeStage);
+      ctx.beginPath();
+      ctx.moveTo(p.x - (tail * towardEnemy), p.y);
+      ctx.lineTo(sx, p.y);
+      ctx.strokeStyle = `rgba(247, 212, 118, ${(0.46 - (i % 3) * 0.06) * fade})`;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    });
+  }
+
+  ctx.restore();
+}
+
+function drawRubiconRiver(centerY, stage, fade) {
+  if (stage <= 0) return;
+  const left = 28;
+  const right = els.canvas.width - 28;
+  const segments = 14;
+  const width = 18 + (14 * stage);
+  const sway = 22 * stage;
+
+  ctx.beginPath();
+  for (let i = 0; i <= segments; i += 1) {
+    const t = i / segments;
+    const x = left + ((right - left) * t);
+    const wave = Math.sin((t * Math.PI * 3.2) + (performance.now() / 460)) * sway;
+    const y = centerY + wave;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.strokeStyle = `rgba(84, 162, 212, ${0.4 * stage * fade})`;
+  ctx.lineWidth = width;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  ctx.stroke();
+
+  ctx.beginPath();
+  for (let i = 0; i <= segments; i += 1) {
+    const t = i / segments;
+    const x = left + ((right - left) * t);
+    const wave = Math.sin((t * Math.PI * 3.2) + (performance.now() / 460)) * sway;
+    const y = centerY + wave;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.strokeStyle = `rgba(188, 233, 255, ${0.55 * stage * fade})`;
+  ctx.lineWidth = Math.max(2, width * 0.22);
+  ctx.lineCap = "round";
+  ctx.stroke();
+}
+
+function drawRomanEagleSlam(centerX, impactY, elapsedMs, stage, fade) {
+  if (stage <= 0) return;
+  const eagleIcon = SIGNATURE_ICONS?.romanEagle;
+  const entryY = -90;
+  const eased = 1 - Math.pow(1 - stage, 3);
+  const y = entryY + ((impactY - entryY) * eased);
+  const size = 100 + (34 * stage);
+
+  if (eagleIcon && eagleIcon.complete && eagleIcon.naturalWidth > 0) {
+    ctx.save();
+    const eagleAlpha = Math.max(0.72, 0.98 * fade);
+    ctx.globalAlpha = eagleAlpha;
+    ctx.drawImage(eagleIcon, centerX - (size / 2), y - (size * 0.78), size, size * 1.18);
+    ctx.restore();
+  } else {
+    ctx.save();
+    ctx.translate(centerX, y);
+    ctx.rotate(Math.sin(elapsedMs / 140) * 0.03);
+    ctx.beginPath();
+    ctx.moveTo(0, -size * 0.55);
+    ctx.lineTo(size * 0.42, -size * 0.04);
+    ctx.lineTo(size * 0.18, -size * 0.02);
+    ctx.lineTo(size * 0.42, size * 0.34);
+    ctx.lineTo(size * 0.08, size * 0.14);
+    ctx.lineTo(0, size * 0.52);
+    ctx.lineTo(-size * 0.08, size * 0.14);
+    ctx.lineTo(-size * 0.42, size * 0.34);
+    ctx.lineTo(-size * 0.18, -size * 0.02);
+    ctx.lineTo(-size * 0.42, -size * 0.04);
+    ctx.closePath();
+    ctx.fillStyle = `rgba(214, 163, 56, ${0.9 * fade})`;
+    ctx.fill();
+    ctx.strokeStyle = `rgba(255, 225, 154, ${0.85 * fade})`;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  if (stage > 0.74) {
+    const shock = (stage - 0.74) / 0.26;
+    const r = 18 + (shock * 150);
+    ctx.beginPath();
+    ctx.arc(centerX, impactY + 6, r, 0, Math.PI * 2);
+    ctx.strokeStyle = `rgba(252, 214, 120, ${(1 - shock) * 0.72 * fade})`;
+    ctx.lineWidth = 6 - (shock * 4);
+    ctx.stroke();
+  }
 }
 
 function playSignatureSfxIfNeeded(fx) {
