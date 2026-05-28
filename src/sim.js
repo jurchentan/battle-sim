@@ -226,11 +226,6 @@ function chooseMajorAction(side, rand, events) {
       sector,
       turnsLeft: sigDuration,
     };
-    if (sigType === "fighting_withdrawal") {
-      army.units.forEach((u) => {
-        if (u.alive) u.morale = Math.min(100, u.morale + 20);
-      });
-    }
     events.push(`${c.name}: ${sigName} ORDER (ARMY-WIDE)`);
     return;
   }
@@ -763,10 +758,10 @@ function actionTechnicalDescription(action, sector) {
   if (action === "line_rotation") return `Sector ${s} rotates line: controlled withdrawal, relief, and recovery.`;
   if (action === "exploit_gap") return `Exploit weakness in ${s}: opportunistic push with flank pressure.`;
   if (action === "commit_reserve") return `Reserve gets +1 move as it reinforces ${s}.`;
-  if (action === "artillery_barrage") return "All artillery deals x2 damage for 5 turns.";
+  if (action === "artillery_barrage") return "One-time volley: artillery fires at all available targets for x3 damage.";
   if (action === "foot_cavalry") return "All infantry gets +1 move and extra morale pressure for 5 turns.";
   if (action === "feigned_retreat") return "All cavalry retreats and attacks at range 2 for 5 turns.";
-  if (action === "fighting_withdrawal") return "Army-wide retreat with +20% morale and 20% damage reduction for 5 turns.";
+  if (action === "fighting_withdrawal") return "Army-wide retreat and morale recovery; infantry fires at range 2 while withdrawing for 5 turns.";
   if (action === "perfect_plan") return "All units hold for 5 turns. Then force an offensive action with +20% damage until the next major action turn.";
   return "Major action active.";
 }
@@ -786,10 +781,10 @@ function actionReelsDescription(action, sector) {
   if (action === "line_rotation") return `The ${s} rotates out and regains cohesion.`;
   if (action === "exploit_gap") return `The ${s} drives into a visible weakness.`;
   if (action === "commit_reserve") return `Reserve reinforces the ${s}.`;
-  if (action === "artillery_barrage") return "All guns are unleashed, dealing double damage.";
+  if (action === "artillery_barrage") return "One-time grand battery volley: all guns fire at every target in range for triple damage.";
   if (action === "foot_cavalry") return "Infantry moves faster and launches flank attacks.";
   if (action === "feigned_retreat") return "Cavalry withdraws, then punishes from range.";
-  if (action === "fighting_withdrawal") return "The army yields ground in good order, taking half damage.";
+  if (action === "fighting_withdrawal") return "The army withdraws in order, regains morale, and infantry fires to range 2.";
   if (action === "perfect_plan") return "McClellan holds his army, then launches an attack the next phase.";
   return "Major action underway.";
 }
@@ -1416,7 +1411,6 @@ function getActionDefenseMultiplier(army, unit) {
   if (action === "mass_assault") return 1.2;
   if (action === "line_rotation" && unitSector === sector) return 0.9;
   const sig = army.activeSignature;
-  if (sig?.type === "fighting_withdrawal") return 0.5;
   return 1;
 }
 
@@ -1730,6 +1724,34 @@ function resolveCombat(rand, events) {
       const target = pickTargetFromSet(u, enemy, aliveAtStart);
       if (!target || !aliveAtStart.has(target.id)) return;
 
+      const sig = state.armies[side].activeSignature;
+      const isGrandBatteryVolley = sig?.type === "artillery_barrage" && u.type === "artillery";
+      if (isGrandBatteryVolley) {
+        const range = getEffectiveRange(u);
+        const volleyTargets = state.armies[enemy].units.filter((e) => {
+          if (!e.alive || !aliveAtStart.has(e.id)) return false;
+          return hexDist(u.q, u.r, e.q, e.r) <= range;
+        });
+        if (!volleyTargets.length) return;
+
+        const attackerCohesion = countAdjacentFriendly(u.q, u.r, u.armyId);
+        const cohesionBonus = attackerCohesion >= 2 ? 1.15 : 1;
+        volleyTargets.forEach((vt) => {
+          const targetDist = hexDist(u.q, u.r, vt.q, vt.r);
+          const targetSupport = countAdjacentFriendly(vt.q, vt.r, vt.armyId);
+          const supportMitigation = targetSupport >= 2 ? 0.9 : 1;
+          const baseAttack = 12;
+          let base = baseAttack * cohesionBonus * supportMitigation;
+          base *= 3;
+          base *= getActionAttackMultiplier(state.armies[side], u);
+          base *= getActionDefenseMultiplier(state.armies[vt.armyId], vt);
+          const moraleMod = Math.max(0.4, u.morale / 100);
+          const dmg = base * moraleMod * (0.6 + rand() * 0.8);
+          intents.push({ attacker: u, target: vt, side, dmg, targetSupport });
+        });
+        return;
+      }
+
       const targetDist = hexDist(u.q, u.r, target.q, target.r);
       const attackerCohesion = countAdjacentFriendly(u.q, u.r, u.armyId);
       const targetSupport = countAdjacentFriendly(target.q, target.r, target.armyId);
@@ -1738,12 +1760,11 @@ function resolveCombat(rand, events) {
 
       let baseAttack = u.attack;
       if (u.type === "artillery") {
-        baseAttack = targetDist <= 1 ? 16 : 8;
+        baseAttack = 12;
       }
       let base = baseAttack * cohesionBonus * supportMitigation;
-      const sig = state.armies[side].activeSignature;
       if (sig?.type === "artillery_barrage" && u.type === "artillery") {
-        base *= 2;
+        base *= 3;
       }
       base *= getActionAttackMultiplier(state.armies[side], u);
       base *= getActionDefenseMultiplier(state.armies[target.armyId], target);
@@ -1820,6 +1841,10 @@ function pickTarget(unit, enemySide) {
 function getEffectiveRange(unit) {
   const sig = state.armies[unit.armyId].activeSignature;
   if (sig?.type === "feigned_retreat" && unit.type === "cavalry") return 2;
+  if (sig?.type === "fighting_withdrawal" && unit.type === "infantry") {
+    const wing = state.armies[unit.armyId].divisions[unit.divisionId] || {};
+    if (wing.currentOrder === "Withdraw" || wing.currentOrder === "Retreat") return 2;
+  }
   return unit.range;
 }
 
@@ -1862,6 +1887,9 @@ function routeAndCleanup(events) {
       if ((u.moveBonus || 0) > 0) u.moveBonus -= 1;
       if (army.currentAction === "advance") {
         u.morale = Math.min(100, u.morale + 4);
+      }
+      if (army.activeSignature?.type === "fighting_withdrawal") {
+        u.morale = Math.min(100, u.morale + 8);
       }
       if (moraleRecoverySector && getSectorForUnit(u) === moraleRecoverySector) {
         const gain = army.currentAction === "line_rotation" ? 5 : 8;

@@ -12,7 +12,7 @@ const COMMANDERS = {
     majorOrders: [{ type: "artillery_concentration", line: "Concentrate the guns and break their center.", inspiredBy: "Austerlitz" }],
     preferredActions: ["concentrate_center", "bombard_sector"],
     traits: { aggression: 8, control: 8, creativity: 9, panicResistance: 9 },
-    signature: { name: "Grand Battery", type: "artillery_barrage", duration: 5, description: "Artillery deals x2 damage in one sector for 5 turns." },
+    signature: { name: "Grand Battery", type: "artillery_barrage", duration: 1, description: "One-time volley: artillery fires at all available targets for x3 damage." },
     signatureQuotes: {
       artillery_barrage: [
         "Artillery is the god of war.",
@@ -87,7 +87,7 @@ const COMMANDERS = {
     majorOrders: [{ type: "defensive_stand", line: "Stand firm and withdraw in good order.", inspiredBy: "Battle of Long Island" }],
     preferredActions: ["defensive_stand", "defend_flank"],
     traits: { aggression: 3, control: 9, creativity: 6, panicResistance: 9 },
-    signature: { name: "Fighting Withdrawal", type: "fighting_withdrawal", duration: 5, description: "Target sector retreats, recovers 20% morale once, and takes 20% less damage for 5 turns." },
+    signature: { name: "Fighting Withdrawal", type: "fighting_withdrawal", duration: 5, description: "Army retreats and recovers morale. Infantry fires at range 2 while withdrawing for 5 turns." },
     signatureQuotes: {
       fighting_withdrawal: [
         "Discipline is the soul of an army.",
