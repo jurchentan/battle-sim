@@ -371,6 +371,7 @@ select {
 .reels-next-action {
   display: block;
   line-height: 1;
+  font-size: 28px;
 }
 
 .reels-turn-counter {
