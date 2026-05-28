@@ -19,6 +19,7 @@ function stopSimulationLoop() {
 function runSimulation() {
   state.battleOverlay = null;
   state.unitAnimations = {};
+  state.pendingTurnPrelude = null;
   state.running = true;
   if (!state.replay.turns.length) {
     state.replay = { seed: state.seed, turns: [], finalResult: null };
@@ -89,8 +90,13 @@ function playTurnPhases(done) {
     if (typeof done === "function") done(moveResult);
     return;
   }
-  const movementDelay = getMovementPhaseDelayMs();
+  const movementDelay = moveResult?.waitingForSignature
+    ? getSignaturePreludeDelayMs()
+    : getMovementPhaseDelayMs();
   state.simTimer = setTimeout(() => {
+    if (moveResult?.waitingForSignature) {
+      continueTurnAfterSignaturePrelude();
+    }
     if (!state.pendingTurnDamage) {
       if (typeof done === "function") done({ ended: false });
       return;
@@ -117,15 +123,47 @@ function stepTurnMovementPhase() {
   ["A", "B"].forEach((side) => autoCommitReservesIfDivisionCollapsed(side, turnEvents));
   ["A", "B"].forEach((side) => issueOrdersFromAction(side, turnEvents));
   ["A", "B"].forEach((side) => applyFriction(side, rand, turnEvents));
+  const hasSignaturePrelude = getRemainingSignatureCinematicMs() > 0;
+  if (hasSignaturePrelude) {
+    state.pendingTurnPrelude = { rand, turnEvents };
+    render();
+    return { ended: false, waitingForSignature: true };
+  }
   ["A", "B"].forEach((side) => moveUnits(side, rand));
   state.pendingTurnDamage = { rand, turnEvents };
   render();
   return { ended: false };
 }
 
+function continueTurnAfterSignaturePrelude() {
+  if (!state.pendingTurnPrelude || state.pendingTurnDamage) return;
+  const { rand, turnEvents } = state.pendingTurnPrelude;
+  state.pendingTurnPrelude = null;
+  ["A", "B"].forEach((side) => moveUnits(side, rand));
+  state.pendingTurnDamage = { rand, turnEvents };
+  render();
+}
+
+function getSignaturePreludeDelayMs() {
+  return Math.max(60, getRemainingSignatureCinematicMs() + 24);
+}
+
+function getRemainingSignatureCinematicMs() {
+  const now = performance.now();
+  let maxRemaining = 0;
+  ["A", "B"].forEach((side) => {
+    const fx = state.signatureCinematics?.[side];
+    if (!fx) return;
+    const remaining = Math.max(0, (fx.durationMs || 0) - (now - (fx.startAt || now)));
+    if (remaining > maxRemaining) maxRemaining = remaining;
+  });
+  return maxRemaining;
+}
+
 function stepTurnDamagePhase() {
   if (!state.pendingTurnDamage) {
     state.turnInProgress = false;
+    state.pendingTurnPrelude = null;
     return { ended: false };
   }
   const { rand, turnEvents } = state.pendingTurnDamage;
@@ -202,7 +240,7 @@ function chooseMajorAction(side, rand, events) {
     return;
   }
 
-  if (army.abilityReady && c.signature) {
+  if (army.abilityReady && c.signature && shouldUseSignatureNow(side, rand)) {
     const sector = "all";
     let sigType = c.signature.type;
     let sigName = c.signature.name;
@@ -226,6 +264,7 @@ function chooseMajorAction(side, rand, events) {
       sector,
       turnsLeft: sigDuration,
     };
+    triggerSignatureCinematic(side, sigType);
     events.push(`${c.name}: ${sigName} ORDER (ARMY-WIDE)`);
     return;
   }
@@ -253,6 +292,61 @@ function chooseMajorAction(side, rand, events) {
   const major = c.majorOrders[0];
   const line = `${c.name}: ${formatActionName(action, side)} (${sector.toUpperCase()} sector) · Inspired by ${major.inspiredBy}`;
   events.push(line);
+}
+
+function triggerSignatureCinematic(side, sigType) {
+  if (typeof queueSignatureCinematic !== "function") return;
+  const payload = {};
+  if (sigType === "artillery_barrage") {
+    const barrage = getArtilleryBarrageSnapshot(side);
+    payload.artillery = barrage.artillery
+      .slice()
+      .sort((a, b) => a.q - b.q)
+      .map((u, idx) => ({ q: u.q, r: u.r, sequence: idx }));
+    payload.targets = barrage.targets.map((t, idx) => ({ q: t.q, r: t.r, impactDelayMs: idx * 90 }));
+  }
+  queueSignatureCinematic(side, sigType, payload);
+}
+
+function shouldUseSignatureNow(side, rand) {
+  const army = state.armies[side];
+  const commanderId = army?.armyCommanderId;
+  if (!army || !commanderId) return true;
+
+  let useChance = 0.72;
+
+  if (commanderId === "napoleon") {
+    const enemySide = side === "A" ? "B" : "A";
+    const enemyAlive = state.armies[enemySide].units.filter((u) => u.alive).length;
+    const inRange = getArtilleryBarrageSnapshot(side).targets.length;
+    const coverage = enemyAlive > 0 ? (inRange / enemyAlive) : 0;
+    if (coverage >= 0.45) useChance = 0.95;
+    else if (coverage >= 0.3) useChance = 0.85;
+    else useChance = 0.56;
+  } else if (commanderId === "washington") {
+    const lossPct = (army.defeatedUnitCount || 0) / Math.max(1, army.startingUnitCount || 1);
+    if (lossPct >= 0.22) useChance = 0.95;
+    else if (lossPct >= 0.12) useChance = 0.84;
+    else useChance = 0.62;
+  }
+
+  return rand() < useChance;
+}
+
+function getArtilleryBarrageSnapshot(side) {
+  const enemySide = side === "A" ? "B" : "A";
+  const artillery = state.armies[side].units.filter((u) => u.alive && u.type === "artillery");
+  const targetsById = new Map();
+  artillery.forEach((gun) => {
+    const range = getEffectiveRange(gun);
+    state.armies[enemySide].units.forEach((enemy) => {
+      if (!enemy.alive) return;
+      if (hexDist(gun.q, gun.r, enemy.q, enemy.r) <= range) {
+        targetsById.set(enemy.id, { q: enemy.q, r: enemy.r });
+      }
+    });
+  });
+  return { artillery, targets: [...targetsById.values()] };
 }
 
 function sectorsWithUnitType(side, type) {
@@ -722,9 +816,15 @@ function showReelsSignatureQuote(side, action) {
   const commander = COMMANDERS[state.armies[side].armyCommanderId] || {};
   const quote = getSignatureQuote(commander, action, side);
   if (!quote) return;
+  const now = Date.now();
+  const fxStartAt = state.signatureCinematics?.[side]?.startAt || performance.now();
+  const showAt = now + Math.max(0, Math.round(fxStartAt - performance.now()));
   state.reelsCommanderQuote[side] = {
     text: quote,
-    expiresAt: Date.now() + 3800,
+    showAt,
+    queuedAt: now,
+    turn: state.turn,
+    expiresAt: showAt + 3800,
   };
 }
 
@@ -1737,7 +1837,6 @@ function resolveCombat(rand, events) {
         const attackerCohesion = countAdjacentFriendly(u.q, u.r, u.armyId);
         const cohesionBonus = attackerCohesion >= 2 ? 1.15 : 1;
         volleyTargets.forEach((vt) => {
-          const targetDist = hexDist(u.q, u.r, vt.q, vt.r);
           const targetSupport = countAdjacentFriendly(vt.q, vt.r, vt.armyId);
           const supportMitigation = targetSupport >= 2 ? 0.9 : 1;
           const baseAttack = 12;
