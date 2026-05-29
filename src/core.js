@@ -319,6 +319,8 @@ const REELS_SIGNATURE_SFX = {
 const REELS_PREBATTLE_AUDIO = {
   napoleon_vs_gw: "./assets/reels-battle-audio/napoleon-vs-gw.mp3",
   napoleon_vs_caesar: "./assets/reels-battle-audio/napoleon-vs-caesar.mp3",
+  gw_vs_caesar: "./assets/reels-battle-audio/gw-vs-caesar.mp3",
+
 };
 
 let reelsPrebattleAudioEl = null;
@@ -400,7 +402,7 @@ const SCENARIO_API = "/api/scenarios";
 const PORTRAITS = {
   napoleon: loadPortrait("./assets/commanders/napoleon.png"),
   lee: loadPortrait("./assets/commanders/lee.jpg"),
-  genghis: loadPortrait("./assets/commanders/genghis.jpg"),
+  genghis: loadPortrait("./assets/commanders/genghis.png"),
   washington: loadPortrait("./assets/commanders/washington.png"),
   mcclellan: loadPortrait("./assets/commanders/mcclellan.png"),
   caesar: loadPortrait("./assets/commanders/caesar.png"),
