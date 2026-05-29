@@ -916,7 +916,7 @@ function actionTechnicalDescription(action, sector) {
   if (action === "feigned_retreat") return "All cavalry retreats and attacks at range 2 for 5 turns.";
   if (action === "fighting_withdrawal") return "Army-wide retreat and morale recovery; infantry fires at range 2 while withdrawing for 5 turns.";
   if (action === "perfect_plan") return "All units hold for 5 turns. Then force an offensive action with +20% damage until the next major action turn.";
-  if (action === "cross_rubicon") return "For 5 turns, all units are pinned to 120% morale and launch a mass assault.";
+  if (action === "cross_rubicon") return "All units gain a one-time morale boost to 120% and launch a mass assault.";
   return "Major action active.";
 }
 
@@ -940,7 +940,7 @@ function actionReelsDescription(action, sector) {
   if (action === "feigned_retreat") return "Cavalry withdraws, then punishes from range.";
   if (action === "fighting_withdrawal") return "The army withdraws in order, regains morale, and infantry fires to range 2.";
   if (action === "perfect_plan") return "McClellan holds his army, then launches an attack the next phase.";
-  if (action === "cross_rubicon") return "Caesar's legions pin morale to 120% while launching an all-out assault.";
+  if (action === "cross_rubicon") return "Caesar's legions surge with a one-time morale boost to 120% and launch an all-out assault.";
   return "Major action underway.";
 }
 
@@ -2059,9 +2059,6 @@ function routeAndCleanup(events) {
       if ((u.statuses.cavalryShockTurns || 0) > 0) u.statuses.cavalryShockTurns -= 1;
       if ((u.statuses.disengageTurns || 0) > 0) u.statuses.disengageTurns -= 1;
       if ((u.moveBonus || 0) > 0) u.moveBonus -= 1;
-      if (army.activeSignature?.type === "cross_rubicon") {
-        u.morale = MAX_MORALE;
-      }
       if (army.currentAction === "advance") {
         u.morale = Math.min(moraleCap, u.morale + 4);
       }

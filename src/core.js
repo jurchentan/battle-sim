@@ -139,7 +139,7 @@ const COMMANDERS = {
     majorOrders: [{ type: "mass_assault", line: "Cross the Rubicon and crush their line.", inspiredBy: "The crossing of the Rubicon" }],
     preferredActions: ["mass_assault", "exploit_gap"],
     traits: { aggression: 8, control: 8, creativity: 8, panicResistance: 8 },
-    signature: { name: "Cross the Rubicon", type: "cross_rubicon", duration: 5, description: "All units are pinned to 120% morale while launching a mass assault." },
+    signature: { name: "Cross the Rubicon", type: "cross_rubicon", duration: 5, description: "All units gain a one-time morale boost to 120% while launching a mass assault." },
     signatureQuotes: {
       cross_rubicon: [
         "The die is cast.",
