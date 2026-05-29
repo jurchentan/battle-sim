@@ -684,9 +684,9 @@ function getActionWeights(commander, phase, side) {
     commit_reserve: 0.1 + flankThreat * 2.1 + pressure * 0.7,
   };
 
-  const aggr = commander.traits.aggression || 5;
-  const control = commander.traits.control || 5;
-  const creativity = commander.traits.creativity || 5;
+  const aggr = commander.traits.aggression ?? 5;
+  const control = commander.traits.control ?? 5;
+  const creativity = commander.traits.creativity ?? 5;
   base.mass_assault *= 0.65 + (aggr / 10) * 0.9;
   base.cavalry_charge *= 0.8 + (aggr / 10) * 0.5;
   base.flank_attack *= 0.8 + (creativity / 10) * 0.65;
@@ -702,8 +702,14 @@ function getActionWeights(commander, phase, side) {
   base.exploit_gap *= exploitCreativityFactor;
   base.commit_reserve *= 0.8 + (control / 10) * 0.85;
 
+  if (aggr <= 0) {
+    ["advance", "concentrate_center", "flank_attack", "cavalry_charge", "bombard_sector", "mass_assault", "exploit_gap"].forEach((action) => {
+      base[action] = 0;
+    });
+  }
+
   Object.keys(base).forEach((k) => {
-    base[k] = Math.max(0.01, base[k]);
+    base[k] = Math.max(0, base[k]);
   });
 
   const preferred = new Set(commander.preferredActions || []);
@@ -915,7 +921,7 @@ function actionTechnicalDescription(action, sector) {
   if (action === "foot_cavalry") return "All infantry gets +1 move and extra morale pressure for 5 turns.";
   if (action === "feigned_retreat") return "All cavalry retreats and attacks at range 2 for 5 turns.";
   if (action === "fighting_withdrawal") return "Army-wide retreat and morale recovery; infantry fires at range 2 while withdrawing for 5 turns.";
-  if (action === "perfect_plan") return "All units hold for 5 turns. Then force an offensive action with +20% damage until the next major action turn.";
+  if (action === "perfect_plan") return "All units hold and take 50% less damage for 5 turns. Then a forced offensive action is unleashed on the next major action turn.";
   if (action === "cross_rubicon") return "All units gain a one-time morale boost to 120% and launch a mass assault.";
   return "Major action active.";
 }
@@ -939,7 +945,7 @@ function actionReelsDescription(action, sector) {
   if (action === "foot_cavalry") return "Infantry moves faster and launches flank attacks.";
   if (action === "feigned_retreat") return "Cavalry withdraws, then punishes from range.";
   if (action === "fighting_withdrawal") return "The army withdraws in order, regains morale, and infantry fires to range 2.";
-  if (action === "perfect_plan") return "McClellan holds his army, then launches an attack the next phase.";
+  if (action === "perfect_plan") return "McClellan holds under heavy protection, then launches a forced offensive attack on the next major action turn.";
   if (action === "cross_rubicon") return "Caesar's legions surge with a one-time morale boost to 120% and launch an all-out assault.";
   return "Major action underway.";
 }
@@ -1003,10 +1009,11 @@ function getSignatureNameByType(actionType) {
 }
 
 function weightedPick(options, weights, rand) {
-  const total = options.reduce((acc, o) => acc + (weights[o] || 1), 0);
+  const total = options.reduce((acc, o) => acc + (weights[o] ?? 1), 0);
+  if (total <= 0) return options[0];
   let roll = rand() * total;
   for (let i = 0; i < options.length; i += 1) {
-    const w = weights[options[i]] || 1;
+    const w = weights[options[i]] ?? 1;
     roll -= w;
     if (roll <= 0) return options[i];
   }
@@ -1014,14 +1021,18 @@ function weightedPick(options, weights, rand) {
 }
 
 function chooseForcedOffensiveAction(side, rand) {
-  const offensivePool = ["advance", "concentrate_center", "flank_attack", "cavalry_charge", "bombard_sector", "mass_assault"];
+  const offensivePool = ["concentrate_center", "flank_attack", "cavalry_charge", "mass_assault", "exploit_gap"];
   const available = getAvailableActionsForArmy(side).filter((a) => offensivePool.includes(a));
   if (!available.length) return "advance";
   const army = state.armies[side];
   const commander = COMMANDERS[army.armyCommanderId];
   const phase = getBattlePhase(side);
   const weights = getActionWeights(commander, phase, side);
-  return weightedPick(available, weights, rand);
+  const forcedWeights = { ...weights };
+  available.forEach((action) => {
+    forcedWeights[action] = Math.max(0.01, forcedWeights[action] ?? 0.01);
+  });
+  return weightedPick(available, forcedWeights, rand);
 }
 
 function applyFriction(side, rand, events) {
@@ -1038,14 +1049,10 @@ function tickActiveAction(side, rand, events) {
     if (sig.turnsLeft <= 0) {
       const forced = chooseForcedOffensiveAction(side, rand);
       const forcedSector = chooseSectorForAction(forced, side, rand);
-      army.currentAction = forced;
-      army.currentSector = forcedSector;
       army.forcedMajorAction = forced;
       army.forcedMajorSector = forcedSector;
-      army.majorActionDamageBoost = 1.2;
-      army.majorActionDamageBoostTurns = turnsUntilNextActionTurn() + 1;
       army.activeSignature = null;
-      events.push(`${COMMANDERS[army.armyCommanderId].name}: Perfect Plan complete — ${formatActionName(forced, side)} ordered (+20% damage).`);
+      events.push(`${COMMANDERS[army.armyCommanderId].name}: Perfect Plan complete — ${formatActionName(forced, side)} queued for next major action turn.`);
     }
     return;
   }
@@ -1569,12 +1576,13 @@ function getActionDefenseMultiplier(army, unit) {
   const action = army.currentAction;
   const sector = army.currentSector || "center";
   const unitSector = getSectorForUnit(unit);
+  const sig = army.activeSignature;
+  if (sig?.type === "perfect_plan") return 0.5;
   if (action === "defensive_stand" && unitSector === sector) return 0.8;
   if (action === "defend_flank" && unitSector === sector) return 0.8;
   if (action === "rally" && unitSector === sector) return 0.8;
   if (action === "mass_assault") return 1.2;
   if (action === "line_rotation" && unitSector === sector) return 0.9;
-  const sig = army.activeSignature;
   return 1;
 }
 
@@ -1799,7 +1807,7 @@ function isEnemyWeakNear(q, r, side, radius) {
 
 function evaluateCavalryCloseDecision(unit, targetHex, side) {
   const commander = COMMANDERS[state.armies[side].armyCommanderId] || { traits: {} };
-  const aggr = commander.traits.aggression || 5;
+  const aggr = commander.traits.aggression ?? 5;
   const sig = state.armies[side].activeSignature;
   const local = localCombatPowerAt(targetHex.q, targetHex.r, side, 2);
   const enemyWeak = isEnemyWeakNear(targetHex.q, targetHex.r, side, 2);

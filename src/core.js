@@ -114,12 +114,12 @@ const COMMANDERS = {
     majorOrders: [{ type: "defensive_stand", line: "Prepare every detail, then strike with precision.", inspiredBy: "Peninsula Campaign planning" }],
     preferredActions: ["defensive_stand", "rally"],
     traits: { aggression: 0, control: 7, creativity: 3, panicResistance: 8 },
-    signature: { name: "The Perfect Plan", type: "perfect_plan", duration: 5, description: "All units hold for 5 turns, then force an offensive action with +20% damage until the next major action turn." },
+    signature: { name: "The Perfect Plan", type: "perfect_plan", duration: 5, description: "All units hold and take 50% less damage for 5 turns, then unleash a forced offensive action on the next major action turn." },
     signatureQuotes: {
       perfect_plan: [
         "Let no detail be left to chance.",
-        "We move when every piece is in place.",
-        "Preparation first; decisive action next.",
+        "We move only when every piece is in place.",
+        "They outnumber us!",
       ],
     },
     chargeDescription: "Charges from preserving formations.",
@@ -129,8 +129,8 @@ const COMMANDERS = {
       "The plan held, and so did the line.",
     ],
     defeatQuotes: [
-      "The Seven Days proved caution cannot stop momentum alone.",
-      "On the Peninsula, delay cost the initiative.",
+      "It appears caution cannot stop momentum alone.",
+      "Delay has cost the initiative.",
       "A careful plan still needs a decisive hour.",
     ],
   },
